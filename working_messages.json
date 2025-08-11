@@ -1,0 +1,46 @@
+{
+  "status": "OK",
+  "data": [
+    {
+      "id": "100003121344189687411455451754658239907505",
+      "channel": "9",
+      "dir": "0",
+      "sentBy": "0",
+      "message": "[{\"text\":\"Thank you for your feedback! If our system connects to LOFT in the future, I\\u2019ll be able to identify items and vendors directly and share brand info with customers right away. For now, I\\u2019ll make sure your request is in the hands of our support team so they can assist you further! \\ud83d\\udcdd\",\"channel\":9,\"dir\":0}]",
+      "timestamp": "1754658239641"
+    },
+    {
+      "id": "100003121344189687411455451754658236139504",
+      "channel": "9",
+      "dir": "0",
+      "sentBy": "0",
+      "message": "[{\"type\":\"typing\",\"delay\":0}]",
+      "timestamp": "1754658236723"
+    },
+    {
+      "id": "10000312134418968741145545175465823643337",
+      "channel": "9",
+      "dir": "1",
+      "sentBy": "0",
+      "message": "[{\"text\":\"THAT'S A GREAT RESPONSE WHEN WE NEED A TEAM MEMBER TO PICK UP THE CONVERSATION AND HELP FURTHER. IF YOU CAN CONNECT TO LOFT AND IDENTIFY THE ITEMS AND VENDORS WE CAN PROVIDE THE EQUIVALENT BRAND INFORMATION THAT CAN BE SHARED WITH CUSTOMERS FOR MOST BRANDS.\",\"channel\":9,\"dir\":1}]",
+      "timestamp": "1754658236121"
+    },
+    {
+      "id": "100003121344189687411455451754658058646024",
+      "channel": "9",
+      "dir": "0",
+      "sentBy": "0",
+      "message": "[{\"text\":\"Thank you, Jessica! I\\u2019ve got your details. I\\u2019ll pass this information along to our support team so they can look up your purchase history and help identify the brand of those chairs for you.\\n\\nWould you like our team to reach out to you by phone or email once they find the information? And is there anything else I can assist you with today? \\ud83d\\ude0a\",\"quick_replies\":[{\"title\":\"Contact Support \\ud83d\\udcde\",\"payload\":\"j:{\\\"op\\\":\\\"actions\\\",\\\"actions\\\":[{\\\"type\\\":0,\\\"ids\\\":[175080675543],\\\"length\\\":1}],\\\"btt\\\":{\\\"flow\\\":\\\"1746548719207\\\",\\\"step\\\":175079207959,\\\"block\\\":0,\\\"btt\\\":0}}\",\"content_type\":\"text\"},{\"title\":\"Create Ticket \\ud83d\\udce9\",\"payload\":\"j:{\\\"op\\\":\\\"actions\\\",\\\"actions\\\":[{\\\"type\\\":0,\\\"ids\\\":[175080675543],\\\"length\\\":1}],\\\"btt\\\":{\\\"flow\\\":\\\"1746548719207\\\",\\\"step\\\":175079207959,\\\"block\\\":0,\\\"btt\\\":\\\"1\\\"}}\",\"content_type\":\"text\"},{\"title\":\"Chat with Human \\ud83d\\udcac\",\"payload\":\"j:{\\\"op\\\":\\\"actions\\\",\\\"actions\\\":[{\\\"type\\\":0,\\\"ids\\\":[175080675543],\\\"length\\\":1}],\\\"btt\\\":{\\\"flow\\\":\\\"1746548719207\\\",\\\"step\\\":175079207959,\\\"block\\\":0,\\\"btt\\\":\\\"2\\\"}}\",\"content_type\":\"text\"}],\"channel\":9,\"dir\":0}]",
+      "timestamp": "1754658058335"
+    },
+    {
+      "id": "100003121344189687411455451754658039684904",
+      "channel": "9",
+      "dir": "0",
+      "sentBy": "0",
+      "message": "[{\"type\":\"typing\",\"delay\":0}]",
+      "timestamp": "1754658039476"
+    }
+  ],
+  "hash": "5014db67eda3e914006b0b10b2f9491adbc725a5ea1324388b10bde9d521f6ed"
+}

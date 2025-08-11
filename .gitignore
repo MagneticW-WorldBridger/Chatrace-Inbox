@@ -1,0 +1,15 @@
+.vercel
+.env
+.venv/
+node_modules/
+.DS_Store
+token.json
+client_secret.json
+.vercel/
+dist/
+coverage/
+__pycache__/
+.pytest_cache/
+.idea/
+.vscode/
+*.log

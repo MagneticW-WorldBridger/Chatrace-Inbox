@@ -1,0 +1,5149 @@
+{
+	"info": {
+		"_postman_id": "fa50919c-a24f-4556-aa0d-72f51c81d248",
+		"name": "Chatrace",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32319075"
+	},
+	"item": [
+		{
+			"name": "Get information about Whitelabel",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"wt\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"wt\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 04 Jul 2023 09:57:27 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "499"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": {\n        \"id\": \"701\",\n        \"name\": \"Name 1\",\n        \"icon\": \"...\",\n        \"privacyPolicy\":\"https://...\",\n        \"termsOfServices\":\"https://...\",\n        \"color\": {\n            \"primary\": \"#007BFF\",\n            \"accent\": \"#FA4659\",\n            \"link\": \"#007BFF\"\n        },\n        \"appdomain\": \"...\",\n        \"wsurl\": \"...\",\n        \"active\": \"1\",\n        \"smtp\": {\n            \"active\": true\n        },\n        \"facebook\": {\n            \"client\": \"...\"\n        },\n        \"microsoft\": {\n            \"client\": \"...\",\n            \"iosRedirect\":\"...\",\n            \"tenant\":\"...\"\n        },\n        \"google\": {\n            \"client\": \"...\"\n        },\n        \"apple\": {\n            \"client\": \"...\"\n        },\n        \"email\":{\n            \"login\": true\n        },\n        \"websocket\":\"wss://...\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Request OTP to log in with email",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"email\",\r\n    \"op2\":\"sendOTP\",\r\n    \"data\":{\r\n        \"email\":\"[user_email_address]\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"email\",\r\n    \"op2\":\"sendOTP\",\r\n    \"data\":{\r\n        \"email\":\"example@gmail.com\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"rid\":\"6ec08e8205fd05970f3923994d4759d2b6ca4d338258b6b5b5dd7a1f7ce86b1f\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Validate OTP received to log in with email",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"email\",\r\n    \"op2\":\"validateOTP\",\r\n    \"rid\":\"[received_from_resquest_OTP_api]\",\r\n    \"data\":{\r\n        \"code\":\"[OTP]\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"email\",\r\n    \"op2\":\"validateOTP\",\r\n    \"rid\":\"6ec08e8205fd05970f3923994d4759d2b6ca4d338258b6b5b5dd7a1f7ce86b1f\",\r\n    \"data\":{\r\n        \"code\":\"456788\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"token\":\"...\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Login with Google",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					},
+					{
+						"key": "X-PLATFORM",
+						"value": "ios|android",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"google\",\r\n    \"data\":{\r\n        \"idToken\":\"...\",\r\n        \"serverAuthCode\":\"\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"google\",\r\n    \"data\":{\r\n        \"idToken\":\"...\",\r\n        \"serverAuthCode\":\"\"\r\n    }\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"token\":\".....................\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Login with Microsoft",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					},
+					{
+						"key": "X-PLATFORM",
+						"value": "ios|android",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"microsoft\",\r\n    \"data\":{\r\n        \"idToken\":\"...\",\r\n        \"accessToken\":\"...\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"microsoft\",\r\n    \"data\":{\r\n        \"idToken\":\"...\",\r\n        \"accessToken\":\"\"\r\n    }\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"token\":\".....................\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Login with Apple",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					},
+					{
+						"key": "X-PLATFORM",
+						"value": "ios|android",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"apple\",\r\n    \"data\":{\r\n        \"identityToken\":\"...\",\r\n        \"authorizationCode\":\"\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"apple\",\r\n    \"data\":{\r\n        \"identityToken\":\"...\",\r\n        \"authorizationCode\":\"\"\r\n    }\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"token\":\".....................\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Login with Facebook",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					},
+					{
+						"key": "X-PLATFORM",
+						"value": "ios|android",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"facebook\",\r\n    \"data\":{\r\n        \"accessToken\":\"...\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"login\",\r\n    \"op1\":\"authentication\",\r\n    \"op2\":\"validate\",\r\n    \"op3\":\"facebook\",\r\n    \"data\":{\r\n        \"accessToken\":\"...\"\r\n    }\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"token\":\".....................\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					},
+					{
+						"key": "X-PLATFORM",
+						"value": "ios|android",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \r\n    \"op\":\"logout\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n    \"op\":\"logout\"\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get logged user information",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": null,\r\n    \"op\":\"admins\",\r\n    \"op1\":\"get\",\r\n    \"me\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": null,\r\n    \"op\":\"admins\",\r\n    \"op1\":\"get\",\r\n    \"me\": true\r\n}"
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 12:06:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6197"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"page_id\": \"1014964\",\n    \"me\": {\n        \"fn\": \"First Name\",\n        \"ln\": \"Last Name\",\n        \"profile_pic\": \"...\",\n        \"page_id\": \"1014964\",\n        \"ms_id\": \"0\",\n        \"fb_id\": \"1000000002\",\n        \"email\": \"...\",\n        \"u\": \"2\",\n        \"q\": \"2\",\n        \"o\": \"2\",\n        \"s\": \"2\",\n        \"t\": \"2\",\n        \"m\": \"2\",\n        \"e\": \"5\",\n        \"eo\": \"1\",\n        \"mg_all\": \"1\",\n        \"c\": \"2\",\n        \"own\": \"10000000001\"\n    },\n    \"type\": \"bot\",\n    \"my_pages\": [ \n        {\n            \"page_id\": \"1179196\",\n            \"name\": \"Demo_bot\",\n            \"picture\": \"...\",\n            \"active\": \"1\",\n            \"username\": \"\",\n            \"plan\": \"10\",\n            \"days_left\": \"-1\"\n        },      \n        {\n            \"page_id\": \"1014964\",\n            \"name\": \"Demo bot - Shop\",\n            \"picture\": \"...\",\n            \"active\": \"1\",\n            \"username\": \"\",\n            \"plan\": \"10\",\n            \"days_left\": \"-1\"\n        },\n        {\n            \"page_id\": \"1300985\",\n            \"name\": \"Test\",\n            \"picture\": \"...\",\n            \"active\": \"1\",\n            \"username\": \"\",\n            \"plan\": \"13\",\n            \"days_left\": \"-6\"\n        }\n      \n    ],\n    \"curPage\": {\n        \"page_id\": \"1014964\",\n        \"nav\": 0,\n        \"smtp\": false,\n        \"messenger_id\": \"1000000000000001\",\n        \"voice\": null,\n        \"pers\": {\n            \"billplz\": false,\n            \"ms_calendar\": true,\n            \"goo_calendar\": true,\n            \"openAI\": true,\n            \"placeNearMe\": false,\n            \"admins\": true,\n            \"search\": true,\n            \"analytics\": true,\n            \"inbox\": true,\n            \"flows\": true,\n            \"ai\": true,\n            \"ecommerce\": {\n                \"general\": true,\n                \"coupon\": true,\n                \"settigns\": true,\n                \"category\": true,\n                \"vendor\": false,\n                \"product\": true,\n                \"order\": true\n            },\n            \"contacts\": true,\n            \"broadcast\": {\n                \"general\": true,\n                \"fbSponsored\": true\n            },\n            \"tools\": true,\n            \"settings\": true,\n            \"fbComment\": true,\n            \"igComment\": true,\n            \"igStoryR\": true,\n            \"job\": true,\n            \"trigger\": true,\n            \"sequence\": true,\n            \"qrCode\": true,\n            \"refLinks\": true,\n            \"template\": true,\n            \"persona\": true,\n            \"chatPlugin\": true,\n            \"webhooks\": true,\n            \"booking\": true,\n            \"news\": true,\n            \"poll\": true,\n            \"uploadI\": true,\n            \"sticker\": true,\n            \"event\": true,\n            \"messenger\": true,\n            \"whatsApp\": true,\n            \"sms\": true,\n            \"instagram\": true,\n            \"gbm\": true,\n            \"webchat\": true,\n            \"telegram\": true,\n            \"viber\": true,\n            \"rcs\": true,\n            \"email\": true,\n            \"wa_template\": true,\n            \"integration\": true,\n            \"api\": true,\n            \"fbAds\": true,\n            \"woo\": true,\n            \"shopify\": true,\n            \"paypal\": true,\n            \"stripe\": true,\n            \"razorpay\": true,\n            \"gSheets\": true,\n            \"zapier\": true,\n            \"integromate\": true,\n            \"dialogflow\": true,\n            \"wit\": true,\n            \"sendgrid\": true,\n            \"mailchimp\": true,\n            \"aCampain\": true,\n            \"drip\": true,\n            \"automize\": true,\n            \"sendfox\": true,\n            \"moosend\": true,\n            \"platformly\": true,\n            \"pipeDrive\": true,\n            \"klavio\": true,\n            \"getResponse\": true,\n            \"mailerLite\": true,\n            \"leadsquare\": true,\n            \"walletly\": true,\n            \"gStoText\": true,\n            \"trumail\": true,\n            \"customizations\": true,\n            \"fbCatalog\": true,\n            \"clicksend\": true,\n            \"gupshupW\": true,\n            \"dialog360\": true,\n            \"waTeam\": true,\n            \"twilio\": {\n                \"sms\": true,\n                \"whatsapp\": true\n            },\n            \"notification\": {\n                \"email\": true,\n                \"sms\": false,\n                \"messenger\": true,\n                \"telegram\": true\n            },\n            \"otn\": true,\n            \"errorLog\": true,\n            \"tag\": true,\n            \"customField\": true,\n            \"userMenu\": true,\n            \"pageEvents\": true,\n            \"maxUsers\": -1,\n            \"userInput\": true,\n            \"pabbly\": true,\n            \"terra\": true,\n            \"botSimulator\": true\n        },\n        \"name\": \"Demo bot - Shop\",\n        \"picture\": \"...\",\n        \"active\": \"1\",\n        \"username\": \"\",\n        \"sm\": \"0\",\n        \"beta\": \"0\",\n        \"telegram\": \"\",\n        \"viber\": null,\n        \"viberbm\": null,\n        \"viberbm_id\": \"0\",\n        \"instagram\": null,\n        \"whatsapp\": null,\n        \"wit\": false,\n        \"bt\": \"0\",\n        \"office\": \"2\",\n        \"itg_store_type\": \"0\",\n        \"coin\": \"$\",\n        \"round_number\": \"2\",\n        \"produts\": \"1\",\n        \"news\": \"0\",\n        \"events\": \"0\",\n        \"plan\": \"10\",\n        \"catalog\": null,\n        \"num_live_chat\": \"0\",\n        \"days_left\": \"-1\",\n        \"gbm\": null,\n        \"sms\": null\n    },\n    \"num_live_chat\": \"0\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Register device for Firebase Cloud Messaging",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"firebaseCM\",\r\n    \"op1\":\"device\",\r\n    \"op2\":\"add\",\r\n    \"data\":{\r\n        \"firebaseToken\":\"...\",\r\n        \"platform\":\"ios|android\",\r\n        \"brand\":\"iPhone|Samsung|Xiaomi|...\",\r\n        \"model\":\"15 PRO|Galaxy S23 Ultra|...\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"firebaseCM\",\r\n    \"op1\":\"device\",\r\n    \"op2\":\"add\",\r\n    \"data\":{\r\n        \"firebaseToken\":\"123456789abcde...\",\r\n        \"platform\":\"ios\",\r\n        \"brand\":\"iPhone\",\r\n        \"model\":\"15 PRO\"\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of conversations (contacts)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"get\",\r\n    \"offset\":0,\r\n    \"limit\":30,\r\n    \"cdts\":[]\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"get\",\r\n    \"offset\":0,\r\n    \"limit\":1,\r\n    \"cdts\":[]\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 04 Jul 2023 10:12:53 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "511"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"ms_id\": \"2850008055041461\",\n            \"full_name\": \"Full name\",\n            \"channel\": \"0\",\n            \"last_msg\": \"last message sent to this conversation\",\n            \"profile_pic\": \"...\",\n            \"phone\": \"+10000000001\",\n            \"timestamp\": \"1688201188610\",\n            \"live_chat\": \"1\",\n            \"followup\": \"0\",\n            \"archived\": \"0\",\n            \"blocked\": \"0\",\n            \"last_read_page\": \"1688459544\",\n            \"assigned_to\": \"0\",\n            \"last_active\": \"1688459542\",\n            \"t_last_sent\": \"1688459542306\",\n            \"t_last_delived\": \"1684778260091\",\n            \"t_last_seen\": \"1688201188610\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get contact information",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"get\",\r\n    \"ms_id\":\"[contact_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"get\",\r\n    \"ms_id\":\"2850008055041461\"\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 04 Jul 2023 10:39:10 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1269"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": {\n        \"ms_id\": \"[contact_id]\",\n        \"live_chat\": \"1\",\n        \"first_name\": \"...\",\n        \"last_name\": \"...\",\n        \"full_name\": \"...\",\n        \"profile_pic\": \"...\",\n        \"locale\": \"en_US\",\n        \"lng\": \"8\",\n        \"gender\": \"1\",\n        \"email\": \"\",\n        \"email_optin\": \"0\",\n        \"email_verified\": \"0\",\n        \"phone\": \"+10000000001\",\n        \"phone_optin\": \"0\",\n        \"phone_verified\": \"0\",\n        \"timezone\": \"-1\",\n        \"timezoneName\": \"America/Chicago\",\n        \"code\": \"50597721\",\n        \"source\": \"0\",\n        \"t_last_seen\": \"1688201188610\",\n        \"t_last_interaction\": \"1688201188610\",\n        \"guest\": \"0\",\n        \"dt\": \"2023-05-22 17:57:43\",\n        \"status\": \"1\",\n        \"channel\": \"0\",\n        \"assigned_to\": \"0\",\n        \"last_read_page\": \"1688459544\",\n        \"last_active\": \"1688459542\",\n        \"followup\": \"0\",\n        \"archived\": \"0\",\n        \"blocked\": \"0\",\n        \"ig_username\": \"\",\n        \"ig_verified\": \"0\",\n        \"hash\": \"c42073fe20f0fb861c02120601d1676594946b9a6012b4d375809c28e275604d\",\n        \"country\": \"840\",\n        \"state\": \"IL\",\n        \"city\": \"\",\n        \"zip\": \"\",\n        \"tags\": [\n            \"[tag_id_1]\",\n            \"[tag_id_2]\",\n            \"[...]\"\n        ],\n        \"sequences\": [\n            \"[sequence_id_1]\",\n            \"[sequence_id_2]\",\n            \"[...]\"\n         ],\n        \"otns\": [\n            \"[messenger_list_id_1]\",\n            \"[messenger_list_id_2]\",\n            \"...\"\n         ],\n        \"notes\":[\n            {\n                \"id\": \"61897\",\n                \"text\": \"this is note 1\",\n                \"own\": \"[Admin_ID]\",\n                \"u_dt\": \"[timestanp]\"\n            }\n        ],\n        \"custom_fields\": [\n            {\n                \"id\": \"473991\",\n                \"value\": \"Red\",\n                \"type\": \"0\"\n            },\n            {\n                \"id\": \"740763\",\n                \"value\": \"100\",\n                \"type\": \"1\"\n            }\n        ]\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of messages from a conversation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"get\",\r\n    \"offset\":0,\r\n    \"limit\":30,\r\n    \"cdts\":[]\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}} ",
+					"host": [
+						"{{api_url}} "
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Get last 20 messages from a conversation",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"get\",\r\n    \"id\": 100000000001,\r\n    \"offset\":0,\r\n    \"limit\":20,\r\n    \"expand\":{\r\n        \"comments\":{},\r\n        \"refs\":{},\r\n        \"appointments\":{}\r\n    }\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 04 Jul 2023 10:26:47 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1856"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"m_PGup8VdRjYKC25kERiLIDBwpV-a-ZV-x_9YSCA3md6OgCM9Jik3mgix-2Kh6LgW8V3RNwdnUcjtlLl4FYKEdGQ\",\n            \"channel\": \"0\",\n            \"dir\": \"0\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"The Instagram Story Mention feature allows you to automatically reply to anyone who tags your IG brand in their story. This helps you engage with your audience and build brand loyalty. You can watch a video tutorial on how to set up this feature on our YouTube channel.\\\",\\\"channel\\\":0,\\\"dir\\\":0}]\",\n            \"timestamp\": \"1688139175357\"\n        },\n        {\n            \"id\": \"m_CnybyfHr60S5tQlFf3QFbxwpV-a-ZV-x_9YSCA3md6MfH-whZf7h1bMk1Bxt4biZPzEQDDMJNOyljXmgNicVDw\",\n            \"channel\": \"0\",\n            \"dir\": \"1\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"How to use Instagram Story mention feature?\\\",\\\"dir\\\":1,\\\"channel\\\":0}]\",\n            \"timestamp\": \"1688139169311\"\n        },\n        {\n            \"id\": \"m_n1z337F50JI10QkhwPE_2RwpV-a-ZV-x_9YSCA3md6OYaTWvWKnaJvHdtWFLIYR0jP3qb-qMFT2fK5Us5Qh81g\",\n            \"channel\": \"0\",\n            \"dir\": \"0\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"Hello Petter, How I can help You\\\",\\\"channel\\\":0,\\\"dir\\\":0}]\",\n            \"timestamp\": \"1688139104705\"\n        },\n        {\n            \"id\": \"m_3pg0kaMRKS5tiMnsToAaORwpV-a-ZV-x_9YSCA3md6NHLbzwVICAhCk-wRspxKGX8fTt4Jw74Pt3WVPiwxyK9A\",\n            \"channel\": \"0\",\n            \"dir\": \"1\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"Hello, I need help\\\",\\\"dir\\\":1,\\\"channel\\\":0}]\",\n            \"timestamp\": \"1688139098749\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "Paginate messages",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"get\",\r\n    \"id\": 100000000001,\r\n    \"offset\":20,\r\n    \"limit\":20\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 04 Jul 2023 10:26:47 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1856"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"m_PGup8VdRjYKC25kERiLIDBwpV-a-ZV-x_9YSCA3md6OgCM9Jik3mgix-2Kh6LgW8V3RNwdnUcjtlLl4FYKEdGQ\",\n            \"channel\": \"0\",\n            \"dir\": \"0\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"The Instagram Story Mention feature allows you to automatically reply to anyone who tags your IG brand in their story. This helps you engage with your audience and build brand loyalty. You can watch a video tutorial on how to set up this feature on our YouTube channel.\\\",\\\"channel\\\":0,\\\"dir\\\":0}]\",\n            \"timestamp\": \"1688139175357\"\n        },\n        {\n            \"id\": \"m_CnybyfHr60S5tQlFf3QFbxwpV-a-ZV-x_9YSCA3md6MfH-whZf7h1bMk1Bxt4biZPzEQDDMJNOyljXmgNicVDw\",\n            \"channel\": \"0\",\n            \"dir\": \"1\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"How to use Instagram Story mention feature?\\\",\\\"dir\\\":1,\\\"channel\\\":0}]\",\n            \"timestamp\": \"1688139169311\"\n        },\n        {\n            \"id\": \"m_n1z337F50JI10QkhwPE_2RwpV-a-ZV-x_9YSCA3md6OYaTWvWKnaJvHdtWFLIYR0jP3qb-qMFT2fK5Us5Qh81g\",\n            \"channel\": \"0\",\n            \"dir\": \"0\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"Hello Petter, How I can help You\\\",\\\"channel\\\":0,\\\"dir\\\":0}]\",\n            \"timestamp\": \"1688139104705\"\n        },\n        {\n            \"id\": \"m_3pg0kaMRKS5tiMnsToAaORwpV-a-ZV-x_9YSCA3md6NHLbzwVICAhCk-wRspxKGX8fTt4Jw74Pt3WVPiwxyK9A\",\n            \"channel\": \"0\",\n            \"dir\": \"1\",\n            \"sentBy\": \"0\",\n            \"message\": \"[{\\\"text\\\":\\\"Hello, I need help\\\",\\\"dir\\\":1,\\\"channel\\\":0}]\",\n            \"timestamp\": \"1688139098749\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of admins",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"admins\",\r\n    \"op1\":\"get\",\r\n    \"basic_info\":true\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"admins\",\r\n    \"op1\":\"get\",\r\n    \"basic_info\":true\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"name\": \"Petter Bot\",\n            \"first_name\": \"Petter\",\n            \"last_name\": \"Bot\",\n            \"profile_pic\": \"https://graph.facebook.com/107919776695055/picture\",\n            \"fb_id\": \"100000001\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of Inbox teams",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"inbox_team\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"inbox_team\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Name 1\"\n\n        },\n        {\n            \"id\": \"688207\",\n            \"name\": \"Name 2\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Assign a conversation to admin/team",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"assign\",\r\n    \"contact_id\":\"[contact_id]\",    \r\n    \"data\": {\r\n        \"fb_id\":\"[admin_id|team_id]\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"assign\",\r\n    \"contact_id\":\"12345\",    \r\n    \"data\": {\r\n        \"fb_id\":\"1000005\"\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of flows",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"flows\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"flows\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Name 1\",\n            \"channel\":\"-1\"\n\n        },\n        {\n            \"id\": \"688207\",\n            \"name\": \"Name 2\",\n            \"channel\":\"5\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of Steps from a flow",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"flows\",\r\n    \"op1\":\"get\",\r\n    \"steps\":true,\r\n    \"data\":{\r\n        \"flowID\":\"[flow_id]\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"flows\",\r\n    \"op1\":\"get\",\r\n    \"steps\":true,\r\n    \"data\":{\r\n        \"flowID\":1234567890\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Name 1\",\n            \"channel\":\"-1\"\n\n        },\n        {\n            \"id\": \"688207\",\n            \"name\": \"Name 2\",\n            \"channel\":\"5\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Send flow to contact",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"send\",\r\n    \"op2\":\"flow\",\r\n    \"id\":\"[flow_id]\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"channel\":\"[channel_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"send\",\r\n    \"op2\":\"flow\",\r\n    \"id\":\"1234\",\r\n    \"contact_id\":\"100000000001\",\r\n    \"channel\":\"0\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Send step to contact",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"send\",\r\n    \"op2\":\"step\",\r\n    \"id\":\"[step_id]\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"channel\":\"[channel_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"send\",\r\n    \"op2\":\"step\",\r\n    \"id\":\"1234\",\r\n    \"contact_id\":\"100000000001\",\r\n    \"channel\":\"0\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of products",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"products\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"products\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Name 1\",\n            \"price\":\"55\",\n            \"type\":\"0\",\n            \"image\":\"\",\n            \"sku\":\"\",\n            \"parent_product\":\"\",\n            \"stock\":\"300\",\n            \"option0\":\"\",\n            \"option1\":\"\",\n            \"option2\":\"\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Send products to contact",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"send\",\r\n    \"op2\":\"products\",\r\n    \"product_ids\":\"[[product_id1],[product_id2],...]\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"channel\":\"[channel_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"send\",\r\n    \"op2\":\"products\",\r\n    \"product_ids\":[1111,22222,3333],\r\n    \"contact_id\":\"100000000001\",\r\n    \"channel\":\"0\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Move conversation to bot/human",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"live-chat\",\r\n    \"contact_id\":\"2850008055041461\",    \r\n    \"data\": {\r\n        \"enabled\":0\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Move conversation to bot",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"live-chat\",\r\n    \"contact_id\":\"12345678\",    \r\n    \"data\": {\r\n        \"enabled\": 0\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				},
+				{
+					"name": "Move conversation to human",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"live-chat\",\r\n    \"contact_id\":\"12345678\",    \r\n    \"data\": {\r\n        \"enabled\": 1\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Unassign a conversation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"assign\",\r\n    \"contact_id\":\"[contact_id]\",    \r\n    \"data\": {\r\n        \"fb_id\": 0\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"assign\",\r\n    \"contact_id\":\"12345\",    \r\n    \"data\": {\r\n        \"fb_id\":0\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Archive/unarchive a conversation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"archived\",\r\n    \"contact_id\":\"[contact_id]\",    \r\n    \"data\": {\r\n        \"value\":\"[1|0]\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Archive a conversation",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"archived\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"value\":1\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				},
+				{
+					"name": "Unarchive a conversation",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"archived\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"value\":0\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Follow/unfollow a conversation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"followup\",\r\n    \"contact_id\":\"[contact_id]\",    \r\n    \"data\": {\r\n        \"value\":\"[1|0]\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Follow a conversation",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"followup\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"value\":1\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				},
+				{
+					"name": "Unfollow a conversation",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"followup\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"value\":0\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Block/unblock a conversation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"blocked\",\r\n    \"contact_id\":\"[contact_id]\",    \r\n    \"data\": {\r\n        \"value\":\"[1|0]\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Block a contact",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"blocked\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"value\":1\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				},
+				{
+					"name": "Unblock a contact",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"blocked\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"value\":0\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Mark a conversation as read/unread",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"read\",\r\n    \"contact_id\":\"[contact_id]\",    \r\n    \"data\": {\r\n        \"timestamp\":\"[timestamp|0]\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Mark a conversation as read",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"read\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"timestamp\":1688483203\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				},
+				{
+					"name": "Mark a conversation as unread",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"read\",\r\n    \"contact_id\":\"1234567\",    \r\n    \"data\": {\r\n        \"timestamp\":0\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of tags",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"tags\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"tags\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Name 1\"\n        },\n        {\n            \"id\": \"688207\",\n            \"name\": \"Name 2\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Remove tag from contact",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"remove-tag\",\r\n    \"tags\":[\"[tag_id]\"],\r\n    \"contact_id\":\"[contact_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"update\",\r\n    \"op2\":\"remove-tag\",\r\n    \"tags\":[345],\r\n    \"contact_id\":\"1234567\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of drip campaigns",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"sequences\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"sequences\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Name 1\"\n        },\n        {\n            \"id\": \"688207\",\n            \"name\": \"Name 2\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of custom fields",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"custom-fields\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"custom-fields\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"688206\",\n            \"name\": \"Text\",\n            \"type\":\"0\"\n        },\n        {\n            \"id\": \"688207\",\n            \"name\": \"Number\",\n            \"type\":\"1\"\n        },\n        {\n            \"id\": \"688208\",\n            \"name\": \"Date\",\n            \"type\":\"2\"\n        },\n        {\n            \"id\": \"688209\",\n            \"name\": \"Date and time\",\n            \"type\":\"3\"\n        },\n        {\n            \"id\": \"688210\",\n            \"name\": \"true or false\",\n            \"type\":\"4\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Add new custom field",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"custom-fields\",\r\n    \"op1\":\"add\",\r\n    \"name\":\"[custom_field-name]\",\r\n    \"type\":\"[0|1|2|3|4]\"\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"custom-fields\",\r\n    \"op1\":\"add\",\r\n    \"mame\":\"Company\",\r\n    \"type\":\"0\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"name\":\"Company\",\n    \"id\": 1234567,\n    \"type\": 0\n}"
+				}
+			]
+		},
+		{
+			"name": "Set/update a contact custom field",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"custom-field\",\r\n    \"op2\":\"set\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"field_id\":\"[custon_field_id]\",\r\n    \"field_type\":\"[custom_field_type]\",\r\n    \"value\":\"...\"\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"custom-field\",\r\n    \"op2\":\"set\",\r\n    \"contact_id\":\"23238238\",\r\n    \"field_id\":\"123456\",\r\n    \"field_type\":\"0\",\r\n    \"value\":\"My company name\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Delete a contact custom field value",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"custom-field\",\r\n    \"op2\":\"delete\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"field_id\":\"[custon_field_id]\",\r\n    \"field_type\":\"[custom_field_type]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"custom-field\",\r\n    \"op2\":\"delete\",\r\n    \"contact_id\":\"23238238\",\r\n    \"field_id\":\"123456\",\r\n    \"field_type\":\"0\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Generate response from AI",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"AI-reply-suggestion\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"data\":{\r\n        \"prompt\":null\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"AI-reply-suggestion\",\r\n    \"contact_id\":\"223239339\",\r\n    \"data\":{\r\n        \"prompt\":null\r\n    }\r\n}\r\n    \r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":[\n        {\"text\":\"Hello, how I can help you?\"}\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Add a note to a conversation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"notes\",\r\n    \"op2\":\"add\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"data\": {\r\n        \"text\":\"\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"notes\",\r\n    \"op2\":\"add\",\r\n    \"contact_id\":\"12345\",\r\n    \"data\": {\r\n        \"text\":\"this is a note\"\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"id\": 12345,\n        \"text\":\"this is a note\",\n        \"u_dt\":\"1234567890\",\n        \"own\":\"44444\"\n    }\n    \n}"
+				}
+			]
+		},
+		{
+			"name": "Update a note",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"notes\",\r\n    \"op2\":\"update\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"id\" :\"[note_id]\",\r\n    \"data\": {\r\n        \"text\":\"\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"notes\",\r\n    \"op2\":\"update\",\r\n    \"contact_id\":\"12345\",\r\n    \"id\":\"88888\",\r\n    \"data\": {\r\n        \"text\":\"this is a note\"\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"id\": 88888,\n        \"text\":\"this is a note\",\n        \"u_dt\":\"1234567890\",\n        \"own\":\"44444\"\n    }\n    \n}"
+				}
+			]
+		},
+		{
+			"name": "Delete a note",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"notes\",\r\n    \"op2\":\"delete\",\r\n    \"contact_id\":\"[contact_id]\",\r\n    \"id\" :\"[note_id]\"\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"conversations\",\r\n    \"op1\":\"notes\",\r\n    \"op2\":\"delete\",\r\n    \"contact_id\":\"12345\",\r\n    \"id\":\"88888\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"    \n}"
+				}
+			]
+		},
+		{
+			"name": "Delete a contact",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"delete\",\r\n    \"contact_id\":\"[contact_id]\"\r\n}"
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"users\",\r\n    \"op1\":\"delete\",\r\n    \"contact_id\":\"12345\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"    \n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of saved replies",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"569601\",\n            \"shortcode\": \"/welcome\",\n            \"value\": \"Hello, welcome to our bot...\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Add a saved reply",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"add\",\r\n    \"data\":{\r\n        \"shortcode\":\"...\",\r\n        \"value\":\"...\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"add\",\r\n    \"data\":{\r\n        \"shortcode\":\"/welcome\",\r\n        \"value\":\"Hello, welcome to our bot...\"\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"id\": \"569601\",\n        \"shortcode\": \"/welcome\",\n        \"value\": \"Hello, welcome to our bot...\"\n    }    \n}"
+				}
+			]
+		},
+		{
+			"name": "Update a saved reply",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"update\",\r\n    \"data\":{\r\n        \"id\":\"[saved_reply_id]\",\r\n        \"shortcode\":\"...\",\r\n        \"value\":\"...\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"update\",\r\n    \"data\":{\r\n        \"id\": \"569601\",\r\n        \"shortcode\":\"/welcome\",\r\n        \"value\":\"Hello, welcome to our bot...\"\r\n    }\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"id\": \"569601\",\n        \"shortcode\": \"/welcome\",\n        \"value\": \"Hello, welcome to our bot...\"\n    }    \n}"
+				}
+			]
+		},
+		{
+			"name": "Delete a saved reply",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"delete\",\r\n    \"id\":\"[saved_reply_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"inbox_saved_reply\",\r\n    \"op1\":\"delete\",\r\n    \"id\":569601\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Upload a file",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "param",
+							"value": "{\"account_id\":\"{{account_id}}\",\"op\":\"flows\",\"op1\":\"upload\",\"op2\":\"image|video|audio|voice|file\",\"contact_id\":\"[contact_id]\",\"file_name\":\"[file_name | null for image|voice]\",\"uploadFB\":false,\"inbox\":true}",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "param",
+									"value": "{\"account_id\":\"111111\",\"op\":\"flows\",\"op1\":\"upload\",\"op2\":\"voice\",\"contact_id\":\"222222\",\"file_name\":null,\"uploadFB\":false,\"inbox\":true}",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"url\":\"https://..\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of Messenger Lists",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"otn\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"otn\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"569601\",\n            \"name\": \"Name 1\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of calendars",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\":{{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"get\"\r\n}\r\n    ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"569601\",\n            \"name\": \"Name 1\",\n            \"status\": \"1\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of appointments",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"appointments\",\r\n    \"op2\":\"get\",\r\n    \"calendarID\":null\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"appointments\",\r\n    \"op2\":\"get\",\r\n    \"calendarID\":null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": {\n        \"next\":[\n            {\n                \"id\": \"569601\",\n                \"hash\":\"jdsdskk\",\n                \"ms_id\":\"833274349439\",\n                \"name\": \"Name 1\",\n                \"calendar_id\":\"32823\",\n                \"start_date\":\"2025-12-25 19:00:00\",\n                \"duration\":\"30\",\n                \"status\": \"-1\"\n            }\n        ],\n        \"past\":[\n            {\n                \"id\": \"328238\",\n                \"hash\":\"jdsdkdskk\",\n                \"ms_id\":\"23883723\",\n                \"name\": \"Name 1\",\n                \"calendar_id\":\"32823\",\n                \"start_date\":\"2023-12-10 19:00:00\",\n                \"duration\":\"30\",\n                \"status\": \"-1\"\n            }\n        ]\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Cancel an appointment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"appointments\",\r\n    \"op2\":\"changeStatus\",\r\n    \"id\":\"[Appointment_id]\",\r\n    \"status\":-1\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"appointments\",\r\n    \"op2\":\"changeStatus\",\r\n    \"id\":\"45595\",\r\n    \"status\":-1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Delete an appointment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"appointments\",\r\n    \"op2\":\"delete\",\r\n    \"id\":\"[Appointment_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"calendars\",\r\n    \"op1\":\"appointments\",\r\n    \"op2\":\"delete\",\r\n    \"id\":\"45595\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of orders",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"ecommerce\",\r\n    \"op1\":\"orders\",\r\n    \"op2\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"ecommerce\",\r\n    \"op1\":\"orders\",\r\n    \"op2\":\"get\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n            {\n                \"id\": \"569601\",                \n                \"contact_id\":\"833274349439\",\n                \"name\": \"Name 1\",\n                \"currency\":\"USD\",\n                \"total\":\"1000\",\n                \"subtotal\":\"1000\",\n                \"shipping_price\":\"0\",\n                \"rating\":\"3\",\n                \"status\":\"4\",\n                \"dt_confirmed\":\"2024-01-25 19:00:00\",\n                \"t_confirmed\":\"1706209200\"\n            }\n    ]    \n}"
+				}
+			]
+		},
+		{
+			"name": "Get order information",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"ecommerce\",\r\n    \"op1\":\"orders\",\r\n    \"op2\":\"get\",\r\n    \"id\": \"[order_id]\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"ecommerce\",\r\n    \"op1\":\"orders\",\r\n    \"op2\":\"get\",\r\n    \"id\": 1000000\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\":{\n        \"id\":1000000,\n        \"contact_id\":\"238847438434\",\n        \"total\":20000,\n        \"subtotal\":20000,\n        \"shipping_price\":0,\n        \"other_taxes\":0,\n        \"number_items\":1,\n        \"rating\": 5,\n        \"status\":4,\n        \"date_confirmed\":\"...\",\n        \"date_delivered\":\"...\",\n        \"products\":[\n            {\n                \"id\":4939343,\n                \"price\":20000,\n                \"name\":\"Test Product\",\n                \"short_description\":\"...\",\n                \"image\":\"\",\n                \"parent_product\":0,\n                \"quantity\":1,\n                \"variant\":\"\",\n                \"user_note\":\"...\",\n                \"vendor\":\"...\",\n                \"addon_of\":\"...\"\n            }\n        ],\n        \"contact\":{\n            \"id\":238847438434,\n            \"name\":\"Test User\",\n            \"channel\":0\n        }\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Update order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"ecommerce\",\r\n    \"op1\":\"orders\",\r\n    \"op2\":\"update\",\r\n    \"id\": \"[order_id]\",\r\n    \"data\":{\r\n        \"status\":\"[4|6|7|10|13]\"\r\n    }\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"name": "Content-Type",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{user_token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"ecommerce\",\r\n    \"op1\":\"orders\",\r\n    \"op2\":\"update\",\r\n    \"id\": 1000000,\r\n    \"data\":{\r\n        \"status\":7\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get list of Google Business Message locations",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-ACCESS-TOKEN",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "mobile-app",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"googleBM\",\r\n    \"op1\":\"location\",\r\n    \"op2\":\"get\"\r\n}\r\n    "
+				},
+				"url": {
+					"raw": "{{api_url}}",
+					"host": [
+						"{{api_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Example",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-ACCESS-TOKEN",
+								"value": "{{token}}",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "mobile-app",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_id\": {{account_id}},\r\n    \"op\":\"googleBM\",\r\n    \"op1\":\"location\",\r\n    \"op2\":\"get\"\r\n}\r\n    "
+						},
+						"url": {
+							"raw": "{{api_url}}",
+							"host": [
+								"{{api_url}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 03 Jul 2023 11:48:39 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "Apache/2.4.46 (Win64) OpenSSL/1.1.1h PHP/7.4.14"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/7.4.14"
+						},
+						{
+							"key": "Content-Length",
+							"value": "401"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5, max=100"
+						},
+						{
+							"key": "Connection",
+							"value": "Keep-Alive"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": \"OK\",\n    \"data\": [\n        {\n            \"id\": \"brands/7c3dad98-9ec8-470f-844f-----------/locations/90bfe1d1-3933-4ded-b5c8--------------\",\n            \"place_id\": \"dksdskdsjdjddsjdsdkddsk\",\n            \"name\": \"Name 1\"\n        }\n    ]\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

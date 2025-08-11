@@ -1,0 +1,34 @@
+{
+  "status": "OK",
+  "data": {
+    "id": "420",
+    "name": "AiPRL Assist",
+    "icon": "https://storage.googleapis.com/wtl/w/420/icon9736.png",
+    "color": {
+      "primary": "#FF951D",
+      "link": "#000000",
+      "accent": "#000000",
+      "mobile": {
+        "primary": "#000000",
+        "neutral": "#EDEDF0"
+      }
+    },
+    "appdomain": "https://app.aiprlassist.com/",
+    "wsurl": "wss://ws.appcontx.com/chat",
+    "websocket": "wss://ws.appcontx.com/chat",
+    "active": "1",
+    "facebook": {
+      "client": "1532806570640541"
+    },
+    "microsoft": null,
+    "google": {
+      "client": "426960401142-a7rkln8fl3342kn99hl11vh65drp2fci.apps.googleusercontent.com"
+    },
+    "apple": null,
+    "email": {
+      "login": true
+    },
+    "privacyPolicy": "https://app.aiprlassist.com/legal/privacy-policy",
+    "termsOfServices": "https://app.aiprlassist.com/legal/terms"
+  }
+}

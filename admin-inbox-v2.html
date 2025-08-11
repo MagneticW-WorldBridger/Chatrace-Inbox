@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Inbox - Production Ready</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Dark theme variables */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-primary: #334155;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(51, 65, 85, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Enhanced scrollbars */
+        .scrollbar-enhanced::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollbar-enhanced::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+        .scrollbar-enhanced::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        .scrollbar-enhanced::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Glassmorphism effect */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Enhanced animations */
+        .animate-typing {
+            animation: typing 1.4s ease-in-out infinite;
+        }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Priority indicators with enhanced styling */
+        .priority-high {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
+        }
+        .priority-medium {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.1);
+        }
+        .priority-low {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.1);
+        }
+
+        /* Enhanced status indicators */
+        .status-online {
+            background: var(--accent-green);
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+        }
+        .status-away {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+        }
+        .status-offline {
+            background: var(--text-muted);
+        }
+
+        /* Enhanced message bubbles */
+        .message-own {
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+        .message-other {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Enhanced button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Auto-resizing textarea */
+        .auto-resize {
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+        }
+
+        /* Unread message indicators */
+        .unread-indicator {
+            background: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Enhanced search input */
+        .search-input {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Scroll to bottom button */
+        .scroll-to-bottom {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .mobile-padding {
+                padding-top: 60px;
+            }
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+<div id="app" class="flex h-screen text-gray-100">
+    <!-- Conversations Sidebar -->
+    <div id="sidebar" class="w-80 glass flex flex-col transition-all duration-300 z-50 fixed md:relative h-full -translate-x-full md:translate-x-0">
+        <!-- Sidebar Header -->
+        <div class="p-6 border-b border-gray-600/30">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-inbox text-sm text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Inbox</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="notification-btn" class="p-2 rounded-lg hover:bg-gray-700/50 transition-all relative">
+                        <i class="fas fa-bell h-4 w-4"></i>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+                    </button>
+                    <button id="settings-btn" class="p-2 rounded-lg hover:bg-gray-700/50 transition-all">
+                        <i class="fas fa-cog h-4 w-4"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Enhanced Search -->
+            <div class="relative group">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-400 transition-colors"></i>
+                <input 
+                    id="search-input" 
+                    placeholder="Search conversations..." 
+                    class="w-full search-input rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none"
+                    autocomplete="off"
+                >
+                <button id="search-clear" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors hidden">
+                    <i class="fas fa-times h-3 w-3"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Conversation Filters -->
+        <div class="px-6 py-4 border-b border-gray-600/30">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex gap-2" id="platform-filters">
+                    <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="all">All <span id="count-platform-all" class="ml-1 text-gray-400"></span></button>
+                    <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="webchat">Webchat <span id="count-platform-webchat" class="ml-1 text-gray-400"></span></button>
+                    <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="instagram">Instagram <span id="count-platform-instagram" class="ml-1 text-gray-400"></span></button>
+                    <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="facebook">Facebook <span id="count-platform-facebook" class="ml-1 text-gray-400"></span></button>
+                </div>
+                <div class="text-xs text-gray-400">Quick Filters</div>
+            </div>
+            <div class="flex gap-2 text-xs">
+                <button class="filter-btn active px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-600/30" data-filter="all">
+                    All <span id="count-all" class="ml-1 opacity-75"></span>
+                </button>
+                <button class="filter-btn px-3 py-1.5 rounded-lg hover:bg-gray-700/50 transition-all" data-filter="unread">
+                    Unread <span id="count-unread" class="ml-1 opacity-75"></span>
+                </button>
+                <button class="filter-btn px-3 py-1.5 rounded-lg hover:bg-gray-700/50 transition-all" data-filter="priority">
+                    Priority <span id="count-priority" class="ml-1 opacity-75"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Conversations List -->
+        <div class="flex-1 overflow-y-auto scrollbar-enhanced" id="conversation-list">
+            <!-- Dynamic content -->
+        </div>
+
+        <!-- Agent Status -->
+        <div class="p-4 border-t border-gray-600/30">
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <img class="w-8 h-8 rounded-full object-cover" src="https://randomuser.me/api/portraits/men/5.jpg" alt="Agent">
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 status-online rounded-full border-2 border-gray-900"></div>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium">Agent Mike</p>
+                    <p class="text-xs text-gray-400">Online • Ready to help</p>
+                </div>
+                <button class="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all">
+                    <i class="fas fa-ellipsis-h h-3 w-3"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col min-h-0 bg-gradient-to-br from-slate-900/50 to-slate-800/50">
+        <!-- Mobile Menu Button -->
+        <button id="menu-button" class="fixed top-4 left-4 z-50 md:hidden p-3 rounded-xl bg-gray-800/90 backdrop-blur-sm text-white shadow-lg">
+            <i class="fas fa-bars h-5 w-5"></i>
+        </button>
+
+        <!-- Chat Header -->
+        <div id="chat-header" class="p-6 border-b border-gray-600/30 glass mobile-padding md:pt-6">
+            <!-- Dynamic content -->
+        </div>
+
+        <!-- Messages Area -->
+        <div class="flex-1 relative min-h-0">
+            <div id="messages-container" class="h-full overflow-y-auto scrollbar-enhanced p-6 pb-28" data-at-bottom="true">
+                <div class="flex justify-center mb-3">
+                  <button id="load-more" class="px-3 py-1.5 text-xs rounded-lg bg-gray-700 hover:bg-gray-600 border border-gray-600/40" onclick="UIActions.loadMoreMessages()">Load more</button>
+                </div>
+                <div id="messages-list" class="space-y-4 min-h-full flex flex-col justify-end">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+            
+            <!-- Scroll to bottom button -->
+            <button id="scroll-to-bottom" class="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 scroll-to-bottom rounded-full text-sm font-medium hidden animate-fade-in">
+                <i class="fas fa-arrow-down h-3 w-3 mr-2"></i>
+                New messages
+            </button>
+        </div>
+
+        <!-- Enhanced Message Input -->
+        <div class="p-6 border-t border-gray-600/30 glass">
+            <div class="flex items-end gap-4">
+                <div class="flex gap-2">
+                    <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Attach file">
+                        <i class="fas fa-paperclip h-4 w-4"></i>
+                    </button>
+                    <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Add emoji">
+                        <i class="fas fa-smile h-4 w-4"></i>
+                    </button>
+                </div>
+                
+                <div class="flex-1 relative">
+                    <textarea 
+                        id="message-input" 
+                        placeholder="Type your message..." 
+                        class="w-full auto-resize search-input rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none resize-none"
+                        rows="1"
+                        maxlength="2000"
+                    ></textarea>
+                    <div class="absolute bottom-3 right-3 text-xs text-gray-500">
+                        <span id="char-count">0</span>/2000
+                    </div>
+                </div>
+                
+                <button id="send-button" class="btn-primary p-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed text-white" disabled>
+                    <i class="fas fa-paper-plane h-4 w-4"></i>
+                </button>
+            </div>
+            
+            <!-- Quick Responses -->
+            <div id="quick-responses" class="mt-3 flex gap-2 flex-wrap hidden">
+                <button class="quick-response px-3 py-1.5 text-xs rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-all" data-text="Thanks for reaching out! How can I help you today?">
+                    Quick greeting
+                </button>
+                <button class="quick-response px-3 py-1.5 text-xs rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-all" data-text="I'll look into this right away and get back to you shortly.">
+                    Investigating
+                </button>
+                <button class="quick-response px-3 py-1.5 text-xs rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-all" data-text="Is there anything else I can help you with?">
+                    Follow up
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Customer Info Sidebar -->
+    <div id="customer-info-sidebar" class="w-80 glass p-6 hidden lg:flex flex-col gap-6 overflow-y-auto scrollbar-enhanced">
+        <!-- Dynamic content -->
+    </div>
+</div>
+
+<!-- Notification Toast Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+// Configuration
+const AppConfig = {
+    AUTO_SCROLL_THRESHOLD: 100,
+    TYPING_TIMEOUT: 1000,
+    MESSAGE_MAX_LENGTH: 2000,
+    SEARCH_DEBOUNCE: 300,
+    TOAST_DURATION: 3000
+};
+
+// Application State
+const AppState = {
+    currentFilter: 'all',
+    selectedConversationId: '1',
+    isTyping: false,
+    atBottom: true,
+    searchQuery: '',
+    
+    customers: [
+        {
+            id: '1',
+            name: 'Sarah Johnson',
+            email: 'sarah.johnson@acme.com',
+            avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
+            status: 'online',
+            phone: '+1 (555) 123-4567',
+            location: 'New York, NY',
+            tags: ['Premium', 'VIP', 'Enterprise'],
+            priority: 'high',
+            lastSeen: new Date(),
+            department: 'Sales',
+            customerSince: '2022-01-15',
+            totalOrders: 15,
+            lastOrderAmount: 2450
+        },
+        {
+            id: '2',
+            name: 'Michael Chen',
+            email: 'michael.chen@techcorp.com',
+            avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
+            status: 'away',
+            lastSeen: new Date(Date.now() - 300000),
+            phone: '+1 (555) 987-6543',
+            location: 'San Francisco, CA',
+            tags: ['Enterprise', 'Beta Tester'],
+            priority: 'medium',
+            department: 'Technical',
+            customerSince: '2023-03-22',
+            totalOrders: 8,
+            lastOrderAmount: 1200
+        },
+        {
+            id: '3',
+            name: 'Emma Wilson',
+            email: 'emma.wilson@startup.io',
+            avatar: 'https://randomuser.me/api/portraits/women/3.jpg',
+            status: 'offline',
+            lastSeen: new Date(Date.now() - 7200000),
+            phone: '+1 (555) 456-7890',
+            location: 'Austin, TX',
+            tags: ['Startup', 'Growth'],
+            priority: 'low',
+            department: 'Support',
+            customerSince: '2023-11-05',
+            totalOrders: 3,
+            lastOrderAmount: 450
+        },
+        {
+            id: '4',
+            name: 'James Rodriguez',
+            email: 'james.r@consulting.com',
+            avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
+            status: 'online',
+            lastSeen: new Date(),
+            phone: '+1 (555) 321-0987',
+            location: 'Miami, FL',
+            tags: ['Consultant', 'Premium'],
+            priority: 'high',
+            department: 'Sales',
+            customerSince: '2021-08-12',
+            totalOrders: 25,
+            lastOrderAmount: 3200
+        }
+    ],
+
+    conversations: {
+        '1': [
+            { id: '1a', content: 'Hi! I need urgent help with my order #12345. The delivery was supposed to arrive yesterday but I haven\'t received it yet.', timestamp: new Date(Date.now() - 1800000), isOwn: false, status: 'read' },
+            { id: '1b', content: 'I understand your concern about the delayed delivery. Let me check the tracking information for order #12345 right away.', timestamp: new Date(Date.now() - 1740000), isOwn: true, status: 'read' },
+            { id: '1c', content: 'Thank you! This order is very important for our upcoming product launch.', timestamp: new Date(Date.now() - 1680000), isOwn: false, status: 'read' },
+            { id: '1d', content: 'I can see that your order is currently at the local distribution center. It should be delivered within the next 2-3 hours. I\'ll also provide you with the direct tracking link.', timestamp: new Date(Date.now() - 1620000), isOwn: true, status: 'read' },
+            { id: '1e', content: 'That\'s great! Can you also ensure priority handling for future orders?', timestamp: new Date(Date.now() - 300000), isOwn: false }
+        ],
+        '2': [
+            { id: '2a', content: 'I have a technical question about the API integration. The authentication seems to be failing.', timestamp: new Date(Date.now() - 3600000), isOwn: false },
+            { id: '2b', content: 'I\'d be happy to help with the API integration. Can you share the error message you\'re seeing?', timestamp: new Date(Date.now() - 3540000), isOwn: true, status: 'delivered' }
+        ],
+        '3': [
+            { id: '3a', content: 'Hello! I wanted to thank you for the excellent customer service. Your team has been incredibly helpful.', timestamp: new Date(Date.now() - 86400000), isOwn: false },
+            { id: '3b', content: 'Thank you so much for the kind words! We really appreciate customers like you. Is there anything else we can help you with?', timestamp: new Date(Date.now() - 86340000), isOwn: true, status: 'read' }
+        ],
+        '4': [
+            { id: '4a', content: 'I\'m interested in upgrading to your enterprise plan. Can you provide more details about the features?', timestamp: new Date(Date.now() - 7200000), isOwn: false },
+            { id: '4b', content: 'Absolutely! I\'d be happy to walk you through our enterprise features. Would you prefer a quick call or should I send you the detailed documentation?', timestamp: new Date(Date.now() - 7140000), isOwn: true, status: 'read' },
+            { id: '4c', content: 'A call would be perfect. When would be a good time?', timestamp: new Date(Date.now() - 7080000), isOwn: false }
+        ]
+    }
+};
+
+// Utility Functions
+const Utils = {
+    formatTime: (date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    formatDate: (date) => {
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const days = Math.floor(diff / 86400000);
+        if (days === 0) return 'Today';
+        if (days === 1) return 'Yesterday';
+        if (days < 7) return `${days} days ago`;
+        return date.toLocaleDateString();
+    },
+    formatLastSeen: (date) => {
+        const diff = new Date().getTime() - date.getTime();
+        const minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(diff / 3600000);
+        if (hours < 24) return `${hours}h ago`;
+        return `${Math.floor(diff / 86400000)}d ago`;
+    },
+    getStatusClasses: (status) => ({ online: 'status-online', away: 'status-away', offline: 'status-offline' }[status] || 'status-offline'),
+    getPriorityClasses: (priority) => ({ high: 'priority-high', medium: 'priority-medium', low: 'priority-low' }[priority] || 'priority-low'),
+    getStatusIcon: (status) => ({
+        sent: '<i class="fas fa-check h-3 w-3 opacity-70"></i>',
+        delivered: '<i class="fas fa-check-double h-3 w-3 opacity-70"></i>',
+        read: '<i class="fas fa-check-double h-3 w-3 text-blue-400"></i>'
+    }[status] || ''),
+    debounce: (func, wait) => {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
+    sanitizeHtml: (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    },
+    escapeHtml: (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+};
+
+// DOM Elements
+const DOM = {
+    sidebar: document.getElementById('sidebar'),
+    menuButton: document.getElementById('menu-button'),
+    conversationList: document.getElementById('conversation-list'),
+    chatHeader: document.getElementById('chat-header'),
+    messagesContainer: document.getElementById('messages-container'),
+    messagesList: document.getElementById('messages-list'),
+    customerInfo: document.getElementById('customer-info-sidebar'),
+    messageInput: document.getElementById('message-input'),
+    sendButton: document.getElementById('send-button'),
+    searchInput: document.getElementById('search-input'),
+    searchClear: document.getElementById('search-clear'),
+    scrollToBottom: document.getElementById('scroll-to-bottom'),
+    charCount: document.getElementById('char-count'),
+    quickResponses: document.getElementById('quick-responses'),
+    toastContainer: document.getElementById('toast-container'),
+    filterButtons: document.querySelectorAll('.filter-btn'),
+    quickResponseButtons: document.querySelectorAll('.quick-response')
+};
+
+// ============================================================================
+// DATA LOADER (API wiring with graceful fallback)
+// ============================================================================
+
+const DataLoader = {
+  apiBase: '',
+  _lastLoadByConv: {},
+
+  async bootstrap() {
+    return this.loadPlatform('webchat');
+  },
+
+  async loadPlatform(platform) {
+    try {
+      const res = await this.fetchJson(`/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50`);
+      if (!res || res.status !== 'success' || !Array.isArray(res.data) || res.data.length === 0) {
+        NotificationManager.show(`No conversations on ${platform}`, 'info');
+        return;
+      }
+
+      const uniq = new Map();
+      for (const r of res.data) uniq.set(String(r.conversation_id), r);
+      const convsAll = Array.from(uniq.values()).map((row, idx) => ({
+        id: String(row.conversation_id),
+        name: String(row.display_name || row.username || row.user_identifier || `Visitor ${idx + 1}`),
+        email: `${(row.username || row.user_identifier || 'visitor').toString().replace(/[^a-z0-9._-]/gi,'_')}@example.local`,
+        avatar: row.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(row.user_identifier || 'visitor_'+idx)}`,
+        status: 'online',
+        lastSeen: new Date(Number(row.last_message_at) || Date.now()),
+        phone: '',
+        location: platform.charAt(0).toUpperCase()+platform.slice(1),
+        tags: [platform.charAt(0).toUpperCase()+platform.slice(1)],
+        priority: 'low',
+        department: 'Support',
+        customerSince: new Date().toISOString().slice(0,10),
+        totalOrders: 0,
+        lastOrderAmount: 0,
+        lastMessagePreview: row.last_message_content || '',
+        platformUserId: row.user_identifier || ''
+      }));
+
+      AppState.customers = convsAll;
+      AppState.conversations = Object.fromEntries(AppState.customers.map(c => [c.id, []]));
+      AppState._msgLimit = 200;
+      AppState.selectedConversationId = AppState.customers[0].id;
+      await this.loadMessages(AppState.selectedConversationId);
+      NotificationManager.show(`Loaded ${convsAll.length} conversations (${platform})`, 'success');
+    } catch (e) {
+      NotificationManager.show('Using demo data (inbox API unavailable)', 'warning');
+    }
+  },
+
+  async loadMessages(conversationId) {
+    try {
+      const limit = AppState._msgLimit || 200;
+      const now = Date.now();
+      if (this._lastLoadByConv[conversationId] && now - this._lastLoadByConv[conversationId] < 1000) return;
+      this._lastLoadByConv[conversationId] = now;
+      const res = await this.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/messages?limit=${limit}`);
+      if (!res || res.status !== 'success' || !Array.isArray(res.data)) return;
+      const msgs = res.data.map(m => ({
+        id: (m.message_created_at ? new Date(m.message_created_at).getTime() : Date.now()) + Math.random().toString(36).slice(2),
+        content: m.message_content || '',
+        timestamp: new Date(m.message_created_at || Date.now()),
+        isOwn: String(m.message_role).toLowerCase() === 'assistant',
+        status: String(m.message_role).toLowerCase() === 'assistant' ? (m.function_execution_status || 'read') : undefined
+      }));
+      AppState.conversations[conversationId] = msgs;
+    } catch {}
+  },
+
+  async fetchJson(path) {
+    const url = `${this.apiBase}${path}`;
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}`);
+    }
+    return r.json();
+  }
+};
+
+// Notification Manager
+const NotificationManager = {
+    show(message, type = 'info', duration = AppConfig.TOAST_DURATION) {
+        const toast = document.createElement('div');
+        const id = Date.now().toString();
+        
+        const iconMap = {
+            success: 'fas fa-check-circle text-green-400',
+            error: 'fas fa-exclamation-circle text-red-400',
+            warning: 'fas fa-exclamation-triangle text-yellow-400',
+            info: 'fas fa-info-circle text-blue-400'
+        };
+
+        toast.className = 'flex items-center gap-3 p-4 rounded-xl glass backdrop-blur-sm shadow-lg animate-fade-in';
+        toast.innerHTML = `
+            <i class="${iconMap[type]}"></i>
+            <span class="text-sm font-medium flex-1">${Utils.sanitizeHtml(message)}</span>
+            <button class="text-gray-400 hover:text-white" onclick="NotificationManager.remove('${id}')">
+                <i class="fas fa-times h-3 w-3"></i>
+            </button>
+        `;
+        
+        toast.id = id;
+        DOM.toastContainer.appendChild(toast);
+
+        if (duration > 0) {
+            setTimeout(() => this.remove(id), duration);
+        }
+
+        return id;
+    },
+
+    remove(id) {
+        const toast = document.getElementById(id);
+        if (toast) {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 200);
+        }
+    }
+};
+
+// Conversation Manager
+const ConversationManager = {
+    getFilteredConversations() {
+        let filtered = AppState.customers;
+        
+        if (AppState.searchQuery) {
+            const query = AppState.searchQuery.toLowerCase();
+            filtered = filtered.filter(customer => 
+                customer.name.toLowerCase().includes(query) ||
+                customer.email.toLowerCase().includes(query) ||
+                customer.tags.some(tag => tag.toLowerCase().includes(query))
+            );
+        }
+
+        switch (AppState.currentFilter) {
+            case 'unread':
+                filtered = filtered.filter(customer => this.getUnreadCount(customer.id) > 0);
+                break;
+            case 'priority':
+                filtered = filtered.filter(customer => customer.priority === 'high');
+                break;
+            case 'webchat':
+                filtered = filtered.filter(customer => (customer.tags[0] || '').toLowerCase() === 'webchat');
+                break;
+            case 'instagram':
+                filtered = filtered.filter(customer => (customer.tags[0] || '').toLowerCase() === 'instagram');
+                break;
+            case 'facebook':
+                filtered = filtered.filter(customer => (customer.tags[0] || '').toLowerCase() === 'facebook');
+                break;
+        }
+
+        return filtered.sort((a, b) => {
+            const aLastMsg = this.getLastMessage(a.id);
+            const bLastMsg = this.getLastMessage(b.id);
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+            
+            if (priorityDiff !== 0) return priorityDiff;
+            
+            const aTime = aLastMsg ? aLastMsg.timestamp : new Date(0);
+            const bTime = bLastMsg ? bLastMsg.timestamp : new Date(0);
+            return bTime - aTime;
+        });
+    },
+
+    getLastMessage(customerId) {
+        const messages = AppState.conversations[customerId];
+        return messages && messages.length > 0 ? messages[messages.length - 1] : null;
+    },
+
+    getUnreadCount(customerId) {
+        const messages = AppState.conversations[customerId] || [];
+        return messages.filter(msg => !msg.isOwn && msg.status !== 'read').length;
+    },
+
+    async selectConversation(id) {
+        AppState.selectedConversationId = id;
+        
+        const messages = AppState.conversations[id] || [];
+        messages.forEach(msg => {
+            if (!msg.isOwn && msg.status !== 'read') {
+                msg.status = 'read';
+            }
+        });
+
+        // Ensure messages are loaded for this conversation and wait before rendering
+        try { await DataLoader.loadMessages(id); } catch {}
+
+        if (window.innerWidth < 768) {
+            DOM.sidebar.classList.add('-translate-x-full');
+        }
+
+        await this.renderAll();
+        setTimeout(() => {
+            DOM.messagesContainer.scrollTo({
+                top: DOM.messagesContainer.scrollHeight,
+                behavior: 'instant'
+            });
+        }, 100);
+    },
+
+    addMessage(content, isOwn = true) {
+        const conversationId = AppState.selectedConversationId;
+        if (!AppState.conversations[conversationId]) {
+            AppState.conversations[conversationId] = [];
+        }
+
+        const message = {
+            id: Date.now().toString(),
+            content: Utils.sanitizeHtml(content),
+            timestamp: new Date(),
+            isOwn,
+            status: isOwn ? 'sent' : undefined
+        };
+
+        AppState.conversations[conversationId].push(message);
+        
+        this.renderChat();
+        this.renderConversationList();
+        
+        setTimeout(() => {
+            DOM.messagesContainer.scrollTo({
+                top: DOM.messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 50);
+
+        return message;
+    },
+
+    simulateTyping() {
+        AppState.isTyping = true;
+        this.renderChat();
+        
+        setTimeout(() => {
+            AppState.isTyping = false;
+            const responses = [
+                "Thanks for your message! I'll look into this right away.",
+                "I understand your concern. Let me check that for you.",
+                "Great question! Here's what I can tell you...",
+                "I'll make sure to prioritize this for you.",
+                "Let me get you connected with the right specialist."
+            ];
+            
+            const response = responses[Math.floor(Math.random() * responses.length)];
+            this.addMessage(response, false);
+        }, 1500);
+    },
+
+    renderAll() {
+        this.renderConversationList();
+        this.renderChat();
+        this.renderCustomerInfo();
+        this.updateFilterCounts();
+    },
+
+    renderConversationList() {
+        const conversations = this.getFilteredConversations();
+        
+        DOM.conversationList.innerHTML = conversations.map(customer => {
+            const lastMessage = this.getLastMessage(customer.id);
+            const unreadCount = this.getUnreadCount(customer.id);
+            const isActive = customer.id === AppState.selectedConversationId;
+            const platform = (customer.tags[0] || '').toLowerCase();
+            const platformIcon = platform === 'instagram' ? 'fab fa-instagram text-pink-400' : platform === 'facebook' ? 'fab fa-facebook text-blue-500' : 'fas fa-globe text-green-400';
+            const platformBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/60 border border-gray-600/40 flex items-center gap-1"><i class="${platformIcon}"></i>${platform}</span>`;
+            
+            return `
+                <div class="conversation-item p-4 rounded-xl cursor-pointer transition-all hover:bg-gray-700/30 animate-fade-in ${isActive ? 'bg-blue-600/20 border border-blue-600/30' : ''}" 
+                     onclick="ConversationManager.selectConversation('${customer.id}')">
+                    <div class="flex items-start gap-3">
+                        <div class="relative flex-shrink-0">
+                            <img class="w-12 h-12 rounded-full object-cover" src="${customer.avatar}" alt="${customer.name}">
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-gray-900 ${Utils.getStatusClasses(customer.status)}"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="font-semibold text-sm truncate">${customer.name}</h3>
+                                <div class="flex items-center gap-2">
+                                    ${platformBadge}
+                                    ${unreadCount > 0 ? `<span class="unread-indicator w-2 h-2 rounded-full"></span>` : ''}
+                                    <span class="text-xs text-gray-400">${lastMessage ? Utils.formatTime(lastMessage.timestamp) : ''}</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-400 truncate mb-2">${lastMessage ? lastMessage.content : (customer.lastMessagePreview || 'No messages yet')}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold px-2 py-1 rounded-lg ${Utils.getPriorityClasses(customer.priority)}">${customer.priority}</span>
+                                ${unreadCount > 0 ? `<span class="text-xs font-bold text-blue-400">${unreadCount} new</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    renderChat() {
+        const customer = AppState.customers.find(c => c.id === AppState.selectedConversationId);
+        if (!customer) return;
+
+        DOM.chatHeader.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img class="w-12 h-12 rounded-full object-cover" src="${customer.avatar}" alt="${customer.name}">
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-gray-900 ${Utils.getStatusClasses(customer.status)}"></div>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-bold">${customer.name}</h2>
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <span>${customer.status === 'online' ? 'Online now' : `Last seen ${Utils.formatLastSeen(customer.lastSeen)}`}</span>
+                        <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                        <span>${customer.department}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Export conversation" onclick="UIActions.exportConversation('${customer.id}')">
+                    <i class="fas fa-download h-4 w-4"></i>
+                </button>
+                <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Search in conversation">
+                    <i class="fas fa-search h-4 w-4"></i>
+                </button>
+                <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="More options">
+                    <i class="fas fa-ellipsis-v h-4 w-4"></i>
+                </button>
+            </div>
+        `;
+
+        const messages = AppState.conversations[AppState.selectedConversationId] || [];
+        let currentDate = null;
+        
+        // If no messages loaded yet, show lastMessagePreview
+        if (messages.length === 0 && customer.lastMessagePreview) {
+            AppState.conversations[AppState.selectedConversationId] = [{
+                id: 'preview-'+Date.now(),
+                content: customer.lastMessagePreview,
+                timestamp: new Date(customer.lastSeen || Date.now()),
+                isOwn: false
+            }];
+        }
+
+        DOM.messagesList.innerHTML = messages.map(msg => {
+            const msgDate = Utils.formatDate(msg.timestamp);
+            let dateHeader = '';
+            
+            if (msgDate !== currentDate) {
+                currentDate = msgDate;
+                dateHeader = `
+                    <div class="flex items-center justify-center my-6">
+                        <span class="px-3 py-1 text-xs bg-gray-700/50 rounded-full">${msgDate}</span>
+                    </div>
+                `;
+            }
+
+            return dateHeader + `
+                <div class="flex gap-4 ${msg.isOwn ? 'justify-end' : 'justify-start'} animate-fade-in">
+                    ${!msg.isOwn ? `<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" src="${customer.avatar}" alt="${customer.name}">` : ''}
+                    <div class="max-w-[80%] lg:max-w-[70%]">
+                        <div class="rounded-2xl px-4 py-3 text-sm ${msg.isOwn ? 'message-own text-white' : 'message-other text-gray-100'}">
+                            <p class="leading-relaxed">${msg.content}</p>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 ${msg.isOwn ? 'justify-end' : 'justify-start'}">
+                            <span>${Utils.formatTime(msg.timestamp)}</span>
+                            ${msg.isOwn && msg.status ? Utils.getStatusIcon(msg.status) : ''}
+                        </div>
+                    </div>
+                    ${msg.isOwn ? `<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" src="https://randomuser.me/api/portraits/men/5.jpg" alt="Agent">` : ''}
+                </div>
+            `;
+        }).join('');
+
+        if (AppState.isTyping) {
+            DOM.messagesList.innerHTML += `
+                <div class="flex gap-4 justify-start animate-fade-in">
+                    <img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" src="${customer.avatar}" alt="${customer.name}">
+                    <div class="message-other rounded-2xl px-4 py-3">
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-typing"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-typing" style="animation-delay: 0.2s"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-typing" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    },
+
+    renderCustomerInfo() {
+        const customer = AppState.customers.find(c => c.id === AppState.selectedConversationId);
+        if (!customer) {
+            DOM.customerInfo.innerHTML = '';
+            return;
+        }
+
+        const totalMessages = AppState.conversations[customer.id]?.length || 0;
+        const responseTime = Math.floor(Math.random() * 5) + 1;
+
+        DOM.customerInfo.innerHTML = `
+            <div class="text-center pb-6 border-b border-gray-600/30">
+                <img class="w-20 h-20 rounded-full object-cover mx-auto mb-4" src="${customer.avatar}" alt="${customer.name}">
+                <h3 class="text-xl font-bold mb-1">${customer.name}</h3>
+                <p class="text-sm text-gray-400 mb-3">${customer.email}</p>
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="w-2 h-2 rounded-full ${Utils.getStatusClasses(customer.status)}"></div>
+                    <span class="text-sm capitalize">${customer.status}</span>
+                </div>
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-700/60 border border-gray-600/40">
+                        ${customer.tags && customer.tags[0] === 'Instagram' ? '<i class="fab fa-instagram text-pink-400 mr-1"></i>Instagram' : customer.tags && customer.tags[0] === 'Facebook' ? '<i class="fab fa-facebook text-blue-500 mr-1"></i>Facebook' : '<i class="fas fa-globe text-green-400 mr-1"></i>Webchat'}
+                    </span>
+                </div>
+                <div class="flex gap-2">
+                    <button class="flex-1 px-3 py-2 text-xs rounded-lg bg-blue-600 hover:bg-blue-700 transition-all">
+                        <i class="fas fa-phone mr-1"></i> Call
+                    </button>
+                    <button class="flex-1 px-3 py-2 text-xs rounded-lg bg-gray-700 hover:bg-gray-600 transition-all">
+                        <i class="fas fa-envelope mr-1"></i> Email
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                <button onclick="UIActions.showDedupPreview('${customer.id}')" class="w-full px-3 py-2 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 transition-all">
+                    <i class="fas fa-user-check mr-1"></i> Dedup Preview
+                </button>
+                <div id="dedup-inline" class="text-xs text-gray-300 hidden"></div>
+                <div id="linked-contact" class="text-xs text-gray-300 hidden"></div>
+                ${ (customer.tags[0] && customer.tags[0].toLowerCase() !== 'webchat') ? `
+                <div class="text-xs text-gray-300">
+                  <div class="p-3 rounded-lg bg-gray-700/40 border border-gray-600/40">
+                    <div class="mb-1">Platform ID: <span class="font-mono">${Utils.escapeHtml(customer.platformUserId)}</span></div>
+                    <button class="mt-2 px-2 py-1 text-xs rounded bg-blue-600" onclick="UIActions.linkContact('${customer.id}','${customer.tags[0].toLowerCase() === 'instagram' ? 'instagram' : 'facebook'}','${customer.platformUserId}')">Link by ${customer.tags[0]} ID</button>
+                  </div>
+                </div>` : ''}
+            </div>
+        `;
+
+        // Try to pull deterministic signals and offer link
+        UIActions.populateInlineDedup(customer.id);
+        UIActions.showLinkedContact(customer.id);
+    },
+
+    updateFilterCounts() {
+        const allCount = AppState.customers.length;
+        const unreadCount = AppState.customers.filter(c => this.getUnreadCount(c.id) > 0).length;
+        const priorityCount = AppState.customers.filter(c => c.priority === 'high').length;
+
+        const countAll = document.getElementById('count-all');
+        const countUnread = document.getElementById('count-unread');
+        const countPriority = document.getElementById('count-priority');
+
+        if (countAll) countAll.textContent = `(${allCount})`;
+        if (countUnread) countUnread.textContent = `(${unreadCount})`;
+        if (countPriority) countPriority.textContent = `(${priorityCount})`;
+    }
+};
+
+// Input Manager
+const InputManager = {
+    init() {
+        this.setupMessageInput();
+        this.setupSearch();
+        this.setupQuickResponses();
+        this.setupFilters();
+    },
+
+    setupMessageInput() {
+        DOM.messageInput.addEventListener('input', (e) => {
+            const input = e.target;
+            const length = input.value.length;
+            
+            DOM.charCount.textContent = length;
+            DOM.charCount.className = length > AppConfig.MESSAGE_MAX_LENGTH * 0.9 ? 'text-red-400' : 'text-gray-500';
+            DOM.sendButton.disabled = !input.value.trim();
+            
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            
+            const showQuickResponses = !input.value.trim();
+            DOM.quickResponses.classList.toggle('hidden', !showQuickResponses);
+        });
+
+        DOM.messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+
+        DOM.sendButton.addEventListener('click', () => this.sendMessage());
+    },
+
+    setupSearch() {
+        const debouncedSearch = Utils.debounce((query) => {
+            AppState.searchQuery = query;
+            ConversationManager.renderConversationList();
+            DOM.searchClear.classList.toggle('hidden', !query);
+        }, AppConfig.SEARCH_DEBOUNCE);
+
+        DOM.searchInput.addEventListener('input', (e) => {
+            debouncedSearch(e.target.value);
+        });
+
+        DOM.searchClear.addEventListener('click', () => {
+            DOM.searchInput.value = '';
+            AppState.searchQuery = '';
+            ConversationManager.renderConversationList();
+            DOM.searchClear.classList.add('hidden');
+        });
+    },
+
+    setupQuickResponses() {
+        DOM.quickResponseButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const text = btn.dataset.text;
+                DOM.messageInput.value = text;
+                DOM.messageInput.focus();
+                DOM.sendButton.disabled = false;
+                DOM.quickResponses.classList.add('hidden');
+            });
+        });
+    },
+
+    setupFilters() {
+        DOM.filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                DOM.filterButtons.forEach(b => b.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-600/30'));
+                btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-600/30');
+                
+                AppState.currentFilter = btn.dataset.filter;
+                if (['webchat','instagram','facebook'].includes(AppState.currentFilter)) {
+                    DataLoader.loadPlatform(AppState.currentFilter);
+                } else {
+                    ConversationManager.renderConversationList();
+                }
+            });
+        });
+    },
+
+    sendMessage() {
+        const content = DOM.messageInput.value.trim();
+        if (!content || content.length > AppConfig.MESSAGE_MAX_LENGTH) return;
+
+        ConversationManager.addMessage(content, true);
+        
+        DOM.messageInput.value = '';
+        DOM.messageInput.style.height = 'auto';
+        DOM.sendButton.disabled = true;
+        DOM.charCount.textContent = '0';
+        DOM.quickResponses.classList.remove('hidden');
+
+        setTimeout(() => {
+            ConversationManager.simulateTyping();
+        }, 1000);
+
+        if (Math.random() > 0.7) {
+            setTimeout(() => {
+                NotificationManager.show('Message delivered successfully', 'success');
+            }, 500);
+        }
+    }
+};
+
+// UI Actions
+const UIActions = {
+  async showDedupPreview(conversationId) {
+    try {
+      const res = await DataLoader.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/dedup-preview`);
+      if (!res || res.status !== 'success') throw new Error('Failed');
+      const matches = Array.isArray(res.data) ? res.data : [];
+      const html = `
+        <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div class="glass w-full max-w-lg rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold">Dedup Preview</h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            ${matches.length === 0 ? '<p class="text-sm text-gray-300">No candidate matches found.</p>' : ''}
+            <div class="space-y-3 max-h-80 overflow-auto pr-2">
+              ${matches.map(m => `
+                <div class="p-3 rounded-xl bg-gray-700/40 border border-gray-600/40">
+                  <div class="text-sm font-semibold">${m.user_identifier || 'Unknown'}</div>
+                  <div class="text-xs text-gray-300">Platform: ${m.platform_type || 'webchat'} • Confidence: ${(m.confidence_score ?? 0).toFixed(2)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
+    } catch (e) {
+      NotificationManager.show('Failed to load dedup preview', 'error');
+    }
+  },
+  async populateInlineDedup(conversationId) {
+    try {
+      const res = await DataLoader.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/dedup-preview`);
+      const box = document.getElementById('dedup-inline');
+      if (!box) return;
+      if (res && res.signals && (res.signals.email || res.signals.phone)) {
+        const email = res.signals.email || '';
+        const phone = res.signals.phone || '';
+        box.innerHTML = `
+          <div class="p-3 rounded-lg bg-gray-700/40 border border-gray-600/40">
+            <div class="mb-2 font-semibold">Detected identity signals</div>
+            ${email ? `<div class="mb-1">Email: <span class="font-mono">${Utils.escapeHtml(email)}</span></div>` : ''}
+            ${phone ? `<div class="mb-2">Phone: <span class="font-mono">${Utils.escapeHtml(phone)}</span></div>` : ''}
+            <div class="flex gap-2">
+              ${email ? `<button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="UIActions.linkContact('${conversationId}','email','${email}')">Link by Email</button>` : ''}
+              ${phone ? `<button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="UIActions.linkContact('${conversationId}','phone','${phone}')">Link by Phone</button>` : ''}
+            </div>
+          </div>`;
+        box.classList.remove('hidden');
+      }
+    } catch {}
+  },
+  async linkContact(conversationId, identityType, identityValue) {
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/link-contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity_type: identityType, identity_value: identityValue })
+      });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const data = await r.json();
+      NotificationManager.show('Conversation linked to contact '+data.contact_id, 'success');
+    } catch (e) {
+      NotificationManager.show('Failed to link contact', 'error');
+    }
+  },
+  async showLinkedContact(conversationId) {
+    try {
+      const res = await DataLoader.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/contact`);
+      const box = document.getElementById('linked-contact');
+      if (!box) return;
+      if (res && res.status === 'success' && res.contact) {
+        box.innerHTML = `<div class="p-3 rounded-lg bg-gray-700/40 border border-gray-600/40">Linked contact: <span class="font-mono">${res.contact.contact_id}</span>${res.contact.full_name ? ` • ${Utils.escapeHtml(res.contact.full_name)}` : ''}</div>`;
+        box.classList.remove('hidden');
+      }
+    } catch {}
+  },
+  async loadMoreMessages() {
+    try {
+      const id = AppState.selectedConversationId;
+      // Increase limit by 200 per click up to 1000
+      const current = (AppState._msgLimit || 200);
+      const next = Math.min(current + 200, 1000);
+      AppState._msgLimit = next;
+      const res = await DataLoader.fetchJson(`/api/inbox/conversations/${encodeURIComponent(id)}/messages?limit=${next}`);
+      if (res && res.status === 'success') {
+        const msgs = res.data.map(m => ({
+          id: (m.message_created_at ? new Date(m.message_created_at).getTime() : Date.now()) + Math.random().toString(36).slice(2),
+          content: m.message_content || '',
+          timestamp: new Date(m.message_created_at || Date.now()),
+          isOwn: String(m.message_role).toLowerCase() === 'assistant',
+          status: String(m.message_role).toLowerCase() === 'assistant' ? (m.function_execution_status || 'read') : undefined
+        }));
+        AppState.conversations[id] = msgs;
+        ConversationManager.renderChat();
+      }
+    } catch {
+      NotificationManager.show('Failed to load more messages', 'error');
+    }
+  },
+  async exportConversation(conversationId) {
+    try {
+      const res = await DataLoader.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/messages?limit=1000`);
+      if (!res || res.status !== 'success') throw new Error('Failed');
+      const rows = res.data || [];
+      const csvHeader = 'timestamp,role,content\n';
+      const csvBody = rows.map(m => {
+        const t = new Date(m.message_created_at || Date.now()).toISOString();
+        const role = (m.message_role || '').replace(/,/g,' ');
+        const content = (m.message_content || '').replace(/\n/g,' ').replace(/"/g,'""');
+        return `${t},${role},"${content}"`;
+      }).join('\n');
+      const blob = new Blob([csvHeader + csvBody], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `conversation-${conversationId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      NotificationManager.show('Export failed', 'error');
+    }
+  }
+};
+
+// Application Initialization
+class InboxApp {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        InputManager.init();
+        this.setupMobileMenu();
+        this.setupResizeHandler();
+        ConversationManager.renderAll();
+        // Try to bootstrap with live data (falls back to demo automatically)
+        DataLoader.bootstrap().then(() => {
+          // Update platform counts
+          const counts = { all: 0, webchat: 0, instagram: 0, facebook: 0 };
+          AppState.customers.forEach(c => {
+            counts.all += 1;
+            const tag = (c.tags[0] || '').toLowerCase();
+            if (counts[tag] !== undefined) counts[tag] += 1;
+          });
+          const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = `(${v})`; };
+          setText('count-platform-all', counts.all);
+          setText('count-platform-webchat', counts.webchat);
+          setText('count-platform-instagram', counts.instagram);
+          setText('count-platform-facebook', counts.facebook);
+          ConversationManager.renderAll();
+          this.setupSSE();
+        });
+        this.setupKeyboardShortcuts();
+        
+        setTimeout(() => {
+            NotificationManager.show('Admin Inbox is ready! 🚀', 'success');
+        }, 1000);
+        
+        console.log('🚀 Admin Inbox initialized successfully');
+    }
+
+    setupSSE() {
+        try {
+            const es = new EventSource('/api/inbox/stream');
+            es.onmessage = async (evt) => {
+                try {
+                    const payload = JSON.parse(evt.data || '{}');
+                    if (payload.type === 'conversation_updated') {
+                        // Refresh the list for the payload platform only
+                        const plat = payload.platform_type;
+                        const res = await DataLoader.fetchJson(`/api/inbox/conversations?platform=${encodeURIComponent(plat)}&limit=25`);
+                        if (res && res.status === 'success' && Array.isArray(res.data)) {
+                            // Merge/replace entries for that platform
+                            const others = AppState.customers.filter(c => (c.tags[0] || '').toLowerCase() !== plat);
+                            const mapped = res.data.map((row, idx) => ({
+                              id: String(row.conversation_id),
+                              name: String(row.display_name || row.username || row.user_identifier || `Visitor ${idx + 1}`),
+                              email: `${(row.username || row.user_identifier || 'visitor').toString().replace(/[^a-z0-9._-]/gi,'_')}@example.local`,
+                              avatar: row.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(row.user_identifier || 'visitor_'+idx)}`,
+                              status: 'online',
+                              lastSeen: new Date(row.last_message_at || Date.now()),
+                              phone: '',
+                              location: plat.charAt(0).toUpperCase()+plat.slice(1),
+                              tags: [plat.charAt(0).toUpperCase()+plat.slice(1)],
+                              priority: 'low',
+                              department: 'Support',
+                              customerSince: new Date().toISOString().slice(0,10),
+                              totalOrders: 0,
+                              lastOrderAmount: 0,
+                              lastMessagePreview: row.last_message_content || '',
+                              platformUserId: row.user_identifier || ''
+                            }));
+                            AppState.customers = [...others, ...mapped];
+                            ConversationManager.renderConversationList();
+                            // If current selection matches updated platform, refresh messages
+                            const sel = AppState.selectedConversationId;
+                            if (sel) {
+                              await DataLoader.loadMessages(sel);
+                              ConversationManager.renderChat();
+                            }
+                        }
+                    }
+                } catch {}
+            };
+            es.onerror = () => {};
+        } catch {}
+    }
+
+    setupMobileMenu() {
+        DOM.menuButton.addEventListener('click', () => {
+            DOM.sidebar.classList.toggle('-translate-x-full');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && 
+                !DOM.sidebar.contains(e.target) && 
+                !DOM.menuButton.contains(e.target) &&
+                !DOM.sidebar.classList.contains('-translate-x-full')) {
+                DOM.sidebar.classList.add('-translate-x-full');
+            }
+        });
+    }
+
+    setupResizeHandler() {
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth >= 768) {
+                    DOM.sidebar.classList.remove('-translate-x-full');
+                }
+            }, 100);
+        });
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                DOM.searchInput.focus();
+            }
+            
+            if (e.key === 'Escape') {
+                if (DOM.searchInput.value) {
+                    DOM.searchInput.value = '';
+                    AppState.searchQuery = '';
+                    ConversationManager.renderConversationList();
+                    DOM.searchClear.classList.add('hidden');
+                } else if (window.innerWidth < 768) {
+                    DOM.sidebar.classList.add('-translate-x-full');
+                }
+            }
+        });
+    }
+}
+
+// Start Application
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => new InboxApp());
+} else {
+    new InboxApp();
+}
+
+// Expose global functions
+window.ConversationManager = ConversationManager;
+window.NotificationManager = NotificationManager;
+
+</script>
+</body>
+</html>
