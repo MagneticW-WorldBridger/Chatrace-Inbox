@@ -181,7 +181,7 @@
 
 <div id="app" class="flex h-screen text-gray-100">
     <!-- Conversations Sidebar -->
-    <div id="sidebar" class="w-80 glass flex flex-col transition-all duration-300 z-50 fixed md:relative h-full -translate-x-full md:translate-x-0">
+    <div id="sidebar" class="w-80 glass flex flex-col transition-all duration-300 z-50 fixed md:relative h-full -translate-x-full md:translate-x-0 overflow-x-hidden">
         <!-- Sidebar Header -->
         <div class="p-6 border-b border-gray-600/30">
             <div class="flex items-center justify-between mb-4">
@@ -198,6 +198,9 @@
                     </button>
                     <button id="settings-btn" class="p-2 rounded-lg hover:bg-gray-700/50 transition-all">
                         <i class="fas fa-cog h-4 w-4"></i>
+                    </button>
+                    <button id="switch-account-btn" class="p-2 rounded-lg hover:bg-gray-700/50 transition-all" title="Switch account" onclick="UIActions.switchAccount()">
+                        <i class="fas fa-exchange-alt h-4 w-4"></i>
                     </button>
                 </div>
             </div>
@@ -220,7 +223,7 @@
         <!-- Conversation Filters -->
         <div class="px-6 py-4 border-b border-gray-600/30">
             <div class="flex items-center justify-between mb-4">
-                <div class="flex gap-2" id="platform-filters">
+                <div class="flex flex-wrap gap-2" id="platform-filters">
                     <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="all">All <span id="count-platform-all" class="ml-1 text-gray-400"></span></button>
                     <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="webchat">Webchat <span id="count-platform-webchat" class="ml-1 text-gray-400"></span></button>
                     <button class="filter-btn px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40" data-filter="instagram">Instagram <span id="count-platform-instagram" class="ml-1 text-gray-400"></span></button>
@@ -228,7 +231,7 @@
                 </div>
                 <div class="text-xs text-gray-400">Quick Filters</div>
             </div>
-            <div class="flex gap-2 text-xs">
+            <div class="flex flex-wrap gap-2 text-xs w-full">
                 <button class="filter-btn active px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-600/30" data-filter="all">
                     All <span id="count-all" class="ml-1 opacity-75"></span>
                 </button>
@@ -355,7 +358,8 @@ const AppConfig = {
     TYPING_TIMEOUT: 1000,
     MESSAGE_MAX_LENGTH: 2000,
     SEARCH_DEBOUNCE: 300,
-    TOAST_DURATION: 3000
+    TOAST_DURATION: 3000,
+    SIMULATE_TYPING: false
 };
 
 // Application State
@@ -543,7 +547,7 @@ const DataLoader = {
 
   async loadPlatform(platform) {
     try {
-      const res = await this.fetchJson(`/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50`);
+      const res = await this.fetchJson(`/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50&account_id=${encodeURIComponent(this.currentAccountId||'')}`);
       if (!res || res.status !== 'success' || !Array.isArray(res.data) || res.data.length === 0) {
         NotificationManager.show(`No conversations on ${platform}`, 'info');
         return;
@@ -587,7 +591,7 @@ const DataLoader = {
       const now = Date.now();
       if (this._lastLoadByConv[conversationId] && now - this._lastLoadByConv[conversationId] < 1000) return;
       this._lastLoadByConv[conversationId] = now;
-      const res = await this.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/messages?limit=${limit}`);
+      const res = await this.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/messages?limit=${limit}&account_id=${encodeURIComponent(this.currentAccountId||'')}`);
       if (!res || res.status !== 'success' || !Array.isArray(res.data)) return;
       const msgs = res.data.map(m => ({
         id: (m.message_created_at ? new Date(m.message_created_at).getTime() : Date.now()) + Math.random().toString(36).slice(2),
@@ -858,6 +862,9 @@ const ConversationManager = {
                 <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="More options">
                     <i class="fas fa-ellipsis-v h-4 w-4"></i>
                 </button>
+                <button class="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Control Panel" onclick="ControlPanel.open()">
+                    <i class="fas fa-sliders-h h-4 w-4"></i>
+                </button>
             </div>
         `;
 
@@ -1084,9 +1091,11 @@ const InputManager = {
         DOM.charCount.textContent = '0';
         DOM.quickResponses.classList.remove('hidden');
 
-        setTimeout(() => {
-            ConversationManager.simulateTyping();
-        }, 1000);
+        if (AppConfig.SIMULATE_TYPING) {
+          setTimeout(() => {
+              ConversationManager.simulateTyping();
+          }, 1000);
+        }
 
         if (Math.random() > 0.7) {
             setTimeout(() => {
@@ -1098,6 +1107,20 @@ const InputManager = {
 
 // UI Actions
 const UIActions = {
+  switchAccount() {
+    try {
+      const current = DataLoader.currentAccountId || '';
+      const input = prompt('Enter account_id', current);
+      if (!input) return;
+      document.cookie = `account_id=${encodeURIComponent(input)}; path=/; max-age=31536000`;
+      DataLoader.currentAccountId = String(input);
+      const url = new URL(location.href);
+      url.searchParams.set('account_id', input);
+      location.href = url.toString();
+    } catch {
+      location.reload();
+    }
+  },
   async showDedupPreview(conversationId) {
     try {
       const res = await DataLoader.fetchJson(`/api/inbox/conversations/${encodeURIComponent(conversationId)}/dedup-preview`);
@@ -1234,6 +1257,13 @@ class InboxApp {
         this.setupMobileMenu();
         this.setupResizeHandler();
         ConversationManager.renderAll();
+        // Resolve account_id from cookie or query before bootstrapping
+        try {
+          const m = document.cookie.match(/(?:^|; )account_id=([^;]+)/);
+          if (m) DataLoader.currentAccountId = decodeURIComponent(m[1]);
+          const q = new URLSearchParams(location.search);
+          if (q.get('account_id')) DataLoader.currentAccountId = q.get('account_id');
+        } catch {}
         // Try to bootstrap with live data (falls back to demo automatically)
         DataLoader.bootstrap().then(() => {
           // Update platform counts
@@ -1365,6 +1395,413 @@ if (document.readyState === 'loading') {
 // Expose global functions
 window.ConversationManager = ConversationManager;
 window.NotificationManager = NotificationManager;
+
+// Control Panel modal
+const ControlPanel = {
+  open() {
+    const html = `
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50" id="control-panel-modal">
+      <div class="glass w-full max-w-5xl rounded-2xl p-6 max-h-[90vh] overflow-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold">Control Panel</h3>
+          <button onclick="document.getElementById('control-panel-modal').remove()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Admins</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('admins')">Load</button>
+            <pre id="panel-admins" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Teams</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('teams')">Load</button>
+            <pre id="panel-teams" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Flows</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('flows')">Load</button>
+            <pre id="panel-flows" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Tags</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('tags')">Load</button>
+            <pre id="panel-tags" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Sequences</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('sequences')">Load</button>
+            <pre id="panel-sequences" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Calendars</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('calendars')">Load</button>
+            <pre id="panel-calendars" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40 md:col-span-2">
+            <div class="font-semibold mb-2">Appointments</div>
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="ControlPanel.load('appointments')">Load</button>
+              <button class="px-2 py-1 text-xs rounded bg-amber-600" onclick="ControlPanel.cancelAppointment()">Cancel by ID</button>
+              <button class="px-2 py-1 text-xs rounded bg-red-700" onclick="ControlPanel.deleteAppointment()">Delete by ID</button>
+            </div>
+            <pre id="panel-appointments" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40 md:col-span-2">
+            <div class="font-semibold mb-2">Orders</div>
+            <div class="flex gap-2 mb-2 flex-wrap">
+              <button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="ControlPanel.load('orders')">Load</button>
+              <button class="px-2 py-1 text-xs rounded bg-emerald-700" onclick="ControlPanel.updateOrderStatus()">Update Status by ID</button>
+            </div>
+            <pre id="panel-orders" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40 md:col-span-2">
+            <div class="font-semibold mb-2">Saved Replies</div>
+            <div class="flex gap-2 mb-2">
+              <button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="ControlPanel.load('saved-replies')">Load</button>
+              <button class="px-2 py-1 text-xs rounded bg-emerald-600" onclick="ControlPanel.addSavedReply()">Add</button>
+              <button class="px-2 py-1 text-xs rounded bg-amber-600" onclick="ControlPanel.updateSavedReply()">Update</button>
+              <button class="px-2 py-1 text-xs rounded bg-red-600" onclick="ControlPanel.deleteSavedReply()">Delete</button>
+            </div>
+            <pre id="panel-saved-replies" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40 md:col-span-2">
+            <div class="font-semibold mb-2">Conversation Actions (selected: <span id="panel-selected-conv"></span>)</div>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <button class="px-2 py-1 text-xs rounded bg-indigo-600" onclick="ControlPanel.convUpdate('archived',1)">Archive</button>
+              <button class="px-2 py-1 text-xs rounded bg-gray-600" onclick="ControlPanel.convUpdate('archived',0)">Unarchive</button>
+              <button class="px-2 py-1 text-xs rounded bg-yellow-600" onclick="ControlPanel.convUpdate('followup',1)">Follow</button>
+              <button class="px-2 py-1 text-xs rounded bg-gray-600" onclick="ControlPanel.convUpdate('followup',0)">Unfollow</button>
+              <button class="px-2 py-1 text-xs rounded bg-green-600" onclick="ControlPanel.convMarkRead()">Mark Read</button>
+              <button class="px-2 py-1 text-xs rounded bg-gray-600" onclick="ControlPanel.convUpdate('read',0)">Mark Unread</button>
+              <button class="px-2 py-1 text-xs rounded bg-rose-600" onclick="ControlPanel.convUpdate('live_chat',1)">Move to Human</button>
+              <button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="ControlPanel.convUpdate('live_chat',0)">Move to Bot</button>
+              <button class="px-2 py-1 text-xs rounded bg-red-600" onclick="ControlPanel.convUpdate('blocked',1)">Block</button>
+              <button class="px-2 py-1 text-xs rounded bg-gray-700" onclick="ControlPanel.convUpdate('blocked',0)">Unblock</button>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <button class="px-2 py-1 text-xs rounded bg-emerald-700" onclick="ControlPanel.addNote()">Add Note</button>
+              <button class="px-2 py-1 text-xs rounded bg-amber-700" onclick="ControlPanel.updateNote()">Update Note</button>
+              <button class="px-2 py-1 text-xs rounded bg-red-700" onclick="ControlPanel.deleteNote()">Delete Note</button>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <button class="px-2 py-1 text-xs rounded bg-purple-700" onclick="ControlPanel.customFieldSet()">Set Custom Field</button>
+              <button class="px-2 py-1 text-xs rounded bg-purple-500" onclick="ControlPanel.customFieldDelete()">Delete Custom Field</button>
+              <button class="px-2 py-1 text-xs rounded bg-fuchsia-700" onclick="ControlPanel.removeTag()">Remove Tag</button>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <button class="px-2 py-1 text-xs rounded bg-orange-700" onclick="ControlPanel.aiSuggest()">AI Suggest Reply</button>
+              <button class="px-2 py-1 text-xs rounded bg-sky-700" onclick="ControlPanel.assignConv()">Assign</button>
+              <button class="px-2 py-1 text-xs rounded bg-gray-700" onclick="ControlPanel.unassignConv()">Unassign</button>
+            </div>
+            <pre id="panel-conv-actions" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Flows — Steps</div>
+            <div class="flex gap-2 mb-2">
+              <button class="px-2 py-1 text-xs rounded bg-blue-600" onclick="ControlPanel.loadSteps()">Load Steps by Flow ID</button>
+            </div>
+            <pre id="panel-steps" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">Products</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('products')">Load</button>
+            <pre id="panel-products" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">GBM Locations</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('googlebm/locations')">Load</button>
+            <pre id="panel-googlebm-locations" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">OTN Lists</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.load('otn')">Load</button>
+            <pre id="panel-otn" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40">
+            <div class="font-semibold mb-2">FCM Device Registration</div>
+            <button class="px-2 py-1 text-xs rounded bg-blue-600 mb-2" onclick="ControlPanel.registerDevice()">Register</button>
+            <pre id="panel-fcm" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40 md:col-span-2">
+            <div class="font-semibold mb-2">Send to Contact (Selected Conversation)</div>
+            <div class="flex flex-wrap gap-2 mb-2">
+              <button class="px-2 py-1 text-xs rounded bg-blue-700" onclick="ControlPanel.sendFlow()">Send Flow</button>
+              <button class="px-2 py-1 text-xs rounded bg-indigo-700" onclick="ControlPanel.sendStep()">Send Step</button>
+              <button class="px-2 py-1 text-xs rounded bg-emerald-700" onclick="ControlPanel.sendProducts()">Send Products</button>
+            </div>
+            <pre id="panel-send" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-gray-700/30 border border-gray-600/40 md:col-span-2">
+            <div class="font-semibold mb-2">Upload File</div>
+            <form id="upload-form" class="flex flex-col gap-2" onsubmit="return ControlPanel.upload(event)">
+              <textarea id="upload-param" class="search-input rounded-xl p-2 text-xs" rows="3" placeholder='{"account_id":"${window.BUSINESS_ID||''}","op":"flows","op1":"upload","op2":"image","contact_id":"[contact_id]","file_name":null,"uploadFB":false,"inbox":true}'></textarea>
+              <input id="upload-file" type="file" class="text-xs" />
+              <div>
+                <button class="px-2 py-1 text-xs rounded bg-blue-600">Send Upload</button>
+              </div>
+            </form>
+            <pre id="panel-upload" class="text-xs whitespace-pre-wrap"></pre>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    const sel = document.getElementById('panel-selected-conv');
+    if (sel) sel.textContent = AppState.selectedConversationId || '-';
+  },
+  async load(section) {
+    const map = {
+      'admins': '/api/inbox/admins',
+      'teams': '/api/inbox/teams',
+      'flows': '/api/inbox/flows',
+      'products': '/api/inbox/products',
+      'tags': '/api/inbox/tags',
+      'sequences': '/api/inbox/sequences',
+      'calendars': '/api/inbox/calendars',
+      'appointments': '/api/inbox/appointments',
+      'orders': '/api/inbox/orders',
+      'saved-replies': '/api/inbox/saved-replies',
+      'googlebm/locations': '/api/inbox/googlebm/locations',
+      'otn': '/api/inbox/otn'
+    };
+    const url = map[section];
+    if (!url) return;
+    try {
+      const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      const j = await r.json();
+      const target = document.getElementById('panel-' + section.replace(/\//g,'-'));
+      if (target) target.textContent = JSON.stringify(j, null, 2);
+    } catch (e) {
+      NotificationManager.show('Failed loading ' + section, 'error');
+    }
+  },
+  async addSavedReply() {
+    const shortcode = prompt('Shortcode (e.g., /welcome)');
+    const value = prompt('Value');
+    if (!shortcode || !value) return;
+    try {
+      const r = await fetch('/api/inbox/saved-replies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shortcode, value })
+      });
+      const j = await r.json();
+      NotificationManager.show('Saved reply added', 'success');
+      const p = document.getElementById('panel-saved-replies');
+      if (p) p.textContent = JSON.stringify(j, null, 2);
+    } catch (e) {
+      NotificationManager.show('Failed adding saved reply', 'error');
+    }
+  }
+  ,
+  async convUpdate(action, value) {
+    const id = AppState.selectedConversationId;
+    if (!id) return;
+    let body = { action };
+    if (action === 'read') body.timestamp = value ? Math.floor(Date.now()/1000) : 0;
+    else body.value = value ? 1 : 0;
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/update`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions');
+      if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Action applied: '+action, 'success');
+    } catch { NotificationManager.show('Failed to update conversation', 'error'); }
+  },
+  async convMarkRead() { return this.convUpdate('read', 1); },
+  async addNote() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const text = prompt('Note text'); if (!text) return;
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/notes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Note added', 'success');
+    } catch { NotificationManager.show('Failed to add note', 'error'); }
+  },
+  async updateNote() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const noteId = prompt('Note ID'); const text = prompt('New text');
+    if (!noteId || !text) return;
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/notes/${encodeURIComponent(noteId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Note updated', 'success');
+    } catch { NotificationManager.show('Failed to update note', 'error'); }
+  },
+  async deleteNote() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const noteId = prompt('Note ID'); if (!noteId) return;
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/notes/${encodeURIComponent(noteId)}`, { method: 'DELETE' });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Note deleted', 'success');
+    } catch { NotificationManager.show('Failed to delete note', 'error'); }
+  },
+  async customFieldSet() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const field_id = prompt('Custom Field ID');
+    const field_type = prompt('Type (0 text, 1 number, 2 date, 3 datetime, 4 bool)');
+    const value = prompt('Value');
+    if (!field_id || field_type === null || value === null) return;
+    try {
+      const r = await fetch(`/api/inbox/users/${encodeURIComponent(id)}/custom-field/set`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ field_id, field_type, value }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Custom field set', 'success');
+    } catch { NotificationManager.show('Failed to set custom field', 'error'); }
+  },
+  async customFieldDelete() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const field_id = prompt('Custom Field ID');
+    const field_type = prompt('Type (0 text, 1 number, 2 date, 3 datetime, 4 bool)');
+    if (!field_id || field_type === null) return;
+    try {
+      const r = await fetch(`/api/inbox/users/${encodeURIComponent(id)}/custom-field/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ field_id, field_type }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Custom field deleted', 'success');
+    } catch { NotificationManager.show('Failed to delete custom field', 'error'); }
+  },
+  async removeTag() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const tag_id = prompt('Tag ID to remove'); if (!tag_id) return;
+    try {
+      const r = await fetch(`/api/inbox/users/${encodeURIComponent(id)}/tags/remove`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tags: [String(tag_id)] }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Tag removed', 'success');
+    } catch { NotificationManager.show('Failed to remove tag', 'error'); }
+  },
+  async loadSteps() {
+    const id = prompt('Flow ID'); if (!id) return;
+    try {
+      const r = await fetch(`/api/inbox/flows/${encodeURIComponent(id)}/steps`);
+      const j = await r.json();
+      const p = document.getElementById('panel-steps'); if (p) p.textContent = JSON.stringify(j, null, 2);
+    } catch { NotificationManager.show('Failed to load steps', 'error'); }
+  },
+  async aiSuggest() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const promptText = prompt('Optional prompt (leave blank for default)');
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/ai-suggestion`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: promptText || null }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('AI suggestion generated', 'success');
+    } catch { NotificationManager.show('Failed to generate suggestion', 'error'); }
+  },
+  async upload(e) {
+    e.preventDefault();
+    try {
+      const form = new FormData();
+      const param = document.getElementById('upload-param').value;
+      const file = document.getElementById('upload-file').files[0];
+      if (param) form.append('param', param);
+      if (file) form.append('file', file);
+      const r = await fetch('/api/inbox/upload', { method: 'POST', body: form });
+      const t = await r.text();
+      const p = document.getElementById('panel-upload');
+      try { p.textContent = JSON.stringify(JSON.parse(t), null, 2); } catch { p.textContent = t; }
+      NotificationManager.show('Upload done', 'success');
+    } catch { NotificationManager.show('Upload failed', 'error'); }
+    return false;
+  }
+  ,
+  async assignConv() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const fb_id = prompt('Admin/Team fb_id to assign'); if (!fb_id) return;
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'assign', fb_id }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Assigned', 'success');
+    } catch { NotificationManager.show('Failed to assign', 'error'); }
+  },
+  async unassignConv() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/update`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'assign', fb_id: 0 }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-conv-actions'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Unassigned', 'success');
+    } catch { NotificationManager.show('Failed to unassign', 'error'); }
+  },
+  async registerDevice() {
+    const token = prompt('Firebase token');
+    const platform = prompt('Platform (ios|android)', 'ios');
+    const brand = prompt('Brand', 'iPhone');
+    const model = prompt('Model', '15 PRO');
+    try {
+      const r = await fetch('/api/inbox/firebase/device', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firebaseToken: token, platform, brand, model }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-fcm'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Device registered', 'success');
+    } catch { NotificationManager.show('Failed to register device', 'error'); }
+  },
+  async sendFlow() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const flow_id = prompt('Flow ID'); if (!flow_id) return;
+    const channel = prompt('Channel (0 fb, 9 webchat, 10 ig)', '9');
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flow_id, channel: Number(channel)||9 }) });
+      const t = await r.text();
+      const p = document.getElementById('panel-send'); try { p.textContent = JSON.stringify(JSON.parse(t), null, 2); } catch { p.textContent = t; }
+      NotificationManager.show('Flow sent', 'success');
+    } catch { NotificationManager.show('Failed to send flow', 'error'); }
+  },
+  async sendStep() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const step_id = prompt('Step ID'); if (!step_id) return;
+    const channel = prompt('Channel (0 fb, 9 webchat, 10 ig)', '9');
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ step_id, channel: Number(channel)||9 }) });
+      const t = await r.text();
+      const p = document.getElementById('panel-send'); try { p.textContent = JSON.stringify(JSON.parse(t), null, 2); } catch { p.textContent = t; }
+      NotificationManager.show('Step sent', 'success');
+    } catch { NotificationManager.show('Failed to send step', 'error'); }
+  },
+  async sendProducts() {
+    const id = AppState.selectedConversationId; if (!id) return;
+    const list = prompt('Product IDs (comma-separated)'); if (!list) return;
+    const product_ids = list.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+    const channel = prompt('Channel (0 fb, 9 webchat, 10 ig)', '9');
+    try {
+      const r = await fetch(`/api/inbox/conversations/${encodeURIComponent(id)}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_ids, channel: Number(channel)||9 }) });
+      const t = await r.text();
+      const p = document.getElementById('panel-send'); try { p.textContent = JSON.stringify(JSON.parse(t), null, 2); } catch { p.textContent = t; }
+      NotificationManager.show('Products sent', 'success');
+    } catch { NotificationManager.show('Failed to send products', 'error'); }
+  },
+  async updateSavedReply() {
+    const id = prompt('Saved reply ID');
+    if (!id) return;
+    const shortcode = prompt('Shortcode (blank to keep)');
+    const value = prompt('Value (blank to keep)');
+    try {
+      const r = await fetch(`/api/inbox/saved-replies/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, shortcode, value }) });
+      const j = await r.json();
+      const p = document.getElementById('panel-saved-replies'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Saved reply updated', 'success');
+    } catch { NotificationManager.show('Failed to update saved reply', 'error'); }
+  },
+  async deleteSavedReply() {
+    const id = prompt('Saved reply ID');
+    if (!id) return;
+    try {
+      const r = await fetch(`/api/inbox/saved-replies/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const j = await r.json();
+      const p = document.getElementById('panel-saved-replies'); if (p) p.textContent = JSON.stringify(j, null, 2);
+      NotificationManager.show('Saved reply deleted', 'success');
+    } catch { NotificationManager.show('Failed to delete saved reply', 'error'); }
+  },
+};
+
+window.ControlPanel = ControlPanel;
 
 </script>
 </body>

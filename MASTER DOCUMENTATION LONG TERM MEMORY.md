@@ -4,13 +4,14 @@ This document tracks a 1:1 mapping from the ChatRace Postman collection operatio
 
 Environment assumptions:
 - Required: API_URL, BUSINESS_ID, USER_TOKEN (JWT), optional API_TOKEN
-- Admin UI page: /admin-inbox-v2.html
+- Admin UI page: /admin-inbox-v2.html (Switch Account sets cookie account_id)
 - API base (local): /api/inbox/* and /api/chatrace
+- Session helpers: /api/test-auth sets cookie account_id when BUSINESS_ID exists; /api/validate-otp sets cookies user_token and account_id when upstream returns them; /api/session/account shows resolved account
 
 Server health:
 - GET /healthz → ok
 
-Implemented endpoints used by Admin Inbox
+Implemented endpoints used by Admin Inbox (all resolve account_id via cookie/query/body)
 - GET /api/inbox/conversations?platform=webchat|instagram|facebook&limit=N
   - Upstream: op=conversations, op1=get, channel mapped (webchat=9, instagram=10, facebook=0)
   - Status: Implemented
@@ -41,7 +42,7 @@ Generic proxy
     - Other ops prefer incoming token, fallback USER_TOKEN, then API_TOKEN
   - Status: Implemented
 
-Postman collection coverage (op/op1/op2)
+Postman collection coverage (op/op1/op2) — Implemented unless noted
 - conversations/get — Implemented (list)
 - conversations/get (id) — Implemented (messages)
 - conversations/send/flow — Implemented
@@ -50,55 +51,54 @@ Postman collection coverage (op/op1/op2)
 - message/send — Implemented (best-effort)
 - users/get — Implemented (basic contact)
 - wt/get — Via proxy
-- admins/get — Not implemented (use proxy)
-- inbox_team/get — Not implemented
-- flows/get — Not implemented (use proxy)
-- products/get — Not implemented (use proxy)
-- ecommerce/orders/get — Not implemented
-- ecommerce/orders/update — Not implemented
-- sequences/get — Not implemented
-- tags/get — Not implemented
-- inbox_saved_reply/get — Not implemented
-- inbox_saved_reply/add — Not implemented
-- inbox_saved_reply/update — Not implemented
-- inbox_saved_reply/delete — Not implemented
-- custom-fields/get — Not implemented
-- custom-fields/add — Not implemented
-- users/custom-field/set — Not implemented
-- users/custom-field/delete — Not implemented
-- users/update/remove-tag — Not implemented
-- conversations/update/assign — Not implemented
-- conversations/update/archived — Not implemented
-- conversations/update/followup — Not implemented
-- conversations/update/read — Not implemented
-- conversations/update/live-chat — Not implemented
-- conversations/notes/add — Not implemented
-- conversations/notes/update — Not implemented
-- conversations/notes/delete — Not implemented
-- conversations/AI-reply-suggestion — Not implemented
-- calendars/get — Not implemented
-- calendars/appointments/get — Not implemented
-- calendars/appointments/changeStatus — Not implemented
-- calendars/appointments/delete — Not implemented
-- login/email/sendOTP — Not implemented
-- login/email/validateOTP — Not implemented
+- admins/get — Implemented (endpoint dedicated)
+- inbox_team/get — Implemented
+- flows/get — Implemented
+- products/get — Implemented
+- ecommerce/orders/get — Implemented
+- ecommerce/orders/update — Implemented
+- sequences/get — Implemented
+- tags/get — Implemented
+- inbox_saved_reply/get — Implemented
+- inbox_saved_reply/add — Implemented
+- inbox_saved_reply/update — Implemented
+- inbox_saved_reply/delete — Implemented
+- custom-fields/get — Implemented
+- custom-fields/add — Implemented
+- users/custom-field/set — Implemented
+- users/custom-field/delete — Implemented
+- users/update/remove-tag — Implemented
+- conversations/update/assign — Implemented
+- conversations/update/archived — Implemented
+- conversations/update/followup — Implemented
+- conversations/update/read — Implemented
+- conversations/update/live-chat — Implemented
+- conversations/notes/add — Implemented
+- conversations/notes/update — Implemented
+- conversations/notes/delete — Implemented
+- conversations/AI-reply-suggestion — Implemented
+- calendars/get — Implemented
+- calendars/appointments/get — Implemented
+- calendars/appointments/changeStatus — Implemented
+- calendars/appointments/delete — Implemented
+- login/email/sendOTP — Implemented
+- login/email/validateOTP — Implemented
 - login/authentication/validate (Google/Microsoft/Apple/Facebook) — Not implemented
-- logout — Not implemented
-- firebaseCM/device/add — Not implemented
-- googleBM/location/get — Not implemented
-- otn/get — Not implemented
+- logout — Not implemented (clear cookies manually)
+- firebaseCM/device/add — Implemented
+- googleBM/location/get — Implemented
+- otn/get — Implemented
 
 Notes
-- admin-inbox-v2.html currently simulates an AI reply for UX (“Great question…”). Real AI reply API is not wired.
+- admin-inbox-v2.html: typing simulation disabled by default (AppConfig.SIMULATE_TYPING=false)
 - Instagram channel mapping is 10; Facebook 0; Webchat 9.
 - Token strategy: prefer header X-ACCESS-TOKEN; otherwise USER_TOKEN; whitelabel prefers API_TOKEN.
 
 Next priorities
-1) Implement conversations update actions (assign, archived, followup, read, live-chat)
-2) Implement notes add/update/delete
-3) Implement tags and custom-fields (get/set/remove)
-4) Implement flows/products lists
-5) Implement login/OTP if needed for multi-user session management
+1) Integrate advanced actions into React UI (Admin already covers)
+2) UX/UI polish (layout responsive for filters, navigation, collapsible panels)
+3) SSE/WS in React for live updates
+4) Trim legacy and consolidate docs
 
 Testing cheatsheet
 - Health: curl localhost:PORT/healthz

@@ -5,6 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChatRace Inbox</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-primary: #334155;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-red: #ef4444;
+      --glass-bg: rgba(30, 41, 59, 0.8);
+      --glass-border: rgba(51, 65, 85, 0.5);
+    }
+    body { background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); color: var(--text-primary); }
+    .glass { background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); }
+    .scrollbar-enhanced::-webkit-scrollbar { width: 8px; }
+    .scrollbar-enhanced::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 4px; }
+    .scrollbar-enhanced::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
+    .message-own { background: linear-gradient(135deg, var(--accent-blue), #2563eb); }
+    .message-other { background: var(--glass-bg); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-blue), #2563eb); }
+    .search-input { background: var(--glass-bg); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); }
+  </style>
 </head>
 <body>
   <div id="root"></div>
