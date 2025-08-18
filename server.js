@@ -15,6 +15,47 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
+app.disable('x-powered-by');
+app.use((_, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); next(); });
+// Minimal security headers
+app.use((req, res, next) => {
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  next();
+});
+
+// Minimal CORS (optional via env)
+app.use((req, res, next) => {
+  const origin = process.env.CORS_ORIGIN || '';
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ACCESS-TOKEN, Authorization, X-REQUEST-ID');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+
+// Basic request-id and logging
+app.use((req, res, next) => {
+  const rid = req.headers['x-request-id'] || Math.random().toString(36).slice(2);
+  res.setHeader('x-request-id', String(rid));
+  req._rid = rid;
+  next();
+});
+
+// Simple auth gate for mutating endpoints
+function requireAuth(req, res, next) {
+  const headerToken = req.headers['x-access-token'] || (req.headers.authorization?.toString().replace(/^Bearer\s+/i, ''));
+  const cookieToken = req.cookies?.user_token;
+  const token = headerToken || cookieToken || null;
+  if (!token) {
+    return res.status(401).json({ status: 'ERROR', message: 'Missing authentication token' });
+  }
+  next();
+}
 
 // Basic health endpoints
 app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
@@ -52,6 +93,35 @@ async function callUpstream(payload, tokenOverride, req) {
   return response;
 }
 
+// SSE clients registry and broadcaster
+const sseClients = new Set();
+function broadcastEvent(event) {
+  const payload = `data: ${JSON.stringify({ ...event, t: Date.now() })}\n\n`;
+  for (const client of sseClients) {
+    try { client.write(payload); } catch (_) { /* ignore */ }
+  }
+}
+
+// Simple validators
+function ensureArray(val) { return Array.isArray(val) ? val : []; }
+function isNonEmptyString(s) { return typeof s === 'string' && s.trim().length > 0; }
+
+// Very light rate limiter (per IP)
+const rateWindowMs = Number(process.env.RATE_WINDOW_MS || 60000);
+const rateMax = Number(process.env.RATE_MAX || 600);
+const ipHits = new Map();
+function rateLimit(req, res, next) {
+  try {
+    const ip = req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    const rec = ipHits.get(ip) || { t: now, n: 0 };
+    if (now - rec.t > rateWindowMs) { rec.t = now; rec.n = 0; }
+    rec.n += 1; ipHits.set(ip, rec);
+    if (rec.n > rateMax) return res.status(429).json({ status: 'ERROR', message: 'Too many requests' });
+  } catch {}
+  next();
+}
+
 // Inbox API: Get conversations
 app.get('/api/inbox/conversations', async (req, res) => {
   try {
@@ -70,7 +140,7 @@ app.get('/api/inbox/conversations', async (req, res) => {
       op: 'conversations',
       op1: 'get',
       account_id: resolveAccountId(req),
-      offset: 0,
+      offset,
       limit,
     }, undefined, req);
 
@@ -78,7 +148,7 @@ app.get('/api/inbox/conversations', async (req, res) => {
     if (data && data.status === 'OK' && Array.isArray(data.data)) {
       const base = data.data
         .filter(row => (filterChannel ? String(row.channel) === filterChannel : true))
-        .slice(offset, offset + limit);
+        .slice(0, limit);
 
       const mapped = base.map((row, idx) => {
         const conversationId = String(row.ms_id || row.id || idx + 1);
@@ -107,7 +177,7 @@ app.get('/api/inbox/conversations', async (req, res) => {
 app.get('/api/inbox/conversations/:id/messages', async (req, res) => {
   try {
     const conversationId = String(req.params.id);
-    const limit = Math.max(1, Math.min(200, Number(req.query.limit || 200)));
+    const limit = Math.max(1, Math.min(1000, Number(req.query.limit || 200)));
 
     const upstream = await callUpstream({
       op: 'conversations',
@@ -115,7 +185,7 @@ app.get('/api/inbox/conversations/:id/messages', async (req, res) => {
       id: conversationId,
       account_id: resolveAccountId(req),
       offset: 0,
-      limit: Math.min(limit, 50),
+      limit: Math.min(limit, 100),
       expand: { comments: {}, refs: {}, appointments: {} },
     }, undefined, req);
 
@@ -197,23 +267,33 @@ app.post('/api/inbox/conversations/:id/link-contact', async (req, res) => {
   return res.json({ status: 'success', contact_id: id });
 });
 
-// Inbox API: Get linked contact (basic via contacts.get)
+// Inbox API: Get linked contact (prefer users.get with ms_id)
 app.get('/api/inbox/conversations/:id/contact', async (req, res) => {
   try {
     const conversationId = String(req.params.id);
-    const upstream = await callUpstream({
-      op: 'contacts',
-      op1: 'get',
-      account_id: resolveAccountId(req),
-      contact_id: conversationId,
-    }, undefined, req);
-    const data = await upstream.json().catch(() => null);
+    // Try users.get first (ms_id), fallback to contacts.get
+    let data = null;
+    try {
+      const up1 = await callUpstream({ op: 'users', op1: 'get', account_id: resolveAccountId(req), ms_id: conversationId }, undefined, req);
+      data = await up1.json().catch(() => null);
+      if (!(data && data.status === 'OK' && data.data)) {
+        const up2 = await callUpstream({ op: 'contacts', op1: 'get', account_id: resolveAccountId(req), contact_id: conversationId }, undefined, req);
+        data = await up2.json().catch(() => null);
+      }
+    } catch {}
+
     if (data && data.status === 'OK' && data.data) {
+      const u = data.data;
       return res.json({
         status: 'success',
         contact: {
-          contact_id: String(data.data.id || conversationId),
-          full_name: String(data.data.name || data.data.full_name || ''),
+          contact_id: String(u.id || u.ms_id || conversationId),
+          full_name: String(u.full_name || u.name || ''),
+          email: u.email || '',
+          phone: u.phone || '',
+          city: u.city || '',
+          state: u.state || '',
+          country: u.country || ''
         },
       });
     }
@@ -228,19 +308,24 @@ app.get('/api/inbox/stream', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
   if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
+  res.write(`data: ${JSON.stringify({ type: 'hello', t: Date.now() })}\n\n`);
+  sseClients.add(res);
+
   const interval = setInterval(() => {
-    res.write(`data: ${JSON.stringify({ type: 'heartbeat', t: Date.now() })}\n\n`);
+    try { res.write(`data: ${JSON.stringify({ type: 'heartbeat', t: Date.now() })}\n\n`); } catch (_) {}
   }, 15000);
 
   req.on('close', () => {
     clearInterval(interval);
+    sseClients.delete(res);
   });
 });
 
 // Inbox API: Send message/flow/step/products to a conversation
-app.post('/api/inbox/conversations/:id/send', async (req, res) => {
+app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req, res) => {
   try {
     const conversationId = String(req.params.id);
     const body = (req && typeof req.body === 'object' && req.body) ? req.body : {};
@@ -256,6 +341,13 @@ app.post('/api/inbox/conversations/:id/send', async (req, res) => {
     // 4) Products: { product_ids: [], contact_id, channel }
 
     let upstreamPayload = null;
+
+    // Basic validation
+    const validChannels = new Set([0, 9, 10]);
+    const ch = Number(body.channel);
+    if (!validChannels.has(ch)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid channel. Use 0 (facebook), 9 (webchat), or 10 (instagram).' });
+    }
 
     if (body && typeof body.flow_id !== 'undefined') {
       // Send a flow
@@ -281,12 +373,13 @@ app.post('/api/inbox/conversations/:id/send', async (req, res) => {
       };
     } else if (body && (Array.isArray(body.product_ids) || typeof body.product_ids !== 'undefined')) {
       // Send products
+      const list = Array.isArray(body.product_ids) ? body.product_ids : [body.product_ids].filter(Boolean);
       upstreamPayload = {
         account_id: accountId,
         op: 'conversations',
         op1: 'send',
         op2: 'products',
-        product_ids: Array.isArray(body.product_ids) ? body.product_ids : body.product_ids,
+        product_ids: list,
         contact_id: body.contact_id || conversationId,
         channel: body.channel,
       };
@@ -331,6 +424,10 @@ app.post('/api/inbox/conversations/:id/send', async (req, res) => {
           return res.status(200).send(fbText);
         }
       }
+      // Broadcast event on success
+      if (json && json.status === 'OK') {
+        broadcastEvent({ type: 'message_sent', conversation_id: conversationId, channel: ch });
+      }
       return res.status(200).json(json);
     } catch {
       res.setHeader('Content-Type', 'text/plain');
@@ -342,7 +439,7 @@ app.post('/api/inbox/conversations/:id/send', async (req, res) => {
 });
 
 // Inbox API: Update conversation state (assign, archived, followup, read, live-chat)
-app.post('/api/inbox/conversations/:id/update', async (req, res) => {
+app.post('/api/inbox/conversations/:id/update', rateLimit, requireAuth, async (req, res) => {
   try {
     const conversationId = String(req.params.id);
     const body = (req && typeof req.body === 'object' && req.body) ? req.body : {};
@@ -412,7 +509,13 @@ app.post('/api/inbox/conversations/:id/update', async (req, res) => {
 
     const upstreamRes = await callUpstream(upstreamPayload, tokenToUse, req);
     const text = await upstreamRes.text();
-    try { return res.status(200).json(JSON.parse(text)); } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(text); }
+    try {
+      const json = JSON.parse(text);
+      if (json && json.status === 'OK') {
+        broadcastEvent({ type: 'conversation_updated', conversation_id: conversationId, action, op2 });
+      }
+      return res.status(200).json(json);
+    } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(text); }
   } catch (error) {
     return res.status(200).json({ status: 'error', message: error.message });
   }
@@ -674,39 +777,49 @@ app.delete('/api/inbox/saved-replies/:id', async (req, res) => {
 });
 
 // Notes
-app.post('/api/inbox/conversations/:id/notes', async (req, res) => {
+app.post('/api/inbox/conversations/:id/notes', rateLimit, requireAuth, async (req, res) => {
   try {
     const contact_id = String(req.params.id);
     const { text } = req.body || {};
+    if (typeof text !== 'string' || text.trim().length === 0) {
+      return res.status(400).json({ status: 'ERROR', message: 'Note text is required' });
+    }
     const upstream = await callUpstream({ op: 'conversations', op1: 'notes', op2: 'add', account_id: resolveAccountId(req), contact_id, data: { text } }, undefined, req);
     const responseText = await upstream.text();
-    try { return res.status(200).json(JSON.parse(responseText)); } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(responseText); }
+    try {
+      const json = JSON.parse(responseText);
+      if (json && json.status === 'OK') broadcastEvent({ type: 'note_added', conversation_id: contact_id });
+      return res.status(200).json(json);
+    } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(responseText); }
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.put('/api/inbox/conversations/:id/notes/:noteId', async (req, res) => {
+app.put('/api/inbox/conversations/:id/notes/:noteId', rateLimit, requireAuth, async (req, res) => {
   try {
     const contact_id = String(req.params.id);
     const noteId = String(req.params.noteId);
     const { text } = req.body || {};
+    if (typeof text !== 'string' || text.trim().length === 0) {
+      return res.status(400).json({ status: 'ERROR', message: 'Note text is required' });
+    }
     const upstream = await callUpstream({ op: 'conversations', op1: 'notes', op2: 'update', account_id: resolveAccountId(req), contact_id, id: noteId, data: { text } }, undefined, req);
     const responseText = await upstream.text();
-    try { return res.status(200).json(JSON.parse(responseText)); } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(responseText); }
+    try { const json = JSON.parse(responseText); if (json && json.status === 'OK') broadcastEvent({ type: 'note_updated', conversation_id: contact_id, note_id: noteId }); return res.status(200).json(json); } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(responseText); }
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.delete('/api/inbox/conversations/:id/notes/:noteId', async (req, res) => {
+app.delete('/api/inbox/conversations/:id/notes/:noteId', rateLimit, requireAuth, async (req, res) => {
   try {
     const contact_id = String(req.params.id);
     const noteId = String(req.params.noteId);
     const upstream = await callUpstream({ op: 'conversations', op1: 'notes', op2: 'delete', account_id: resolveAccountId(req), contact_id, id: noteId }, undefined, req);
     const responseText = await upstream.text();
-    try { return res.status(200).json(JSON.parse(responseText)); } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(responseText); }
+    try { const json = JSON.parse(responseText); if (json && json.status === 'OK') broadcastEvent({ type: 'note_deleted', conversation_id: contact_id, note_id: noteId }); return res.status(200).json(json); } catch { res.setHeader('Content-Type','text/plain'); return res.status(200).send(responseText); }
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
 // Users: tags/custom-fields
-app.post('/api/inbox/users/:ms_id/custom-field/set', async (req, res) => {
+app.post('/api/inbox/users/:ms_id/custom-field/set', rateLimit, requireAuth, async (req, res) => {
   try {
     const contact_id = String(req.params.ms_id);
     const { field_id, field_type, value } = req.body || {};
@@ -716,7 +829,7 @@ app.post('/api/inbox/users/:ms_id/custom-field/set', async (req, res) => {
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.post('/api/inbox/users/:ms_id/custom-field/delete', async (req, res) => {
+app.post('/api/inbox/users/:ms_id/custom-field/delete', rateLimit, requireAuth, async (req, res) => {
   try {
     const contact_id = String(req.params.ms_id);
     const { field_id, field_type } = req.body || {};
@@ -726,7 +839,7 @@ app.post('/api/inbox/users/:ms_id/custom-field/delete', async (req, res) => {
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.post('/api/inbox/users/:ms_id/tags/remove', async (req, res) => {
+app.post('/api/inbox/users/:ms_id/tags/remove', rateLimit, requireAuth, async (req, res) => {
   try {
     const contact_id = String(req.params.ms_id);
     const { tags } = req.body || {};
@@ -754,7 +867,7 @@ app.get('/api/inbox/appointments', async (req, res) => {
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.post('/api/inbox/appointments/:id/cancel', async (req, res) => {
+app.post('/api/inbox/appointments/:id/cancel', rateLimit, requireAuth, async (req, res) => {
   try {
     const id = String(req.params.id);
     const upstream = await callUpstream({ op: 'calendars', op1: 'appointments', op2: 'changeStatus', account_id: resolveAccountId(req), id, status: -1 }, undefined, req);
@@ -763,7 +876,7 @@ app.post('/api/inbox/appointments/:id/cancel', async (req, res) => {
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.delete('/api/inbox/appointments/:id', async (req, res) => {
+app.delete('/api/inbox/appointments/:id', rateLimit, requireAuth, async (req, res) => {
   try {
     const id = String(req.params.id);
     const upstream = await callUpstream({ op: 'calendars', op1: 'appointments', op2: 'delete', account_id: resolveAccountId(req), id }, undefined, req);
@@ -790,7 +903,7 @@ app.get('/api/inbox/orders/:id', async (req, res) => {
   } catch (error) { return res.status(200).json({ status: 'error', message: error.message }); }
 });
 
-app.post('/api/inbox/orders/:id/status', async (req, res) => {
+app.post('/api/inbox/orders/:id/status', rateLimit, requireAuth, async (req, res) => {
   try {
     const id = String(req.params.id);
     const statusCode = Number(req.body?.status ?? 4);
@@ -801,7 +914,7 @@ app.post('/api/inbox/orders/:id/status', async (req, res) => {
 });
 
 // Firebase Cloud Messaging device registration
-app.post('/api/inbox/firebase/device', async (req, res) => {
+app.post('/api/inbox/firebase/device', rateLimit, requireAuth, async (req, res) => {
   try {
     const { firebaseToken, platform, brand, model } = req.body || {};
     const upstream = await callUpstream({ op: 'firebaseCM', op1: 'device', op2: 'add', account_id: resolveAccountId(req), data: { firebaseToken, platform, brand, model } }, undefined, req);
@@ -849,7 +962,7 @@ app.get('/api/session/account', async (req, res) => {
 });
 
 // Upload file (multipart)
-app.post('/api/inbox/upload', (req, res) => {
+app.post('/api/inbox/upload', rateLimit, requireAuth, (req, res) => {
   try {
     const bb = new Busboy({ headers: req.headers });
     let jsonParam = null;
@@ -893,5 +1006,14 @@ app.post('/api/inbox/upload', (req, res) => {
   } catch (error) {
     return res.status(200).json({ status: 'error', message: error.message });
   }
+});
+
+// Logout endpoint
+app.post('/api/logout', (req, res) => {
+  try {
+    res.clearCookie('account_id');
+    res.clearCookie('user_token');
+  } catch {}
+  return res.status(200).json({ status: 'OK' });
 });
 

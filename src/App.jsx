@@ -1,5 +1,152 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import './App.css';
+
+// ============================================================================
+// CUSTOM HOOKS - Hooks chingones de los variants
+// ============================================================================
+
+// Hook para auto-scroll mejorado (del variant2.md)
+function useAutoScroll(options = {}) {
+  const { offset = 20, smooth = false, content } = options;
+  const scrollRef = useRef(null);
+  const lastContentHeight = useRef(0);
+  const userHasScrolled = useRef(false);
+
+  const [scrollState, setScrollState] = useState({
+    isAtBottom: true,
+    autoScrollEnabled: true,
+  });
+
+  const checkIsAtBottom = useCallback(
+    (element) => {
+      const { scrollTop, scrollHeight, clientHeight } = element;
+      const distanceToBottom = Math.abs(scrollHeight - scrollTop - clientHeight);
+      return distanceToBottom <= offset;
+    },
+    [offset]
+  );
+
+  const scrollToBottom = useCallback(
+    (instant = false) => {
+      if (!scrollRef.current) return;
+
+      const targetScrollTop = scrollRef.current.scrollHeight - scrollRef.current.clientHeight;
+
+      if (instant) {
+        scrollRef.current.scrollTop = targetScrollTop;
+      } else {
+        scrollRef.current.scrollTo({
+          top: targetScrollTop,
+          behavior: smooth ? "smooth" : "auto",
+        });
+      }
+
+      setScrollState({
+        isAtBottom: true,
+        autoScrollEnabled: true,
+      });
+      userHasScrolled.current = false;
+    },
+    [smooth]
+  );
+
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+
+    const atBottom = checkIsAtBottom(scrollRef.current);
+
+    setScrollState((prev) => ({
+      isAtBottom: atBottom,
+      autoScrollEnabled: atBottom ? true : prev.autoScrollEnabled,
+    }));
+  }, [checkIsAtBottom]);
+
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+
+    element.addEventListener("scroll", handleScroll, { passive: true });
+    return () => element.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  useEffect(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+
+    const currentHeight = scrollElement.scrollHeight;
+    const hasNewContent = currentHeight !== lastContentHeight.current;
+
+    if (hasNewContent) {
+      if (scrollState.autoScrollEnabled) {
+        requestAnimationFrame(() => {
+          scrollToBottom(lastContentHeight.current === 0);
+        });
+      }
+      lastContentHeight.current = currentHeight;
+    }
+  }, [content, scrollState.autoScrollEnabled, scrollToBottom]);
+
+  const disableAutoScroll = useCallback(() => {
+    const atBottom = scrollRef.current ? checkIsAtBottom(scrollRef.current) : false;
+
+    if (!atBottom) {
+      userHasScrolled.current = true;
+      setScrollState((prev) => ({
+        ...prev,
+        autoScrollEnabled: false,
+      }));
+    }
+  }, [checkIsAtBottom]);
+
+  return {
+    scrollRef,
+    isAtBottom: scrollState.isAtBottom,
+    autoScrollEnabled: scrollState.autoScrollEnabled,
+    scrollToBottom: () => scrollToBottom(false),
+    disableAutoScroll,
+  };
+}
+
+// Hook para textarea auto-resize (del variant3.md)
+function useTextareaResize(value, rows = 1) {
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    const textArea = textareaRef.current;
+    if (textArea) {
+      const computedStyle = window.getComputedStyle(textArea);
+      const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+      const padding =
+        parseInt(computedStyle.paddingTop, 10) +
+        parseInt(computedStyle.paddingBottom, 10);
+
+      const minHeight = lineHeight * rows + padding;
+
+      textArea.style.height = "0px";
+      const scrollHeight = Math.max(textArea.scrollHeight, minHeight);
+      textArea.style.height = `${scrollHeight + 2}px`;
+    }
+  }, [value, rows]);
+
+  return textareaRef;
+}
+
+// Hook para debounce (útil para search)
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 const App = () => {
   const [conversations, setConversations] = useState([]);
@@ -10,28 +157,60 @@ const App = () => {
   const [userToken, setUserToken] = useState(null);
   const [demoMode, setDemoMode] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loginStep, setLoginStep] = useState('choose'); // 'choose', 'email', 'otp'
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpRid, setOtpRid] = useState('');
-  const [platform, setPlatform] = useState('webchat'); // 'webchat' | 'instagram' | 'facebook'
+  const [platform, setPlatform] = useState('webchat');
   const [counts, setCounts] = useState({ all: 0, webchat: 0, instagram: 0, facebook: 0 });
   const [composer, setComposer] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [currentFilter, setCurrentFilter] = useState('all'); // all | unread | priority
-  const [atBottom, setAtBottom] = useState(true);
-  const [charCount, setCharCount] = useState(0);
+  const [currentFilter, setCurrentFilter] = useState('all');
+  const [isTyping, setIsTyping] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [debugMode, setDebugMode] = useState(true); // Para los delimitadores de debug
+
   const ws = useRef(null);
   const autoAuthTried = useRef(false);
-  const messagesRef = useRef(null);
   const [booting, setBooting] = useState(true);
+
+  // Hooks chingones de los variants
+  const debouncedSearchText = useDebounce(searchText, 300);
+  const textareaRef = useTextareaResize(composer, 1);
+  const {
+    scrollRef: messagesScrollRef,
+    isAtBottom,
+    autoScrollEnabled,
+    scrollToBottom,
+    disableAutoScroll,
+  } = useAutoScroll({
+    smooth: true,
+    content: [...messages, isTyping],
+  });
 
   // Configuration from environment variables
   const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
-  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+  // Subscribe to SSE for live updates
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let es;
+    try {
+      es = new EventSource(`${API_BASE_URL}/api/inbox/stream`);
+      es.onmessage = (evt) => {
+        try {
+          const payload = JSON.parse(evt.data || '{}');
+          if (payload?.type === 'conversation_updated' || payload?.type === 'message_sent') {
+            // Refresh counts and, if currentContact matches, refresh messages
+            loadConversations(undefined, platform);
+            if (currentContact?.id) {
+              loadMessages(currentContact.id);
+            }
+          }
+        } catch {}
+      };
+    } catch {}
+    return () => { try { es?.close(); } catch {} };
+  }, [isLoggedIn, platform, currentContact?.id]);
 
   // Debug: Log conversations state changes
   useEffect(() => {
@@ -55,7 +234,6 @@ const App = () => {
       setUserToken(token);
       setDemoMode(isDemoMode);
       setIsLoggedIn(true);
-      // Don't call loadConversations here - it will be called in the next useEffect
       setBooting(false);
     }
   }, []);
@@ -67,7 +245,7 @@ const App = () => {
     autoAuthTried.current = true;
     (async () => {
       try {
-        const r = await fetch('/api/test-auth', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const r = await fetch(`${API_BASE_URL}/api/test-auth`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const j = await r.json();
         if (j && j.status === 'OK' && j.token) {
           setUserToken(j.token);
@@ -86,53 +264,11 @@ const App = () => {
     if (isLoggedIn) {
       loadConversations(undefined, platform);
     }
-  }, [isLoggedIn, demoMode, platform]);
-
-  // Periodic counts refresh and SSE heartbeat hook
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    let intervalId = null;
-    try {
-      const es = new EventSource('/api/inbox/stream');
-      es.onmessage = () => {
-        // Heartbeat only (server returns heartbeat). We perform lightweight counts refresh occasionally.
-      };
-      es.onerror = () => {};
-    } catch {}
-    const refreshCounts = async () => {
-      try {
-        if (!demoMode) {
-          const [rWeb, rIg, rFb] = await Promise.all([
-            fetch('/api/inbox/conversations?platform=webchat&limit=50'),
-            fetch('/api/inbox/conversations?platform=instagram&limit=50'),
-            fetch('/api/inbox/conversations?platform=facebook&limit=50')
-          ]);
-          const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
-          const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
-          const cIg = Array.isArray(jIg?.data) ? jIg.data.length : 0;
-          const cFb = Array.isArray(jFb?.data) ? jFb.data.length : 0;
-          setCounts({ all: cWeb + cIg + cFb, webchat: cWeb, instagram: cIg, facebook: cFb });
-        }
-      } catch {}
-    };
-    intervalId = setInterval(refreshCounts, 30000);
-    return () => { if (intervalId) clearInterval(intervalId); };
-  }, [isLoggedIn, demoMode]);
-
-  const handleGoogleLogin = () => {
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${GOOGLE_CLIENT_ID}&` +
-      `redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&` +
-      `response_type=code&` +
-      `scope=openid%20email%20profile&` +
-      `access_type=offline`;
-
-    window.location.href = googleAuthUrl;
-  };
+  }, [isLoggedIn, platform]);
 
   const handleDirectLogin = async () => {
     try {
-      const response = await fetch('/api/test-auth', {
+      const response = await fetch(`${API_BASE_URL}/api/test-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -146,37 +282,12 @@ const App = () => {
         localStorage.setItem('userToken', data.token);
         localStorage.setItem('demoMode', (data.demoMode || false).toString());
         setIsLoggedIn(true);
-        // loadConversations will be called by useEffect
       } else {
         alert(`Authentication failed: ${data.message}`);
       }
     } catch (error) {
       console.error('Direct login error:', error);
       alert('Login failed. Please try again.');
-    }
-  };
-
-  const handleGoogleCallback = async (code) => {
-    try {
-      const response = await fetch('/api/google-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
-      });
-      
-      const data = await response.json();
-      if (data.status === 'OK') {
-        setUserToken(data.data.token);
-        localStorage.setItem('userToken', data.data.token);
-        setIsLoggedIn(true);
-        loadConversations(data.data.token);
-      } else {
-        console.log('Google OAuth failed, trying direct login...');
-        handleDirectLogin();
-      }
-    } catch (error) {
-      console.error('Google login error:', error);
-      handleDirectLogin();
     }
   };
 
@@ -189,14 +300,14 @@ const App = () => {
     try {
       if (demoMode) {
         console.log('Using demo data for conversations');
-        result = await fetch('/api/demo-data', {
+        result = await fetch(`${API_BASE_URL}/api/demo-data`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'conversations' })
         });
       } else {
         console.log('Using real API for conversations');
-        result = await fetch(`/api/inbox/conversations?platform=${encodeURIComponent(p)}&limit=50`, {
+        result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(p)}&limit=50`, {
           method: 'GET'
         });
       }
@@ -206,23 +317,29 @@ const App = () => {
       
       if ((data.status === 'OK' || data.status === 'success') && Array.isArray(data.data)) {
         const base = data.data;
-        const mappedConversations = base.map(item => ({
-          color: "#060010",
-          title: item.display_name || item.full_name || item.name || 'Unknown',
-          description: item.last_message_content || item.last_msg || 'No messages',
-          label: '',
-          id: item.conversation_id || item.ms_id || item.id
+        const mappedConversations = base.map((item, idx) => ({
+          id: item.conversation_id || item.ms_id || item.id,
+          name: item.display_name || item.full_name || item.name || 'Unknown',
+          email: item.email || `${item.display_name || 'guest'}@example.com`,
+          avatar: item.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(item.user_identifier || item.conversation_id || 'visitor_'+idx)}`,
+          status: 'online',
+          lastMessage: item.last_message_content || item.last_msg || 'No messages',
+          timestamp: new Date(item.last_message_at || Date.now()),
+          unreadCount: 0,
+          priority: 'low',
+          tags: [p.charAt(0).toUpperCase() + p.slice(1)],
+          department: 'Support'
         }));
         console.log('Mapped conversations:', mappedConversations);
-        console.log('Setting conversations state...');
         setConversations(mappedConversations);
-        // Update counts with this platform size
+        
+        // Update counts
         try {
           if (!demoMode) {
             const [rWeb, rIg, rFb] = await Promise.all([
-              fetch('/api/inbox/conversations?platform=webchat&limit=50'),
-              fetch('/api/inbox/conversations?platform=instagram&limit=50'),
-              fetch('/api/inbox/conversations?platform=facebook&limit=50')
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`)
             ]);
             const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
             const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
@@ -237,7 +354,6 @@ const App = () => {
         }
       } else {
         console.error('Failed to load conversations:', data);
-        // Set empty array to clear any previous data
         setConversations([]);
       }
     } catch (error) {
@@ -252,23 +368,24 @@ const App = () => {
     let result;
     
     if (demoMode) {
-      result = await fetch('/api/demo-data', {
+      result = await fetch(`${API_BASE_URL}/api/demo-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'messages' })
       });
     } else {
-      result = await fetch(`/api/inbox/conversations/${contactId}/messages?limit=50`, { method: 'GET' });
+      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { method: 'GET' });
     }
     
     const data = await result.json();
     if ((data.status === 'OK' || data.status === 'success') && Array.isArray(data.data)) {
-      // Map to UI shape { dir, text }
       const mapped = data.data.map(m => ({
-        dir: m.message_role ? (m.message_role === 'assistant' ? 0 : 1) : (m.dir ?? 1),
-        text: m.message_content || m.text || '',
-        timestamp: m.message_created_at ? new Date(m.message_created_at).getTime() : Date.now()
-      })).filter(x => x.text);
+        id: m.id || Date.now().toString(),
+        content: m.message_content || m.text || '',
+        timestamp: new Date(m.message_created_at || Date.now()),
+        isOwn: m.message_role ? (m.message_role === 'assistant') : (m.dir === 0),
+        status: m.message_role === 'assistant' ? 'read' : undefined
+      })).filter(x => x.content);
       setMessages(mapped);
     }
   };
@@ -276,7 +393,7 @@ const App = () => {
   const loadProfile = async (contactId) => {
     let result;
     if (demoMode) {
-      result = await fetch('/api/demo-data', {
+      result = await fetch(`${API_BASE_URL}/api/demo-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'profile' })
@@ -289,8 +406,7 @@ const App = () => {
       }
       return;
     }
-    // Real: use dedicated contact endpoint that resolves account_id from cookie
-    result = await fetch(`/api/inbox/conversations/${contactId}/contact`, { method: 'GET' });
+    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { method: 'GET' });
     const data = await result.json();
     if ((data.status === 'OK' || data.status === 'success') && (data.data || data.contact)) {
       const u = data.data || data.contact;
@@ -305,22 +421,35 @@ const App = () => {
       loadMessages(card.id),
       loadProfile(card.id)
     ]);
+    setSidebarOpen(false); // Close sidebar on mobile after selection
   };
 
   const handleSendMessage = async (message) => {
     if (!currentContact || !message.trim()) return;
+    
+    // Add message immediately to UI
+    const newMessage = {
+      id: Date.now().toString(),
+      content: message,
+      timestamp: new Date(),
+      isOwn: true,
+      status: 'sent'
+    };
+    setMessages(prev => [...prev, newMessage]);
+    setComposer('');
+
     try {
       setIsSending(true);
-      const resp = await fetch(`/api/inbox/conversations/${currentContact.id}/send`, {
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${currentContact.id}/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-ACCESS-TOKEN': userToken || ''
         },
-        body: JSON.stringify({ message, channel: 9 })
+        body: JSON.stringify({ message, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
-      // Refresh messages after sending
+      // Refresh messages from server (NO auto-respuesta)
       await loadMessages(currentContact.id);
       addToast('Message sent', 'success');
     } catch (e) {
@@ -331,57 +460,7 @@ const App = () => {
     }
   };
 
-  const connectWebSocket = () => {
-    ws.current = new WebSocket(`ws://${window.location.host}`);
-    
-    ws.current.onopen = () => {
-      ws.current.send(JSON.stringify({
-        action: "authenticate",
-        data: {
-          platform: "web",
-          account_id: BUSINESS_ID
-        }
-      }));
-    };
-
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'message' && data.contact_id === currentContact?.id) {
-        loadMessages(currentContact.id);
-      }
-    };
-  };
-
-  // Helpers for time formatting
-  const formatTime = (ts) => {
-    try { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch { return ''; }
-  };
-  const formatDate = (ts) => {
-    try {
-      const date = new Date(ts);
-      const now = new Date();
-      const diff = now.getTime() - date.getTime();
-      const days = Math.floor(diff / 86400000);
-      if (days === 0) return 'Today';
-      if (days === 1) return 'Yesterday';
-      if (days < 7) return `${days} days ago`;
-      return date.toLocaleDateString();
-    } catch { return ''; }
-  };
-
-  // Track scroll-at-bottom state for scroll-to-bottom button
-  useEffect(() => {
-    const el = messagesRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const nearBottom = (el.scrollHeight - el.scrollTop - el.clientHeight) < 100;
-      setAtBottom(nearBottom);
-    };
-    el.addEventListener('scroll', onScroll);
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [messagesRef.current]);
-
-  // ----- Inbox Core Actions (React) -----
+  // ----- API helpers and real conversation actions -----
   const postJson = async (url, body) => {
     const resp = await fetch(url, {
       method: 'POST',
@@ -401,7 +480,7 @@ const App = () => {
       return j;
     } catch (e) {
       console.error('Action failed', action, e);
-      alert('Action failed: ' + action);
+      addToast('Action failed: ' + action, 'error');
     }
   };
 
@@ -430,9 +509,9 @@ const App = () => {
     if (!text) return;
     try {
       await postJson(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes`, { text });
-      alert('Note added');
+      addToast('Note added', 'success');
     } catch (e) {
-      alert('Failed to add note');
+      addToast('Failed to add note', 'error');
     }
   };
 
@@ -442,13 +521,13 @@ const App = () => {
     const text = window.prompt('New text');
     if (!noteId || !text) return;
     try {
-      const resp = await fetch(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ text })
       });
       await resp.json().catch(() => ({}));
-      alert('Note updated');
+      addToast('Note updated', 'success');
     } catch {
-      alert('Failed to update note');
+      addToast('Failed to update note', 'error');
     }
   };
 
@@ -457,25 +536,24 @@ const App = () => {
     const noteId = window.prompt('Note ID');
     if (!noteId) return;
     try {
-      const resp = await fetch(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'DELETE', headers: { 'X-ACCESS-TOKEN': userToken || '' }
       });
       await resp.json().catch(() => ({}));
-      alert('Note deleted');
+      addToast('Note deleted', 'success');
     } catch {
-      alert('Failed to delete note');
+      addToast('Failed to delete note', 'error');
     }
   };
 
-  // AI Suggestion → fill composer
   const requestAiSuggestion = async () => {
     if (!currentContact) return;
     try {
-      const resp = await fetch(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/ai-suggestion`, {
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/ai-suggestion`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ prompt: null })
       });
       const j = await resp.json().catch(() => ({}));
-      const suggestion = j?.data?.text || j?.text || j?.suggestion || '';
+      const suggestion = Array.isArray(j?.data) ? (j.data[0]?.text || '') : (j?.data?.text || j?.text || j?.suggestion || '');
       if (suggestion) {
         setComposer((prev) => (prev ? prev + '\n' + suggestion : suggestion));
         addToast('AI suggestion ready', 'success');
@@ -487,14 +565,39 @@ const App = () => {
     }
   };
 
-  // Send Flow/Step/Products helpers
+  // Switch account (sets cookie account_id and reloads with query param)
+  const handleSwitchAccount = () => {
+    try {
+      const current = (() => { const m = document.cookie.match(/(?:^|; )account_id=([^;]+)/); return m ? decodeURIComponent(m[1]) : ''; })();
+      const input = window.prompt('Enter account_id', current || '');
+      if (!input) return;
+      document.cookie = `account_id=${encodeURIComponent(String(input))}; path=/; max-age=31536000`;
+      const url = new URL(window.location.href);
+      url.searchParams.set('account_id', String(input));
+      window.location.href = url.toString();
+    } catch (e) {
+      window.location.reload();
+    }
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('demoMode');
+      document.cookie = 'account_id=; Max-Age=0; path=/';
+      document.cookie = 'user_token=; Max-Age=0; path=/';
+    } catch {}
+    window.location.reload();
+  };
+
   const sendFlow = async () => {
     if (!currentContact) return;
     const flowId = window.prompt('Flow ID');
     if (!flowId) return;
     try {
-      const resp = await fetch(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ flow_id: flowId, channel: 9 })
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ flow_id: flowId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
       addToast('Flow sent', 'success');
@@ -505,8 +608,8 @@ const App = () => {
     const stepId = window.prompt('Step ID');
     if (!stepId) return;
     try {
-      const resp = await fetch(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ step_id: stepId, channel: 9 })
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ step_id: stepId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
       addToast('Step sent', 'success');
@@ -518,321 +621,646 @@ const App = () => {
     if (!csv) return;
     const productIds = csv.split(',').map(s => Number(String(s).trim())).filter(n => !isNaN(n));
     try {
-      const resp = await fetch(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ product_ids: productIds, channel: 9 })
+      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, body: JSON.stringify({ product_ids: productIds, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
       addToast('Products sent', 'success');
     } catch { addToast('Failed to send products', 'error'); }
   };
 
-  // Simple toast system
   const addToast = (text, type = 'info') => {
     const id = Date.now() + Math.random();
     setToasts((arr) => [...arr, { id, text, type }]);
-    setTimeout(() => setToasts((arr) => arr.filter(t => t.id !== id)), 2500);
+    setTimeout(() => setToasts((arr) => arr.filter(t => t.id !== id)), 3000);
   };
 
-  useEffect(() => {
-    // WebSocket not wired yet; skip for now
-  }, [isLoggedIn]);
+  const formatTime = (ts) => {
+    try { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch { return ''; }
+  };
 
-  // Handle Google OAuth callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    if (code) {
-      handleGoogleCallback(code);
-    }
-  }, []);
-
-  const handleEmailOtpRequest = async () => {
-    if (!email.trim()) {
-      alert('Por favor ingresa tu email');
-      return;
-    }
-    
-    setLoading(true);
+  const formatDate = (ts) => {
     try {
-      const response = await fetch('/api/request-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      
-      const data = await response.json();
-      console.log('OTP Request response:', data);
-      
-      if (data.status === 'OK') {
-        setOtpRid(data.rid);
-        setLoginStep('otp');
-        alert(`Código OTP enviado a ${email}`);
-      } else {
-        alert(`Error: ${data.message || 'No se pudo enviar el OTP'}`);
-      }
-    } catch (error) {
-      console.error('OTP request error:', error);
-      alert('Error enviando OTP. Inténtalo de nuevo.');
-    } finally {
-      setLoading(false);
+      const date = new Date(ts);
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const days = Math.floor(diff / 86400000);
+      if (days === 0) return 'Today';
+      if (days === 1) return 'Yesterday';
+      if (days < 7) return `${days} days ago`;
+      return date.toLocaleDateString();
+    } catch { return ''; }
+  };
+
+  const formatLastSeen = (date) => {
+    const diff = new Date().getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(diff / 86400000)}d ago`;
+  };
+
+  // Platform → channel mapping used for all send operations
+  const getChannelForPlatform = (plat) => {
+    const p = (plat || platform || 'webchat');
+    if (p === 'instagram') return 10;
+    if (p === 'facebook') return 0;
+    return 9; // webchat
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'online': return 'bg-green-500 shadow-green-500/50';
+      case 'away': return 'bg-yellow-500 shadow-yellow-500/50';
+      case 'offline': return 'bg-gray-400';
+      default: return 'bg-gray-400';
     }
   };
 
-  const handleOtpValidation = async () => {
-    if (!otp.trim()) {
-      alert('Por favor ingresa el código OTP');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const response = await fetch('/api/validate-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, rid: otpRid })
-      });
-      
-      const data = await response.json();
-      console.log('OTP Validation response:', data);
-      
-      if (data.status === 'OK') {
-        setUserToken(data.data.token);
-        localStorage.setItem('userToken', data.data.token);
-        localStorage.setItem('demoMode', 'false');
-        setDemoMode(false);
-        setIsLoggedIn(true);
-        alert('¡Login exitoso!');
-      } else {
-        alert(`Error: ${data.message || 'Código OTP inválido'}`);
-      }
-    } catch (error) {
-      console.error('OTP validation error:', error);
-      alert('Error validando OTP. Inténtalo de nuevo.');
-    } finally {
-      setLoading(false);
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  // Filtros mejorados con debounce
+  const filteredConversations = conversations.filter(c => {
+    if (!debouncedSearchText.trim()) return true;
+    const q = debouncedSearchText.toLowerCase();
+    return (
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.lastMessage || '').toLowerCase().includes(q)
+    );
+  }).filter(c => {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'unread') return c.unreadCount > 0;
+    if (currentFilter === 'priority') return c.priority === 'high';
+    return true;
+  });
+
+  // Agent branding
+  const AGENT_NAME = 'AiPRL Assist';
+  const AGENT_AVATAR_URL = '/AI%20AIPRL%20modern.png';
 
   if (!isLoggedIn) {
     return (
-      <div className="login-container">
-        <div className="login-card">
-          <h1>ChatRace Inbox</h1>
-          <p>Preparando tu sesión…</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="glass rounded-2xl p-8 max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-inbox text-2xl text-white"></i>
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+              ChatRace Inbox
+            </h1>
+            <p className="text-gray-300 mb-6">Preparando tu sesión…</p>
           {booting ? (
-            <p style={{opacity:0.7}}>Auto-auth en progreso…</p>
-          ) : (
-            <button onClick={handleDirectLogin} className="direct-login-btn">Entrar</button>
-          )}
+              <div className="flex items-center justify-center gap-2 text-gray-400">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <span className="ml-2">Auto-auth en progreso…</span>
+              </div>
+            ) : (
+              <button 
+                onClick={handleDirectLogin} 
+                className="btn-primary w-full py-3 rounded-xl font-medium transition-all hover:transform hover:-translate-y-0.5"
+              >
+                Entrar al Inbox
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
+
+
   return (
-    <div className="app">
-      <div className="max-w-[1800px] mx-auto mb-2">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+    <div className={`flex h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-gray-100 ${debugMode ? 'debug-mode' : ''}`}>
+      {/* DEBUG: Conversations Sidebar */}
+      <div className={`w-80 glass flex flex-col transition-all duration-300 z-50 fixed md:relative h-full overflow-x-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${debugMode ? 'debug-sidebar' : ''}`}>
+        {/* DEBUG: Sidebar Header */}
+        <div className={`p-6 border-b border-gray-600/30 ${debugMode ? 'debug-header' : ''}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <i className="fas fa-inbox text-sm text-white"></i>
             </div>
             <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Inbox</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 rounded-lg hover:bg-gray-700/50 transition-all" title="Notifications"><i className="fas fa-bell"></i></button>
-            <button className="p-2 rounded-lg hover:bg-gray-700/50 transition-all" title="Settings"><i className="fas fa-cog"></i></button>
+              <button 
+                onClick={() => setDebugMode(!debugMode)}
+                className="p-2 rounded-lg hover:bg-gray-700/50 transition-all"
+                title="Toggle Debug Mode"
+              >
+                <i className="fas fa-bug text-sm"></i>
+              </button>
+              <button 
+                onClick={handleSwitchAccount}
+                className="p-2 rounded-lg hover:bg-gray-700/50 transition-all"
+                title="Switch account"
+              >
+                <i className="fas fa-exchange-alt text-sm"></i>
+              </button>
+              <button className="p-2 rounded-lg hover:bg-gray-700/50 transition-all" title="Notifications">
+                <i className="fas fa-bell text-sm"></i>
+              </button>
+              <button className="p-2 rounded-lg hover:bg-gray-700/50 transition-all" title="Settings">
+                <i className="fas fa-cog text-sm"></i>
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-gray-700/50 transition-all" title="Logout">
+                <i className="fas fa-sign-out-alt text-sm"></i>
+              </button>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2">
-          <button title="Filter: Webchat" className={`px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40 ${platform==='webchat'?'bg-blue-600/20 text-blue-400 border-blue-600/30':''}`} onClick={() => setPlatform('webchat')}>Webchat <span className="ml-1 text-gray-400">({counts.webchat})</span></button>
-          <button title="Filter: Instagram" className={`px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40 ${platform==='instagram'?'bg-blue-600/20 text-blue-400 border-blue-600/30':''}`} onClick={() => setPlatform('instagram')}>Instagram <span className="ml-1 text-gray-400">({counts.instagram})</span></button>
-          <button title="Filter: Facebook" className={`px-3 py-1.5 rounded-lg text-xs border border-gray-600/40 hover:bg-gray-700/40 ${platform==='facebook'?'bg-blue-600/20 text-blue-400 border-blue-600/30':''}`} onClick={() => setPlatform('facebook')}>Facebook <span className="ml-1 text-gray-400">({counts.facebook})</span></button>
-          <div className="flex-1"></div>
-          <div className="relative">
-            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input className="search-input rounded-xl pl-8 pr-3 py-2 text-sm focus:outline-none" placeholder="Search conversations..." value={searchText} onChange={(e)=>setSearchText(e.target.value)} />
+          
+          {/* DEBUG: Enhanced Search */}
+          <div className={`relative group ${debugMode ? 'debug-search' : ''}`}>
+            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-400 transition-colors"></i>
+            <input 
+              placeholder="Search conversations..." 
+              className="w-full search-input rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            {searchText && (
+              <button 
+                onClick={() => setSearchText('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              >
+                <i className="fas fa-times h-3 w-3"></i>
+              </button>
+            )}
+          </div>
+
+          {/* Compact filters row (platform + quick filters) */}
+          <div className="mt-2 -mx-2 px-2 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2 min-w-max">
+              <div className="flex items-center gap-1">
+                <button 
+                  className={`px-2.5 py-1 rounded-lg text-[11px] border border-gray-600/40 hover:bg-gray-700/40 ${platform==='webchat'?'bg-blue-600/20 text-blue-400 border-blue-600/30':''}`}
+                  onClick={() => setPlatform('webchat')}
+                >
+                  Webchat <span className="ml-1 opacity-70">({counts.webchat})</span>
+                </button>
+                <button 
+                  className={`px-2.5 py-1 rounded-lg text-[11px] border border-gray-600/40 hover:bg-gray-700/40 ${platform==='instagram'?'bg-blue-600/20 text-blue-400 border-blue-600/30':''}`}
+                  onClick={() => setPlatform('instagram')}
+                >
+                  Instagram <span className="ml-1 opacity-70">({counts.instagram})</span>
+                </button>
+                <button 
+                  className={`px-2.5 py-1 rounded-lg text-[11px] border border-gray-600/40 hover:bg-gray-700/40 ${platform==='facebook'?'bg-blue-600/20 text-blue-400 border-blue-600/30':''}`}
+                  onClick={() => setPlatform('facebook')}
+                >
+                  Facebook <span className="ml-1 opacity-70">({counts.facebook})</span>
+                </button>
+              </div>
+              <span className="h-4 w-px bg-gray-600/40" />
+              <div className="flex items-center gap-1">
+                <button 
+                  className={`px-2.5 py-1 rounded-lg text-[11px] ${currentFilter==='all'?'bg-blue-600/20 text-blue-400 border border-blue-600/30':'hover:bg-gray-700/40 border border-gray-600/40'}`}
+                  onClick={() => setCurrentFilter('all')}
+                >
+                  All <span className="ml-1 opacity-70">({filteredConversations.length})</span>
+                </button>
+                <button 
+                  className={`px-2.5 py-1 rounded-lg text-[11px] ${currentFilter==='unread'?'bg-blue-600/20 text-blue-400 border border-blue-600/30':'hover:bg-gray-700/40 border border-gray-600/40'}`}
+                  onClick={() => setCurrentFilter('unread')}
+                >
+                  Unread <span className="ml-1 opacity-70">({conversations.filter(c => c.unreadCount > 0).length})</span>
+                </button>
+                <button 
+                  className={`px-2.5 py-1 rounded-lg text-[11px] ${currentFilter==='priority'?'bg-blue-600/20 text-blue-400 border border-blue-600/30':'hover:bg-gray-700/40 border border-gray-600/40'}`}
+                  onClick={() => setCurrentFilter('priority')}
+                >
+                  Priority <span className="ml-1 opacity-70">({conversations.filter(c => c.priority === 'high').length})</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-2 text-xs">
-          <button title="Show all" className={`px-3 py-1.5 rounded-lg ${currentFilter==='all'?'bg-blue-600/20 text-blue-400 border-blue-600/30':'hover:bg-gray-700/40'} border border-gray-600/40`} onClick={()=>setCurrentFilter('all')}>All</button>
-          <button title="Show unread" className={`px-3 py-1.5 rounded-lg ${currentFilter==='unread'?'bg-blue-600/20 text-blue-400 border-blue-600/30':'hover:bg-gray-700/40'} border border-gray-600/40`} onClick={()=>setCurrentFilter('unread')}>Unread</button>
-          <button title="Show priority" className={`px-3 py-1.5 rounded-lg ${currentFilter==='priority'?'bg-blue-600/20 text-blue-400 border-blue-600/30':'hover:bg-gray-700/40'} border border-gray-600/40`} onClick={()=>setCurrentFilter('priority')}>Priority</button>
-        </div>
-      </div>
-      {demoMode && (
-        <div className="demo-banner">
-          <span>🎭 Demo Mode - Using sample data</span>
-        </div>
-      )}
-      <div className="inbox">
-        <div className="conversations glass rounded-xl p-4 border border-gray-600/30 scrollbar-enhanced">
+
+        {/* DEBUG: Conversations List */}
+        <div className={`flex-1 overflow-y-auto scrollbar-enhanced ${debugMode ? 'debug-conversations' : ''}`}>
           {loading ? (
-            <div className="loading">Loading conversations...</div>
-          ) : conversations.length > 0 ? (
-            <div className="conv-list">
-              {conversations
-                .filter(c => {
-                  if (!searchText.trim()) return true;
-                  const q = searchText.toLowerCase();
-                  return (
-                    (c.title || '').toLowerCase().includes(q) ||
-                    (c.description || '').toLowerCase().includes(q)
-                  );
-                })
-                .filter(c => {
-                  if (currentFilter === 'all') return true;
-                  if (currentFilter === 'unread') return false; // TODO: wire unread when backend exposes it
-                  if (currentFilter === 'priority') return false; // placeholder
-                  return true;
-                })
-                .map((c) => (
-                <div key={c.id} className={`p-3 rounded-xl cursor-pointer transition-all border ${currentContact?.id===c.id? 'active conv-item' : 'border-transparent hover:bg-gray-700/30 hover:border-gray-600/40'}`} onClick={() => handleCardClick(c)}>
+            <div className="p-6 text-center">
+              <div className="flex items-center justify-center gap-2 text-gray-400">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <span className="ml-2">Loading conversations...</span>
+              </div>
+            </div>
+          ) : filteredConversations.length > 0 ? (
+            <div className="p-2">
+              {filteredConversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`p-4 rounded-xl cursor-pointer transition-all hover:bg-gray-700/30 animate-fade-in mb-2 ${currentContact?.id === conv.id ? 'bg-blue-600/20 border border-blue-600/30' : 'border border-transparent'} ${debugMode ? 'debug-conversation-item' : ''}`}
+                  onClick={() => handleCardClick(conv)}
+                >
                   <div className="flex items-start gap-3">
                     <div className="relative flex-shrink-0">
-                      <div className="w-10 h-10 rounded-full conv-avatar"></div>
+                      <img className="w-12 h-12 rounded-full object-cover" src={conv.avatar} alt={conv.name} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-gray-900 ${getStatusColor(conv.status)}`}></div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-sm truncate conv-title">{c.title}</h3>
+                        <h3 className="font-semibold text-sm truncate">{conv.name}</h3>
+                        <div className="flex items-center gap-2">
+                          {conv.unreadCount > 0 && (
+                            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                          )}
+                          <span className="text-xs text-gray-400">{formatTime(conv.timestamp)}</span>
                       </div>
-                      <p className="text-sm text-gray-300 truncate conv-desc">{c.description}</p>
+                      </div>
+                      <p className="text-sm text-gray-400 truncate mb-2">{conv.lastMessage}</p>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${getPriorityColor(conv.priority)}`}>
+                          {conv.priority}
+                        </span>
+                        {conv.unreadCount > 0 && (
+                          <span className="text-xs font-bold text-blue-400">{conv.unreadCount} new</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="no-conversations">
+            <div className="p-6 text-center text-gray-400">
+              <i className="fas fa-inbox text-3xl mb-4 opacity-50"></i>
               <p>No conversations found</p>
-              <p>Demo mode: {demoMode ? 'Yes' : 'No'}</p>
-              <p>Conversations count: {conversations.length}</p>
-              <button onClick={() => loadConversations()}>Retry</button>
+              <p className="text-xs mt-2">Demo mode: {demoMode ? 'Yes' : 'No'}</p>
+              <button onClick={() => loadConversations()} className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-all">
+                Retry
+              </button>
             </div>
           )}
         </div>
         
-        <div className="chat">
-          {currentContact ? (
-            <>
-              <div className="chat-header">
-                <div className="chat-header-title"><h2>{currentContact.title}</h2></div>
-                <div className="chat-header-actions">
-                  <button title="Mark Read" onClick={markRead} className="btn-icon">✔</button>
-                  <button title="Mark Unread" onClick={markUnread} className="btn-icon">✉</button>
-                  <button title="Follow" onClick={follow} className="btn-icon">★</button>
-                  <button title="Archive" onClick={archive} className="btn-icon">📦</button>
-                  <button title="Unarchive" onClick={unarchive} className="btn-icon">📤</button>
-                  <button title="Human" onClick={liveToHuman} className="btn-icon">👤</button>
-                  <button title="Bot" onClick={liveToBot} className="btn-icon">🤖</button>
-                  <button title="Block" onClick={block} className="btn-icon">⛔</button>
+        {/* DEBUG: Agent Status */}
+        <div className={`p-4 border-t border-gray-600/30 ${debugMode ? 'debug-agent-status' : ''}`}>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <img className="w-8 h-8 rounded-full object-cover" src={AGENT_AVATAR_URL} alt={AGENT_NAME} />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-green-500/50"></div>
+                </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{AGENT_NAME}</p>
+              <p className="text-xs text-gray-400">Online • Ready to help</p>
+              </div>
+            <button className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all">
+              <i className="fas fa-ellipsis-h h-3 w-3"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* DEBUG: Main Chat Area */}
+      <div className={`flex-1 flex flex-col min-h-0 ${debugMode ? 'debug-main-chat' : ''}`}>
+        {/* Mobile Menu Button */}
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="fixed top-4 left-4 z-50 md:hidden p-3 rounded-xl bg-gray-800/90 backdrop-blur-sm text-white shadow-lg"
+        >
+          <i className={`fas ${sidebarOpen ? 'fa-times' : 'fa-bars'} h-5 w-5`}></i>
+        </button>
+
+        {/* DEBUG: Chat Header */}
+        {currentContact && (
+          <>
+          <div className={`p-6 border-b border-gray-600/30 glass mobile-padding md:pt-6 ${debugMode ? 'debug-chat-header' : ''}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <img className="w-12 h-12 rounded-full object-cover" src={currentContact.avatar} alt={currentContact.name} />
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-gray-900 ${getStatusColor(currentContact.status)}`}></div>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold">{currentContact.name}</h2>
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <span>{currentContact.status === 'online' ? 'Online now' : `Last seen ${formatLastSeen(currentContact.timestamp)}`}</span>
+                    <span className="w-1 h-1 bg-gray-600 rounded-full"></span>
+                    <span>{currentContact.department}</span>
+                  </div>
                 </div>
               </div>
-              <div ref={messagesRef} className="messages scrollbar-enhanced relative">
-                {(() => {
-                  let currentDateHeader = '';
-                  return messages.map((msg, i) => {
-                    const header = formatDate(msg.timestamp);
-                    const showHeader = header !== currentDateHeader;
-                    if (showHeader) currentDateHeader = header;
-                    return (
-                      <div key={i}>
-                        {showHeader && (
-                          <div className="flex items-center justify-center my-2">
-                            <span className="px-3 py-1 text-[11px] bg-gray-700/50 rounded-full">{header}</span>
-                          </div>
+              <div className="flex items-center gap-2">
+                <button className="p-3 rounded-xl bg-gray-700/40 text-gray-400 cursor-not-allowed" title="Phone (coming soon)">
+                  <i className="fas fa-phone h-4 w-4"></i>
+                </button>
+                <button className="p-3 rounded-xl bg-gray-700/40 text-gray-400 cursor-not-allowed" title="Video (coming soon)">
+                  <i className="fas fa-video h-4 w-4"></i>
+                </button>
+                <button className="p-3 rounded-xl bg-gray-700/40 text-gray-400 cursor-not-allowed" title="Search (coming soon)">
+                  <i className="fas fa-search h-4 w-4"></i>
+                </button>
+                <button className="p-3 rounded-xl bg-gray-700/40 text-gray-400 cursor-not-allowed" title="More (coming soon)">
+                  <i className="fas fa-ellipsis-v h-4 w-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions Toolbar moved to sidebar to reduce clutter */}
+          </>
+        )}
+
+        {/* DEBUG: Messages Area */}
+        <div className={`flex-1 relative min-h-0 ${debugMode ? 'debug-messages-area' : ''}`}>
+          {currentContact ? (
+            <div
+              ref={messagesScrollRef}
+              className="h-full overflow-y-auto scrollbar-enhanced p-6 pb-28"
+              onWheel={disableAutoScroll}
+              onTouchMove={disableAutoScroll}
+            >
+              <div className="space-y-4 min-h-full flex flex-col justify-end">
+                {messages.map((msg) => {
+                  const msgDate = formatDate(msg.timestamp);
+                  return (
+                    <div key={msg.id}>
+                      <div className={`flex gap-4 ${msg.isOwn ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                        {!msg.isOwn && (
+                          <img className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" src={currentContact.avatar} alt={currentContact.name} />
                         )}
-                        <div className={`flex ${msg.dir === 0 ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[80%] lg:max-w-[70%] rounded-2xl px-4 py-3 text-sm ${msg.dir===0 ? 'message-own text-white' : 'message-other text-gray-100'}`}>
-                            <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                            <div className={`flex items-center gap-2 mt-1 text-[10px] ${msg.dir===0 ? 'justify-end text-white/80' : 'justify-start text-gray-300'}`}>
+                        <div className="max-w-[80%] lg:max-w-[70%]">
+                          <div className={`rounded-2xl px-4 py-3 text-sm ${msg.isOwn ? 'message-own text-white' : 'message-other text-gray-100'}`}>
+                            <p className="leading-relaxed">{msg.content}</p>
+                          </div>
+                          <div className={`flex items-center gap-2 mt-1 text-xs text-gray-500 ${msg.isOwn ? 'justify-end' : 'justify-start'}`}>
                               <span>{formatTime(msg.timestamp)}</span>
+                            {msg.isOwn && msg.status && (
+                              <i className={`fas ${msg.status === 'read' ? 'fa-check-double text-blue-400' : msg.status === 'delivered' ? 'fa-check-double' : 'fa-check'} h-3 w-3`}></i>
+                            )}
                             </div>
                           </div>
+                        {msg.isOwn && (
+                          <img className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" src={AGENT_AVATAR_URL} alt={AGENT_NAME} />
+                        )}
                         </div>
                       </div>
                     );
-                  });
-                })()}
-                {!atBottom && (
-                  <button className="scroll-to-bottom absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm" onClick={() => { const el = messagesRef.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }}>
-                    <i className="fas fa-arrow-down mr-2"></i> New messages
-                  </button>
+                })}
+
+                {/* Typing Indicator */}
+                {isTyping && (
+                  <div className="flex gap-4 justify-start animate-fade-in">
+                    <img className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" src={currentContact.avatar} alt={currentContact.name} />
+                    <div className="message-other rounded-2xl px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              {/* Inbox core actions */}
-              <div className="message-input" style={{display:'grid',gridTemplateColumns:'1fr',rowGap:'8px'}}>
-                <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
-                  <button title="Unfollow conversation" onClick={unfollow} className="filter">Unfollow</button>
-                  <button title="Unblock contact" onClick={unblock} className="filter">Unblock</button>
-                  <button title="Assign to admin/team" onClick={assign} className="filter">Assign</button>
-                  <button title="Remove assignment" onClick={unassign} className="filter">Unassign</button>
                 </div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
-                  <button title="Add note" onClick={addNote} className="filter">Add Note</button>
-                  <button title="Update note" onClick={updateNote} className="filter">Update Note</button>
-                  <button title="Delete note" onClick={deleteNote} className="filter">Delete Note</button>
-                  <button title="AI reply suggestion" onClick={requestAiSuggestion} className="filter">AI Suggest</button>
-                  <button title="Send flow" onClick={sendFlow} className="filter">Send Flow</button>
-                  <button title="Send step" onClick={sendStep} className="filter">Send Step</button>
-                  <button title="Send products" onClick={sendProducts} className="filter">Send Products</button>
-                </div>
-                <div className="composer-row">
-                  <textarea
-                    className="search-input rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"
-                    rows="1"
-                    value={composer}
-                    placeholder="Type your message..."
-                    onChange={(e) => setComposer(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        const msg = composer.trim();
-                        if (msg) handleSendMessage(msg);
-                        setComposer('');
-                      }
-                    }}
-                  />
-                  <button title="Send message" className="btn-primary" disabled={isSending || !composer.trim()} onClick={() => { const msg = composer.trim(); if (msg) handleSendMessage(msg); setComposer(''); }}>
-                    <i className="fas fa-paper-plane"></i>
-                  </button>
-                </div>
-                <div className="flex items-center justify-end text-xs text-gray-400">
-                  <span>{(composer || '').length}/2000</span>
-                </div>
-              </div>
-            </>
           ) : (
-            <div className="no-chat">Select a conversation</div>
+            <div className="h-full flex items-center justify-center text-gray-400">
+              <div className="text-center">
+                <i className="fas fa-comments text-6xl mb-4 opacity-30"></i>
+                <h3 className="text-xl font-semibold mb-2">Select a conversation</h3>
+                <p className="text-sm">Choose a conversation from the sidebar to start chatting</p>
+                </div>
+            </div>
+          )}
+
+          {/* Scroll to Bottom Button - Aparece cuando no está en el fondo */}
+          {currentContact && !isAtBottom && (
+            <button
+              onClick={scrollToBottom}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 glass rounded-full text-sm font-medium animate-fade-in hover:transform hover:-translate-y-1 transition-all"
+            >
+              <i className="fas fa-arrow-down mr-2"></i>
+              New messages
+            </button>
           )}
         </div>
 
-        <div className="profile">
-          {profile ? (
-            <div className="profile-card">
-              <div className="avatar avatar-lg" />
-              <div className="profile-name">{profile.name}</div>
-              <div className="profile-sub">{profile.email || 'No email'}</div>
-              <div className="profile-sub">{profile.phone || 'No phone'}</div>
-              <div className="profile-sub">{profile.location || 'No location'}</div>
-              <div className="profile-actions">
-                <button className="btn-secondary" onClick={addNote}>Add Note</button>
-                <button className="btn-secondary" onClick={requestAiSuggestion}>AI Suggest</button>
+        {/* DEBUG: Enhanced Message Input */}
+        {currentContact && (
+          <div className={`p-6 border-t border-gray-600/30 glass ${debugMode ? 'debug-message-input' : ''}`}>
+            <div className="flex items-end gap-4">
+              <div className="flex gap-2">
+                <button className="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Attach file">
+                  <i className="fas fa-paperclip h-4 w-4"></i>
+                </button>
+                <button className="p-3 rounded-xl hover:bg-gray-700/50 transition-all" title="Add emoji">
+                  <i className="fas fa-smile h-4 w-4"></i>
+                </button>
               </div>
-            </div>
-          ) : (
-            <div className="profile-card placeholder">Select a conversation</div>
+              
+              <div className="flex-1 relative">
+                  <textarea
+                  ref={textareaRef}
+                  placeholder="Type your message..." 
+                  className="w-full auto-resize search-input rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none resize-none"
+                    rows="1"
+                  maxLength="2000"
+                    value={composer}
+                    onChange={(e) => setComposer(e.target.value)}
+                  onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                      if (composer.trim()) {
+                        handleSendMessage(composer);
+                      }
+                      }
+                    }}
+                  />
+                <div className="absolute bottom-3 right-3 text-xs text-gray-500">
+                  <span className={composer.length > 1800 ? 'text-red-400' : ''}>{composer.length}</span>/2000
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => handleSendMessage(composer)}
+                disabled={!composer.trim() || isSending}
+                className="btn-primary p-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all hover:transform hover:-translate-y-0.5"
+              >
+                <i className="fas fa-paper-plane h-4 w-4"></i>
+                  </button>
+                </div>
+            
+            {/* Quick Responses - Aparecen cuando el composer está vacío */}
+            {!composer.trim() && (
+              <div className="mt-3 flex gap-2 flex-wrap animate-fade-in">
+                {[
+                  "Thanks for reaching out! How can I help you today?",
+                  "I'll look into this right away and get back to you shortly.",
+                  "Is there anything else I can help you with?",
+                  "Let me connect you with the right specialist.",
+                  "I understand your concern. Let me check that for you."
+                ].map((response, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setComposer(response)}
+                    className="px-3 py-1.5 text-xs rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-all hover:transform hover:scale-105"
+                  >
+                    {response.length > 30 ? response.substring(0, 30) + '...' : response}
+                  </button>
+                ))}
+                </div>
+            )}
+              </div>
           )}
         </div>
-      </div>
+
+      {/* DEBUG: Customer Info Sidebar */}
+      {currentContact && (
+        <div className={`w-80 glass p-6 hidden lg:flex flex-col gap-6 overflow-y-auto scrollbar-enhanced ${debugMode ? 'debug-customer-info' : ''}`}>
+          {/* Customer Profile */}
+          <div className="text-center">
+            <img className="w-20 h-20 rounded-full object-cover mx-auto mb-4" src={currentContact.avatar} alt={currentContact.name} />
+            <h3 className="text-xl font-bold mb-1">{currentContact.name}</h3>
+            <p className="text-sm text-gray-400 mb-3">{currentContact.email}</p>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className={`w-2 h-2 rounded-full ${getStatusColor(currentContact.status)}`}></div>
+              <span className="text-sm capitalize">{currentContact.status}</span>
+            </div>
+            <div className="flex gap-2">
+              <button className="flex-1 px-3 py-2 text-xs rounded-lg bg-gray-700/60 text-gray-400 cursor-not-allowed" title="Coming soon">
+                <i className="fas fa-phone mr-1"></i> Call (coming soon)
+              </button>
+              <button className="flex-1 px-3 py-2 text-xs rounded-lg bg-gray-700/60 text-gray-400 cursor-not-allowed" title="Coming soon">
+                <i className="fas fa-video mr-1"></i> Video (coming soon)
+              </button>
+            </div>
+          </div>
+
+          <div className="h-px bg-gray-600/30"></div>
+
+          {/* Contact Information */}
+          <div>
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <i className="fas fa-info-circle h-4 w-4"></i>
+              Contact Information
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Department:</span>
+                <span>{currentContact.department}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Priority:</span>
+                <span className={`px-2 py-1 rounded-lg text-xs ${getPriorityColor(currentContact.priority)}`}>
+                  {currentContact.priority}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Platform:</span>
+                <span>{currentContact.tags?.[0] || 'Webchat'}</span>
+              </div>
+              {profile && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Email:</span>
+                    <span>{profile.email || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Phone:</span>
+                    <span>{profile.phone || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Location:</span>
+                    <span>{profile.location || '-'}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="h-px bg-gray-600/30"></div>
+
+          {/* Conversation Actions (moved here) */}
+          <div>
+            <h4 className="font-medium mb-3">Conversation Actions</h4>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <button onClick={markRead} className="w-full px-3 py-2 rounded-lg bg-green-700/30 hover:bg-green-700/40 text-left"><i className="fas fa-check mr-2"></i>Mark Read</button>
+              <button onClick={markUnread} className="w-full px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-left"><i className="fas fa-envelope mr-2"></i>Mark Unread</button>
+              <button onClick={follow} className="w-full px-3 py-2 rounded-lg bg-yellow-700/30 hover:bg-yellow-700/40 text-left"><i className="fas fa-star mr-2"></i>Follow</button>
+              <button onClick={unfollow} className="w-full px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-left"><i className="fas fa-star-half-alt mr-2"></i>Unfollow</button>
+              <button onClick={archive} className="w-full px-3 py-2 rounded-lg bg-blue-700/30 hover:bg-blue-700/40 text-left"><i className="fas fa-archive mr-2"></i>Archive</button>
+              <button onClick={unarchive} className="w-full px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-left"><i className="fas fa-box-open mr-2"></i>Unarchive</button>
+              <button onClick={liveToHuman} className="w-full px-3 py-2 rounded-lg bg-rose-700/30 hover:bg-rose-700/40 text-left"><i className="fas fa-user mr-2"></i>Move to Human</button>
+              <button onClick={liveToBot} className="w-full px-3 py-2 rounded-lg bg-indigo-700/30 hover:bg-indigo-700/40 text-left"><i className="fas fa-robot mr-2"></i>Move to Bot</button>
+              <button onClick={block} className="w-full px-3 py-2 rounded-lg bg-red-700/30 hover:bg-red-700/40 text-left"><i className="fas fa-ban mr-2"></i>Block</button>
+              <button onClick={unblock} className="w-full px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-left"><i className="fas fa-unlock mr-2"></i>Unblock</button>
+              <button onClick={assign} className="w-full px-3 py-2 rounded-lg bg-sky-700/30 hover:bg-sky-700/40 text-left"><i className="fas fa-user-plus mr-2"></i>Assign</button>
+              <button onClick={unassign} className="w-full px-3 py-2 rounded-lg bg-gray-700/40 hover:bg-gray-700/60 text-left"><i className="fas fa-user-minus mr-2"></i>Unassign</button>
+              <button onClick={addNote} className="w-full px-3 py-2 rounded-lg bg-emerald-700/30 hover:bg-emerald-700/40 text-left"><i className="fas fa-sticky-note mr-2"></i>Add Note</button>
+              <button onClick={updateNote} className="w-full px-3 py-2 rounded-lg bg-amber-700/30 hover:bg-amber-700/40 text-left"><i className="fas fa-edit mr-2"></i>Update Note</button>
+              <button onClick={deleteNote} className="w-full px-3 py-2 rounded-lg bg-red-700/30 hover:bg-red-700/40 text-left"><i className="fas fa-trash mr-2"></i>Delete Note</button>
+              <button onClick={requestAiSuggestion} className="w-full px-3 py-2 rounded-lg bg-purple-700/30 hover:bg-purple-700/40 text-left"><i className="fas fa-magic mr-2"></i>AI Suggest</button>
+              <button onClick={sendFlow} className="w-full px-3 py-2 rounded-lg bg-blue-700/30 hover:bg-blue-700/40 text-left"><i className="fas fa-project-diagram mr-2"></i>Send Flow</button>
+              <button onClick={sendStep} className="w-full px-3 py-2 rounded-lg bg-indigo-700/30 hover:bg-indigo-700/40 text-left"><i className="fas fa-step-forward mr-2"></i>Send Step</button>
+              <button onClick={sendProducts} className="w-full px-3 py-2 rounded-lg bg-emerald-700/30 hover:bg-emerald-700/40 text-left"><i className="fas fa-boxes mr-2"></i>Send Products</button>
+            </div>
+          </div>
+
+          {/* Coming soon group */}
+          <div>
+            <h4 className="font-medium mb-3 text-gray-300">More Tools</h4>
+            <div className="space-y-2 text-xs">
+              <button className="w-full px-3 py-2 rounded-lg bg-gray-700/60 text-gray-400 cursor-not-allowed" title="Coming soon"><i className="fas fa-search mr-2"></i>Search in conversation (coming soon)</button>
+              <button className="w-full px-3 py-2 rounded-lg bg-gray-700/60 text-gray-400 cursor-not-allowed" title="Coming soon"><i className="fas fa-bell mr-2"></i>Notifications (coming soon)</button>
+              <button className="w-full px-3 py-2 rounded-lg bg-gray-700/60 text-gray-400 cursor-not-allowed" title="Coming soon"><i className="fas fa-cog mr-2"></i>Settings (coming soon)</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Toasts */}
-      <div style={{position:'fixed',right:16,bottom:16,display:'flex',flexDirection:'column',gap:8}}>
-        {toasts.map(t => (
-          <div key={t.id} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,149,29,0.35)',color:'#fff',padding:'8px 12px',borderRadius:8,fontSize:12}}>
-            {t.text}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {toasts.map(toast => (
+          <div 
+            key={toast.id}
+            className="flex items-center gap-3 p-4 rounded-xl glass backdrop-blur-sm shadow-lg animate-fade-in"
+          >
+            <i className={`fas ${toast.type === 'success' ? 'fa-check-circle text-green-400' : toast.type === 'error' ? 'fa-exclamation-circle text-red-400' : 'fa-info-circle text-blue-400'}`}></i>
+            <span className="text-sm font-medium flex-1">{toast.text}</span>
+            <button 
+              onClick={() => setToasts(arr => arr.filter(t => t.id !== toast.id))}
+              className="text-gray-400 hover:text-white"
+            >
+              <i className="fas fa-times h-3 w-3"></i>
+            </button>
           </div>
         ))}
       </div>
+
+      {/* Demo Mode Banner */}
+      {demoMode && (
+        <div className="fixed bottom-4 left-4 bg-amber-600/20 border border-amber-600/30 text-amber-300 px-4 py-2 rounded-xl text-sm backdrop-blur-sm">
+          <i className="fas fa-flask mr-2"></i>
+          Demo Mode - Using sample data
+        </div>
+      )}
     </div>
   );
 };
