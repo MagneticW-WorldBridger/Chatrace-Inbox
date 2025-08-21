@@ -188,7 +188,7 @@ const App = () => {
 
   // Configuration from environment variables
   const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+  const API_BASE_URL = ''; // Empty to use relative URLs with Vite proxy
 
   // Subscribe to SSE for live updates
   useEffect(() => {
