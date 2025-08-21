@@ -710,7 +710,7 @@ const App = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="glass rounded-2xl p-8 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-6">
@@ -744,7 +744,7 @@ const App = () => {
 
 
   return (
-    <div className={`flex h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-gray-100 ${debugMode ? 'debug-mode' : ''}`}>
+    <div className={`flex h-screen bg-gradient-to-br from-gray-50 to-white text-gray-900 ${debugMode ? 'debug-mode' : ''}`}>
       {/* DEBUG: Conversations Sidebar */}
       <div className={`w-80 glass flex flex-col transition-all duration-300 z-50 fixed md:relative h-full overflow-x-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${debugMode ? 'debug-sidebar' : ''}`}>
         {/* DEBUG: Sidebar Header */}
@@ -935,7 +935,7 @@ const App = () => {
         {/* Mobile Menu Button */}
         <button 
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed top-4 left-4 z-50 md:hidden p-3 rounded-xl bg-gray-800/90 backdrop-blur-sm text-white shadow-lg"
+          className="fixed top-4 left-4 z-50 md:hidden p-3 rounded-xl bg-white/90 backdrop-blur-sm text-gray-900 shadow-lg"
         >
           <i className={`fas ${sidebarOpen ? 'fa-times' : 'fa-bars'} h-5 w-5`}></i>
         </button>
