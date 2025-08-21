@@ -1017,3 +1017,50 @@ app.post('/api/logout', (req, res) => {
   return res.status(200).json({ status: 'OK' });
 });
 
+// VAPI Webhook endpoint - receives call events
+app.post('/webhook/vapi', (req, res) => {
+  console.log('🔔 VAPI Webhook received:', JSON.stringify(req.body, null, 2));
+  
+  const { type, call, assistant, timestamp } = req.body;
+  
+  // Log the event type and key data
+  console.log(`📞 Event: ${type}`);
+  if (call) {
+    console.log(`📱 Call ID: ${call.id}`);
+    console.log(`📱 Call Status: ${call.status}`);
+    if (call.customer) {
+      console.log(`👤 Customer: ${call.customer.number} (${call.customer.name || 'Unknown'})`);
+    }
+  }
+  
+  // Handle different event types
+  switch (type) {
+    case 'call-started':
+      console.log('✅ Call started successfully');
+      break;
+    case 'call-ended':
+      console.log('🛑 Call ended');
+      if (call.transcript) {
+        console.log('📝 Transcript:', call.transcript);
+      }
+      if (call.recordingUrl) {
+        console.log('🎵 Recording URL:', call.recordingUrl);
+      }
+      if (call.summary) {
+        console.log('📋 Summary:', call.summary);
+      }
+      // TODO: Save to database here
+      break;
+    case 'transcript':
+      console.log('📝 Transcript update:', req.body.transcript);
+      break;
+    case 'function-call':
+      console.log('⚡ Function call:', req.body.functionCall);
+      break;
+    default:
+      console.log('ℹ️ Other event type:', type);
+  }
+  
+  res.status(200).json({ status: 'received' });
+});
+
