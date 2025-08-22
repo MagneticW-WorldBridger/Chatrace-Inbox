@@ -60,87 +60,7 @@ const AppContent = () => {
     }
   });
 
-  // Configuration from environment variables
-  const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
-  const API_BASE_URL = ''; // Empty to use relative URLs with Vite proxy
-  const WEBSOCKET_URL = 'wss://ws.appcontx.com/chat';
-  const [websocket, setWebsocket] = useState(null);
-  const [wsConnected, setWsConnected] = useState(false);
-
-  // WebSocket connection and authentication
-  useEffect(() => {
-    if (!isLoggedIn || !userToken) return;
-    
-    const connectWebSocket = () => {
-      console.log('🔌 Connecting to WebSocket:', WEBSOCKET_URL);
-      const websocket = new WebSocket(WEBSOCKET_URL);
-      
-      websocket.onopen = () => {
-        console.log('✅ WebSocket connected, authenticating...');
-        
-        // Authenticate immediately after connection
-        const authMessage = {
-          action: "authenticate",
-          data: {
-            platform: "web",
-            account_id: BUSINESS_ID,
-            user_id: userToken.split('.')[1] ? JSON.parse(atob(userToken.split('.')[1])).user : "1000026757",
-            token: userToken
-          }
-        };
-        
-        websocket.send(JSON.stringify(authMessage));
-        console.log('🔑 Authentication sent:', authMessage);
-      };
-      
-      websocket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          console.log('📨 WebSocket message received:', message);
-          
-          // Handle incoming messages
-          if (message.action === 0 && message.data && message.data.message) {
-            // New message received
-            const newMessage = message.data.message[0];
-            if (newMessage && newMessage.dir === 1) { // Incoming message
-              setMessages(prev => [...prev, {
-                id: Date.now(),
-                text: newMessage.text || 'New message',
-                sender: 'user',
-                timestamp: new Date(),
-                type: newMessage.type || 'text'
-              }]);
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error parsing WebSocket message:', error);
-        }
-      };
-      
-      websocket.onclose = () => {
-        console.log('🔌 WebSocket disconnected, attempting to reconnect...');
-        setWsConnected(false);
-        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
-      };
-      
-      websocket.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-      };
-      
-      setWebsocket(websocket);
-      setWsConnected(true);
-    };
-    
-    connectWebSocket();
-    
-    return () => {
-      if (websocket) {
-        websocket.close();
-      }
-    };
-  }, [isLoggedIn, userToken, BUSINESS_ID]);
-
-  // Subscribe to SSE for live updates (keeping as fallback)
+  // Subscribe to SSE for live updates
   useEffect(() => {
     if (!isLoggedIn) return;
     let es;
@@ -348,12 +268,7 @@ const AppContent = () => {
   };
 
   const handleSendMessage = async (message) => {
-    if (!currentContact || !message.trim() || !websocket || !wsConnected) {
-      console.log('❌ Cannot send message:', { currentContact, message: message.trim(), websocket, wsConnected });
-      return;
-    }
-    
-    console.log('🚀 Sending message via WebSocket:', message);
+    if (!currentContact || !message.trim()) return;
     
     // Add message immediately to UI
     const newMessage = {
@@ -361,7 +276,7 @@ const AppContent = () => {
       content: message,
       timestamp: new Date(),
       isOwn: true,
-      status: 'sending'
+      status: 'sent'
     };
     setMessages(prev => [...prev, newMessage]);
     setComposer('');
