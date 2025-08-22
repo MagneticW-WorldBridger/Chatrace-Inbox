@@ -3,6 +3,7 @@ import { ChatProvider, useChat } from './context/ChatContext';
 import MainLayout from './components/layout/MainLayout';
 import LoginScreen from './components/auth/LoginScreen';
 import { API_BASE_URL } from './utils/constants';
+import { useWebSocket } from './hooks/useWebSocket';
 
 /**
  * Main App component with authentication and data loading logic
@@ -28,11 +29,36 @@ const AppContent = () => {
     setSending,
     addToast,
     platform,
-    currentContact
+    currentContact,
+    setWsConnected,
+    setWsConnecting
   } = useChat();
 
   const ws = useRef(null);
   const autoAuthTried = useRef(false);
+
+  // WebSocket para mensajería en tiempo real
+  const {
+    isConnected: wsConnected, 
+    isConnecting: wsConnecting, 
+    sendMessage: sendWebSocketMessage 
+  } = useWebSocket({
+    isLoggedIn,
+    userToken,
+    currentContact,
+    onMessageReceived: (message) => {
+      console.log('📥 Nuevo mensaje recibido via WebSocket:', message);
+      // Recargar conversaciones y mensajes cuando llegue un nuevo mensaje
+      loadConversations();
+      if (currentContact?.id) {
+        loadMessages(currentContact.id);
+      }
+    },
+    onConnectionChange: (connected) => {
+      setWsConnected(connected);
+      setWsConnecting(!connected);
+    }
+  });
 
   // Subscribe to SSE for live updates
   useEffect(() => {
@@ -114,6 +140,8 @@ const AppContent = () => {
     setLoading(true);
     let result;
     
+    console.log('🔥 Loading conversations, demoMode:', demoMode, 'platform:', platform);
+    
     try {
       if (demoMode) {
         result = await fetch(`${API_BASE_URL}/api/demo-data`, {
@@ -128,6 +156,8 @@ const AppContent = () => {
       }
       
       const data = await result.json();
+      
+      console.log('📥 Conversaciones recibidas:', data);
       
       if ((data.status === 'OK' || data.status === 'success') && Array.isArray(data.data)) {
         const base = data.data;
@@ -145,6 +175,7 @@ const AppContent = () => {
           department: 'Support'
         }));
         
+        console.log('✅ Conversaciones mapeadas:', mappedConversations);
         setConversations(mappedConversations);
         
         // Update counts
@@ -252,6 +283,25 @@ const AppContent = () => {
 
     try {
       setSending(true);
+      
+      // Usar WebSocket si está conectado, sino fallback a HTTP
+      if (wsConnected && sendWebSocketMessage) {
+        console.log('📤 Enviando mensaje via WebSocket');
+        const success = sendWebSocketMessage(
+          message, 
+          currentContact.id, 
+          getChannelForPlatform(platform)
+        );
+        
+        if (success) {
+          addToast('Message sent via WebSocket', 'success');
+          // El mensaje aparecerá automáticamente via WebSocket callback
+          return;
+        }
+      }
+      
+      // Fallback a HTTP si WebSocket no está disponible
+      console.log('📤 Fallback: Enviando mensaje via HTTP');
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${currentContact.id}/send`, {
         method: 'POST',
         headers: {
@@ -263,7 +313,7 @@ const AppContent = () => {
       await resp.text();
       // Refresh messages from server
       await loadMessages(currentContact.id);
-      addToast('Message sent', 'success');
+      addToast('Message sent via HTTP', 'success');
     } catch (e) {
       console.error('Send message failed', e);
       addToast('Send failed', 'error');
@@ -556,7 +606,7 @@ const AppContent = () => {
  * Root App component with context provider
  */
 const App = () => {
-  return (
+                  return (
     <ChatProvider>
       <AppContent />
     </ChatProvider>

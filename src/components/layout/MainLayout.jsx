@@ -3,6 +3,7 @@ import Sidebar from './Sidebar';
 import ChatArea from './ChatArea';
 import ProfilePanel from '../profile/ProfilePanel';
 import Toast from '../ui/Toast';
+import WebSocketStatus from '../common/WebSocketStatus';
 import { AGENT_NAME, AGENT_AVATAR_URL } from '../../utils/constants';
 
 /**
@@ -109,6 +110,9 @@ const MainLayout = ({ appState, appActions }) => {
           />
         ))}
       </div>
+
+      {/* WebSocket Status */}
+      <WebSocketStatus />
 
       {/* Demo Mode Banner */}
       {appState.demoMode && (

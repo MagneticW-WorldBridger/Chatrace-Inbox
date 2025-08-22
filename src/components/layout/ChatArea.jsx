@@ -38,7 +38,7 @@ const ChatArea = ({
     disableAutoScroll
   } = useAutoScroll({
     smooth: true,
-    content: [...messages, isTyping]
+    content: [...(Array.isArray(messages) ? messages : []), isTyping]
   });
 
   const handleSuggestionClick = (suggestionText) => {
@@ -120,9 +120,9 @@ const ChatArea = ({
           onTouchMove={disableAutoScroll}
         >
           <div className="space-y-4 min-h-full flex flex-col justify-end">
-            {messages.map((message) => (
+            {(Array.isArray(messages) ? messages : []).map((message, index) => (
               <MessageBubble
-                key={message.id}
+                key={`${message.id}-${index}-${message.timestamp}`}
                 message={message}
                 contact={contact}
                 agentAvatar={AGENT_AVATAR_URL}
