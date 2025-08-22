@@ -384,13 +384,12 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
         channel: body.channel,
       };
     } else if (body && typeof body.message === 'string' && body.message.trim().length > 0) {
-      // Plain text message (best-effort). Some APIs use op: message/send, others conversations/send
-      // Try message/send first
+      // Plain text message - trying conversations/send format (without op2)
       upstreamPayload = {
         account_id: accountId,
-        op: 'message',
+        op: 'conversations',
         op1: 'send',
-        id: conversationId,
+        contact_id: conversationId,
         channel: body.channel,
         message: body.message,
       };
@@ -398,8 +397,16 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
       return res.status(400).json({ status: 'error', message: 'Missing payload. Provide one of: message | flow_id | step_id | product_ids' });
     }
 
+    console.log('🔥 DEBUGGING MESSAGE SEND:');
+    console.log('📤 Payload enviado a ChatRace:', JSON.stringify(upstreamPayload, null, 2));
+    console.log('🔑 Token usado:', tokenToUse?.substring(0, 20) + '...');
+    
     const upstreamRes = await callUpstream(upstreamPayload, tokenToUse, req);
     const text = await upstreamRes.text();
+    
+    console.log('📥 Respuesta de ChatRace:', text);
+    console.log('📊 Status Code:', upstreamRes.status);
+    
     try {
       const json = JSON.parse(text);
       // If plain message failed, try fallback to conversations/send message

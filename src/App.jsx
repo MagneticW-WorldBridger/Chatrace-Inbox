@@ -189,8 +189,86 @@ const App = () => {
   // Configuration from environment variables
   const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
   const API_BASE_URL = ''; // Empty to use relative URLs with Vite proxy
+  
+  // WebSocket configuration
+  const WEBSOCKET_URL = 'wss://ws.appcontx.com/chat';
+  const [websocket, setWebsocket] = useState(null);
+  const [wsConnected, setWsConnected] = useState(false);
 
-  // Subscribe to SSE for live updates
+  // WebSocket connection and authentication
+  useEffect(() => {
+    if (!isLoggedIn || !userToken) return;
+    
+    const connectWebSocket = () => {
+      console.log('🔌 Connecting to WebSocket:', WEBSOCKET_URL);
+      const websocket = new WebSocket(WEBSOCKET_URL);
+      
+      websocket.onopen = () => {
+        console.log('✅ WebSocket connected, authenticating...');
+        
+        // Authenticate immediately after connection
+        const authMessage = {
+          action: "authenticate",
+          data: {
+            platform: "web",
+            account_id: BUSINESS_ID,
+            user_id: userToken.split('.')[1] ? JSON.parse(atob(userToken.split('.')[1])).user : "1000026757",
+            token: userToken
+          }
+        };
+        
+        websocket.send(JSON.stringify(authMessage));
+        console.log('🔑 Authentication sent:', authMessage);
+      };
+      
+      websocket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          console.log('📨 WebSocket message received:', message);
+          
+          // Handle incoming messages
+          if (message.action === 0 && message.data && message.data.message) {
+            // New message received
+            const newMessage = message.data.message[0];
+            if (newMessage && newMessage.dir === 1) { // Incoming message
+              setMessages(prev => [...prev, {
+                id: Date.now(),
+                text: newMessage.text || 'New message',
+                sender: 'user',
+                timestamp: new Date(),
+                type: newMessage.type || 'text'
+              }]);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error parsing WebSocket message:', error);
+        }
+      };
+      
+      websocket.onclose = () => {
+        console.log('🔌 WebSocket disconnected, attempting to reconnect...');
+        setWsConnected(false);
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
+      };
+      
+      websocket.onerror = (error) => {
+        console.error('❌ WebSocket error:', error);
+      };
+      
+      setWebsocket(websocket);
+      setWsConnected(true);
+    };
+    
+    connectWebSocket();
+    
+    return () => {
+      if (websocket) {
+        websocket.close();
+      }
+    };
+  }, [isLoggedIn, userToken, BUSINESS_ID]);
+
+  // Subscribe to SSE for live updates (keeping as fallback)
   useEffect(() => {
     if (!isLoggedIn) return;
     let es;
@@ -425,7 +503,12 @@ const App = () => {
   };
 
   const handleSendMessage = async (message) => {
-    if (!currentContact || !message.trim()) return;
+    if (!currentContact || !message.trim() || !websocket || !wsConnected) {
+      console.log('❌ Cannot send message:', { currentContact, message: message.trim(), websocket, wsConnected });
+      return;
+    }
+    
+    console.log('🚀 Sending message via WebSocket:', message);
     
     // Add message immediately to UI
     const newMessage = {
@@ -433,25 +516,49 @@ const App = () => {
       content: message,
       timestamp: new Date(),
       isOwn: true,
-      status: 'sent'
+      status: 'sending'
     };
     setMessages(prev => [...prev, newMessage]);
     setComposer('');
 
     try {
       setIsSending(true);
-      const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${currentContact.id}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-ACCESS-TOKEN': userToken || ''
-        },
-        body: JSON.stringify({ message, channel: getChannelForPlatform(platform) })
-      });
-      await resp.text();
-      // Refresh messages from server (NO auto-respuesta)
-      await loadMessages(currentContact.id);
-      addToast('Message sent', 'success');
+      
+      // Prepare WebSocket message according to chatracemobileapp.md format
+      const wsMessage = {
+        action: 0,
+        data: {
+          platform: "web",
+          dir: 0, // 0 = outgoing
+          account_id: BUSINESS_ID,
+          contact_id: currentContact.ms_id,
+          user_id: userToken.split('.')[1] ? JSON.parse(atob(userToken.split('.')[1])).user : "1000026757",
+          token: userToken,
+          fromInbox: true,
+          channel: 9, // webchat channel
+          from: userToken.split('.')[1] ? JSON.parse(atob(userToken.split('.')[1])).user : "1000026757",
+          hash: currentContact.hash || "",
+          timestamp: Date.now().toString(),
+          message: [{
+            type: "text",
+            text: message,
+            dir: 0,
+            channel: 9,
+            from: userToken.split('.')[1] ? JSON.parse(atob(userToken.split('.')[1])).user : "1000026757",
+            replyingTo: null
+          }]
+        }
+      };
+      
+      console.log('📤 Sending WebSocket message:', wsMessage);
+      websocket.send(JSON.stringify(wsMessage));
+      
+      // Update message status to sent
+      setMessages(prev => prev.map(msg => 
+        msg.id === newMessage.id ? { ...msg, status: 'sent' } : msg
+      ));
+      
+      addToast('Message sent via WebSocket', 'success');
     } catch (e) {
       console.error('Send message failed', e);
       addToast('Send failed', 'error');
@@ -745,6 +852,14 @@ const App = () => {
 
   return (
     <div className={`flex h-screen bg-gradient-to-br from-gray-50 to-white text-gray-900 ${debugMode ? 'debug-mode' : ''}`}>
+      
+      {/* WebSocket Status Indicator */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
+        <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+        <span className="text-xs font-medium">
+          {wsConnected ? 'WebSocket Connected' : 'WebSocket Disconnected'}
+        </span>
+      </div>
       {/* DEBUG: Conversations Sidebar */}
       <div className={`w-80 glass flex flex-col transition-all duration-300 z-50 fixed md:relative h-full overflow-x-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${debugMode ? 'debug-sidebar' : ''}`}>
         {/* DEBUG: Sidebar Header */}
