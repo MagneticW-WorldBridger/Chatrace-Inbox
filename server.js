@@ -431,6 +431,7 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
     
     console.log('📥 Respuesta de ChatRace:', text);
     console.log('📊 Status Code:', upstreamRes.status);
+    
     try {
       const json = JSON.parse(text);
       // If plain message failed, try fallback to conversations/send message
