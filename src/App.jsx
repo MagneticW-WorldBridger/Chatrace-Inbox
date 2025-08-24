@@ -48,10 +48,25 @@ const AppContent = () => {
     currentContact,
     onMessageReceived: (message) => {
       console.log('📥 Nuevo mensaje recibido via WebSocket:', message);
-      // Recargar conversaciones y mensajes cuando llegue un nuevo mensaje
+      
+      // Solo recargar conversaciones para actualizar contadores
       loadConversations();
-      if (currentContact?.id) {
-        loadMessages(currentContact.id);
+      
+      // Para mensajes nuevos, agregarlos directamente al array en lugar de recargar todo
+      if (currentContact?.id && message?.data?.message) {
+        const newMessage = {
+          id: message.data.ms_id || Date.now().toString(),
+          content: message.data.message[0]?.text || message.data.message,
+          timestamp: new Date(message.data.timestamp || Date.now()),
+          isOwn: message.data.dir === 0, // dir: 0 = mensaje propio, dir: 1 = mensaje recibido
+          status: 'received'
+        };
+        
+        setMessages(prev => {
+          const updated = [...prev, newMessage];
+          // Ordenar por timestamp para mantener orden correcto
+          return updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+        });
       }
     },
     onConnectionChange: (connected) => {
@@ -230,7 +245,10 @@ const AppContent = () => {
         isOwn: m.message_role ? (m.message_role === 'assistant') : (m.dir === 0),
         status: m.message_role === 'assistant' ? 'read' : undefined
       })).filter(x => x.content);
-      setMessages(mapped);
+      
+      // Ordenar mensajes por timestamp (más antiguos primero)
+      const sorted = mapped.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      setMessages(sorted);
     }
   };
 
@@ -278,7 +296,13 @@ const AppContent = () => {
       isOwn: true,
       status: 'sent'
     };
-    setMessages(prev => [...prev, newMessage]);
+    
+    // Agregar mensaje y mantener orden por timestamp
+    setMessages(prev => {
+      const updated = [...prev, newMessage];
+      return updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    });
+    
     setComposer('');
 
     try {
