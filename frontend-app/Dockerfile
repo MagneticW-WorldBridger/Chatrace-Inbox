@@ -16,5 +16,5 @@ COPY . ./
 # Build the React frontend
 RUN npm run build
 
-# Serve the built frontend using serve package
-CMD ["npx", "serve", "--single", "--listen", "8080", "dist"]
+# Serve the built frontend using serve package (expand $PORT via shell)
+CMD ["/bin/sh", "-c", "exec npx serve --single --listen ${PORT} dist"]
