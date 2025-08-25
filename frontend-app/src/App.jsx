@@ -144,12 +144,20 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     })();
   }, [isLoggedIn]);
 
+  // Get token and load conversations when user is available
+  useEffect(() => {
+    if (user && !userToken) {
+      // Get the legacy token from backend
+      handleDirectLogin();
+    }
+  }, [user, userToken]);
+
   // Load conversations when logged in
   useEffect(() => {
-    if (isLoggedIn) {
+    if (userToken) {
       loadConversations();
     }
-  }, [isLoggedIn, platform]);
+  }, [userToken, platform]);
 
   const loadConversations = async () => {
     setLoading(true);
@@ -166,7 +174,11 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         });
       } else {
         result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50`, {
-          method: 'GET'
+          method: 'GET',
+          headers: {
+            'X-ACCESS-TOKEN': userToken || '',
+            'Authorization': `Bearer ${userToken || ''}`
+          }
         });
       }
       
@@ -197,9 +209,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         try {
           if (!demoMode) {
             const [rWeb, rIg, rFb] = await Promise.all([
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`)
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}` }
+              }),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}` }
+              }),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}` }
+              })
             ]);
             const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
             const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
@@ -233,7 +251,13 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         body: JSON.stringify({ type: 'messages' })
       });
     } else {
-      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { method: 'GET' });
+      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { 
+        method: 'GET',
+        headers: {
+          'X-ACCESS-TOKEN': userToken || '',
+          'Authorization': `Bearer ${userToken || ''}`
+        }
+      });
     }
     
     const data = await result.json();
@@ -268,7 +292,13 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       }
       return;
     }
-    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { method: 'GET' });
+    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { 
+      method: 'GET',
+      headers: {
+        'X-ACCESS-TOKEN': userToken || '',
+        'Authorization': `Bearer ${userToken || ''}`
+      }
+    });
     const data = await result.json();
     if ((data.status === 'OK' || data.status === 'success') && (data.data || data.contact)) {
       const u = data.data || data.contact;
