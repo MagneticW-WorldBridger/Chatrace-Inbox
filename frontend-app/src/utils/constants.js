@@ -1,5 +1,5 @@
-// API Configuration - Use empty string to leverage Vite proxy
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+// API Configuration - Use backend URL directly
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://chatrace-inbox-production-561c.up.railway.app';
 export const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
 
 // Agent Configuration
