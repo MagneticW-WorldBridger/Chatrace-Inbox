@@ -44,7 +44,7 @@ const ChatArea = ({
     disableAutoScroll
   } = useAutoScroll({
     smooth: true,
-    content: [...messages, isTyping]
+    content: [...(Array.isArray(messages) ? messages : []), isTyping]
   });
 
   const handleSuggestionClick = (suggestionText) => {

@@ -20,7 +20,10 @@ const initialState = {
   isTyping: false,
   sidebarOpen: false,
   debugMode: true,
-  booting: true
+  booting: true,
+  // WebSocket state
+  wsConnected: false,
+  wsConnecting: false
 };
 
 // Action types
@@ -44,7 +47,10 @@ const ACTIONS = {
   SET_TYPING: 'SET_TYPING',
   SET_SIDEBAR_OPEN: 'SET_SIDEBAR_OPEN',
   SET_DEBUG_MODE: 'SET_DEBUG_MODE',
-  SET_BOOTING: 'SET_BOOTING'
+  SET_BOOTING: 'SET_BOOTING',
+  // WebSocket actions
+  SET_WS_CONNECTED: 'SET_WS_CONNECTED',
+  SET_WS_CONNECTING: 'SET_WS_CONNECTING'
 };
 
 // Reducer function
@@ -90,6 +96,10 @@ const chatReducer = (state, action) => {
       return { ...state, debugMode: action.payload };
     case ACTIONS.SET_BOOTING:
       return { ...state, booting: action.payload };
+    case ACTIONS.SET_WS_CONNECTED:
+      return { ...state, wsConnected: action.payload };
+    case ACTIONS.SET_WS_CONNECTING:
+      return { ...state, wsConnecting: action.payload };
     default:
       return state;
   }
@@ -189,6 +199,14 @@ export const ChatProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_BOOTING, payload: booting });
   }, []);
 
+  const setWsConnected = useCallback((connected) => {
+    dispatch({ type: ACTIONS.SET_WS_CONNECTED, payload: connected });
+  }, []);
+
+  const setWsConnecting = useCallback((connecting) => {
+    dispatch({ type: ACTIONS.SET_WS_CONNECTING, payload: connecting });
+  }, []);
+
   const value = {
     ...state,
     setConversations,
@@ -210,7 +228,9 @@ export const ChatProvider = ({ children }) => {
     setTyping,
     setSidebarOpen,
     setDebugMode,
-    setBooting
+    setBooting,
+    setWsConnected,
+    setWsConnecting
   };
 
   return (
