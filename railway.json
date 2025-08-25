@@ -4,6 +4,6 @@
     "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "serve -s dist -l $PORT"
+    "startCommand": "npx serve --single --listen $PORT dist"
   }
 }
