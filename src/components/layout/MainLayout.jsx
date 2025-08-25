@@ -4,6 +4,7 @@ import ChatArea from './ChatArea';
 import ProfilePanel from '../profile/ProfilePanel';
 import Toast from '../ui/Toast';
 import WebSocketStatus from '../common/WebSocketStatus';
+import UserHeader from './UserHeader';
 import { AGENT_NAME, AGENT_AVATAR_URL } from '../../utils/constants';
 
 /**
@@ -14,7 +15,7 @@ import { AGENT_NAME, AGENT_AVATAR_URL } from '../../utils/constants';
  * @param {Object} props.appActions - Application actions
  * @returns {JSX.Element} Main layout component
  */
-const MainLayout = ({ appState, appActions }) => {
+const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
 
@@ -55,9 +56,16 @@ const MainLayout = ({ appState, appActions }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white text-black">
-      {/* Sidebar */}
-      <Sidebar
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden">
+      <UserHeader 
+        user={user}
+        onLogout={onLogout}
+        onChangePassword={onChangePassword}
+      />
+      
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
         conversations={conversations}
@@ -114,13 +122,14 @@ const MainLayout = ({ appState, appActions }) => {
       {/* WebSocket Status */}
       <WebSocketStatus />
 
-      {/* Demo Mode Banner */}
-      {appState.demoMode && (
-        <div className="fixed bottom-4 left-4 bg-amber-600/20 border border-amber-600/30 text-amber-300 px-4 py-2 rounded-xl text-sm backdrop-blur-sm">
-          <span className="mr-2">🧪</span>
-          Demo Mode - Using sample data
-        </div>
-      )}
+        {/* Demo Mode Banner */}
+        {appState.demoMode && (
+          <div className="fixed bottom-4 left-4 bg-amber-600/20 border border-amber-600/30 text-amber-300 px-4 py-2 rounded-xl text-sm backdrop-blur-sm">
+            <span className="mr-2">🧪</span>
+            Demo Mode - Using sample data
+          </div>
+        )}
+      </div>
     </div>
   );
 };

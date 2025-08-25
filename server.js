@@ -7,6 +7,24 @@ import fetch from 'node-fetch';
 import cookieParser from 'cookie-parser';
 import Busboy from 'busboy';
 import FormData from 'form-data';
+import {
+  initializeAuth,
+  verifyGoogleToken,
+  checkUserAuthorization,
+  getBusinessBySubdomain,
+  createInvitation,
+  validateInvitation,
+  useInvitation,
+  getAuthorizedUsers,
+  getPendingRequests,
+  createAccessRequest,
+  reviewAccessRequest,
+  requireAdmin,
+  // Password functions
+  loginWithEmailPassword,
+  changePassword,
+  createUserWithPassword
+} from './auth.js';
 
 // Resolve __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -61,9 +79,369 @@ function requireAuth(req, res, next) {
 app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
 app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 
+// ========================================
+// MULTITENANT AUTH ENDPOINTS
+// ========================================
+
+// Google OAuth login endpoint
+app.post('/api/auth/google-login', async (req, res) => {
+  try {
+    const { token, businessId } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ error: 'Google token required' });
+    }
+    
+    // Verify Google token
+    const userInfo = await verifyGoogleToken(token);
+    if (!userInfo) {
+      return res.status(401).json({ error: 'Invalid Google token' });
+    }
+    
+    // Check if user is authorized for this business
+    const authorization = await checkUserAuthorization(businessId, userInfo.email);
+    
+    if (authorization) {
+      // User is authorized - return success
+      return res.json({
+        status: 'success',
+        user: {
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          role: authorization.role,
+          businessId: authorization.business_id,
+          businessName: authorization.business_name
+        }
+      });
+    } else {
+      // User not authorized - create access request
+      await createAccessRequest(businessId, userInfo.email, userInfo.name);
+      return res.status(403).json({ 
+        error: 'Access request created. Please wait for admin approval.',
+        requestCreated: true
+      });
+    }
+  } catch (error) {
+    console.error('❌ Google login failed:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Validate invitation token
+app.get('/api/auth/invitation/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const invitation = await validateInvitation(token);
+    
+    if (!invitation) {
+      return res.status(404).json({ error: 'Invalid or expired invitation' });
+    }
+    
+    res.json({
+      status: 'success',
+      invitation: {
+        businessId: invitation.business_id,
+        businessName: invitation.business_name,
+        role: invitation.role,
+        subdomain: invitation.subdomain
+      }
+    });
+  } catch (error) {
+    console.error('❌ Invitation validation failed:', error);
+    res.status(500).json({ error: 'Invitation validation failed' });
+  }
+});
+
+// Use invitation (complete registration)
+app.post('/api/auth/invitation/:token/accept', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { googleToken } = req.body;
+    
+    if (!googleToken) {
+      return res.status(400).json({ error: 'Google token required' });
+    }
+    
+    // Verify Google token
+    const userInfo = await verifyGoogleToken(googleToken);
+    if (!userInfo) {
+      return res.status(401).json({ error: 'Invalid Google token' });
+    }
+    
+    // Use invitation
+    const result = await useInvitation(token, userInfo.email, userInfo.name);
+    
+    if (!result) {
+      return res.status(400).json({ error: 'Failed to accept invitation' });
+    }
+    
+    res.json({
+      status: 'success',
+      message: 'Welcome! You now have access to the dashboard.',
+      user: {
+        email: userInfo.email,
+        name: userInfo.name,
+        picture: userInfo.picture,
+        role: result.user.role,
+        businessId: result.user.business_id
+      }
+    });
+  } catch (error) {
+    console.error('❌ Invitation acceptance failed:', error);
+    res.status(500).json({ error: 'Failed to accept invitation' });
+  }
+});
+
+// Get business info by subdomain (for routing)
+app.get('/api/auth/business/:subdomain', async (req, res) => {
+  try {
+    const { subdomain } = req.params;
+    const business = await getBusinessBySubdomain(subdomain);
+    
+    if (!business) {
+      return res.status(404).json({ error: 'Business not found' });
+    }
+    
+    res.json({
+      status: 'success',
+      business: {
+        businessId: business.business_id,
+        name: business.name,
+        subdomain: business.subdomain,
+        description: business.description
+      }
+    });
+  } catch (error) {
+    console.error('❌ Business lookup failed:', error);
+    res.status(500).json({ error: 'Business lookup failed' });
+  }
+});
+
+// ========================================
+// ADMIN PANEL ENDPOINTS (require admin role)
+// ========================================
+
+// Get authorized users (admin only)
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const users = await getAuthorizedUsers(req.businessId);
+    res.json({ status: 'success', users });
+  } catch (error) {
+    console.error('❌ Failed to get users:', error);
+    res.status(500).json({ error: 'Failed to get users' });
+  }
+});
+
+// Get pending access requests (admin only)
+app.get('/api/admin/pending-requests', requireAdmin, async (req, res) => {
+  try {
+    const requests = await getPendingRequests(req.businessId);
+    res.json({ status: 'success', requests });
+  } catch (error) {
+    console.error('❌ Failed to get pending requests:', error);
+    res.status(500).json({ error: 'Failed to get pending requests' });
+  }
+});
+
+// Create invitation link (admin only)
+app.post('/api/admin/invitations', requireAdmin, async (req, res) => {
+  try {
+    const { role = 'user', expiresInHours = 24 } = req.body;
+    
+    const invitation = await createInvitation(
+      req.businessId,
+      req.user.google_email,
+      role,
+      expiresInHours
+    );
+    
+    if (!invitation) {
+      return res.status(500).json({ error: 'Failed to create invitation' });
+    }
+    
+    // Generate invitation URL (will be customized per deployment)
+    const inviteUrl = `${req.protocol}://${req.get('host')}/invite/${invitation.token}`;
+    
+    res.json({
+      status: 'success',
+      invitation: {
+        token: invitation.token,
+        url: inviteUrl,
+        role: invitation.role,
+        expiresAt: invitation.expires_at
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to create invitation:', error);
+    res.status(500).json({ error: 'Failed to create invitation' });
+  }
+});
+
+// Approve/reject access request (admin only)
+app.post('/api/admin/requests/:id/review', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Status must be approved or rejected' });
+    }
+    
+    const request = await reviewAccessRequest(
+      id,
+      req.user.google_email,
+      status,
+      notes
+    );
+    
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+    
+    res.json({
+      status: 'success',
+      message: `Request ${status} successfully`,
+      request
+    });
+  } catch (error) {
+    console.error('❌ Failed to review request:', error);
+    res.status(500).json({ error: 'Failed to review request' });
+  }
+});
+
+// ========================================
+// EMAIL/PASSWORD AUTHENTICATION ENDPOINTS
+// ========================================
+
+// Email/password login
+app.post('/api/auth/email-login', async (req, res) => {
+  try {
+    const { email, password, businessId } = req.body;
+    
+    if (!email || !password || !businessId) {
+      return res.status(400).json({ 
+        error: 'Email, password, and businessId are required' 
+      });
+    }
+    
+    const result = await loginWithEmailPassword(email, password, businessId);
+    
+    if (!result.success) {
+      return res.status(result.error === 'User not found' ? 404 : 401).json({ 
+        error: result.error 
+      });
+    }
+    
+    res.json({
+      status: 'success',
+      user: result.user
+    });
+  } catch (error) {
+    console.error('❌ Email login failed:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Change password
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { email, businessId, currentPassword, newPassword } = req.body;
+    
+    if (!email || !businessId || !currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Email, businessId, currentPassword, and newPassword are required' 
+      });
+    }
+    
+    const result = await changePassword(email, businessId, currentPassword, newPassword);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    res.json({
+      status: 'success',
+      message: result.message
+    });
+  } catch (error) {
+    console.error('❌ Password change failed:', error);
+    res.status(500).json({ error: 'Password change failed' });
+  }
+});
+
+// Create user with password (admin only)
+app.post('/api/admin/create-user-with-password', requireAdmin, async (req, res) => {
+  try {
+    const { email, name, role, tempPassword } = req.body;
+    const businessId = req.businessId;
+    
+    if (!email || !name || !tempPassword) {
+      return res.status(400).json({ 
+        error: 'Email, name, and tempPassword are required' 
+      });
+    }
+    
+    const userData = {
+      email,
+      name,
+      role: role || 'user',
+      businessId,
+      tempPassword
+    };
+    
+    const result = await createUserWithPassword(userData, req.user.email);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    res.status(201).json({
+      status: 'success',
+      user: result.user
+    });
+  } catch (error) {
+    console.error('❌ User creation failed:', error);
+    res.status(500).json({ error: 'User creation failed' });
+  }
+});
+
+// Reset user password (admin only)
+app.post('/api/admin/reset-user-password', requireAdmin, async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const businessId = req.businessId;
+    
+    if (!email || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Email and newPassword are required' 
+      });
+    }
+    
+    const result = await changePassword(email, businessId, null, newPassword, true); // true = admin reset
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    res.json({
+      status: 'success',
+      message: result.message
+    });
+  } catch (error) {
+    console.error('❌ Password reset failed:', error);
+    res.status(500).json({ error: 'Password reset failed' });
+  }
+});
+
 // Serve static admin inbox file
 app.get('/admin-inbox-v2.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'admin-inbox-v2.html'));
+});
+
+// Serve invitation page
+app.get('/invite/:token', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'invite.html'));
 });
 
 // Resolve account_id from request (query > cookie > env)
@@ -553,6 +931,10 @@ app.post('/api/inbox/conversations/:id/update', rateLimit, requireAuth, async (r
 });
 
 const PORT = Number(process.env.PORT || 3001);
+
+// Initialize auth module
+initializeAuth().catch(console.error);
+
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server listening on http://localhost:${PORT}`);

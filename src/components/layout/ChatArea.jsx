@@ -60,7 +60,7 @@ const ChatArea = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* Chat Header */}
       <div className="p-6 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">

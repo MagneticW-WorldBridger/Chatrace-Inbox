@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Woodstock Furniture Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .business-name {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .description {
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .google-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            transition: background 0.2s;
+            margin-bottom: 24px;
+        }
+        
+        .google-btn:hover {
+            background: #3367d6;
+        }
+        
+        .google-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            color: #718096;
+            margin-top: 16px;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+            color: #a0aec0;
+            font-size: 14px;
+        }
+        
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📧</div>
+        <h1>You're Invited!</h1>
+        <div class="business-name" id="businessName">Loading...</div>
+        <p class="description">
+            You've been invited to join the dashboard. Click below to sign in with your Google account and get started.
+        </p>
+        
+        <button class="google-btn" id="googleSignIn">
+            <svg class="google-icon" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+        </button>
+        
+        <div class="loading" id="loading">
+            Processing your invitation...
+        </div>
+        
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+        
+        <div class="footer">
+            Powered by AiPRL Assist
+        </div>
+    </div>
+
+    <script>
+        // Get token from URL
+        const urlPath = window.location.pathname;
+        const token = urlPath.split('/invite/')[1];
+        
+        if (!token) {
+            showError('Invalid invitation link');
+        }
+        
+        let invitationData = null;
+        
+        // Load invitation details
+        async function loadInvitation() {
+            try {
+                const response = await fetch(`/api/auth/invitation/${token}`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    invitationData = data.invitation;
+                    document.getElementById('businessName').textContent = data.invitation.businessName;
+                } else {
+                    showError(data.error || 'Invalid invitation');
+                }
+            } catch (error) {
+                showError('Failed to load invitation details');
+            }
+        }
+        
+        // Initialize Google Sign-In
+        function initializeGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: '426960401142-a7rkln8fl3342kn99hl11vh65drp2fci.apps.googleusercontent.com',
+                callback: handleGoogleSignIn
+            });
+        }
+        
+        // Handle Google Sign-In response
+        async function handleGoogleSignIn(response) {
+            showLoading(true);
+            
+            try {
+                const acceptResponse = await fetch(`/api/auth/invitation/${token}/accept`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        googleToken: response.credential
+                    })
+                });
+                
+                const result = await acceptResponse.json();
+                
+                if (result.status === 'success') {
+                    showSuccess(`Welcome ${result.user.name}! Redirecting to dashboard...`);
+                    
+                    // Store user info for the main app
+                    localStorage.setItem('userToken', response.credential);
+                    localStorage.setItem('businessId', invitationData.businessId);
+                    localStorage.setItem('userInfo', JSON.stringify(result.user));
+                    
+                    // Redirect to main dashboard after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showError(result.error || 'Failed to accept invitation');
+                }
+            } catch (error) {
+                showError('Failed to process invitation');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('googleSignIn').addEventListener('click', () => {
+            if (!invitationData) {
+                showError('Please wait for invitation to load');
+                return;
+            }
+            
+            google.accounts.id.prompt();
+        });
+        
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('googleSignIn').disabled = show;
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            const successEl = document.getElementById('success');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            loadInvitation();
+            initializeGoogleSignIn();
+        });
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@ import { useWebSocket } from './hooks/useWebSocket';
 /**
  * Main App component with authentication and data loading logic
  */
-const AppContent = () => {
+const AppContent = ({ user, onLogout, onChangePassword }) => {
   const {
     isLoggedIn,
     userToken,
@@ -619,9 +619,12 @@ const AppContent = () => {
   }
 
   return (
-    <MainLayout 
+        <MainLayout
       appState={appState}
       appActions={appActions}
+      user={user}
+      onLogout={onLogout}
+      onChangePassword={onChangePassword}
     />
   );
 };
@@ -629,10 +632,14 @@ const AppContent = () => {
 /**
  * Root App component with context provider
  */
-const App = () => {
-                  return (
+const App = ({ user, onLogout, onChangePassword }) => {
+  return (
     <ChatProvider>
-      <AppContent />
+      <AppContent 
+        user={user} 
+        onLogout={onLogout} 
+        onChangePassword={onChangePassword} 
+      />
     </ChatProvider>
   );
 };
