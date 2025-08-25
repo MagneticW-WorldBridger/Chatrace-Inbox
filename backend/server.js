@@ -341,7 +341,8 @@ app.post('/api/auth/email-login', async (req, res) => {
     
     res.json({
       status: 'success',
-      user: result.user
+      user: result.user,
+      token: process.env.USER_TOKEN // Use legacy token for API calls
     });
   } catch (error) {
     console.error('❌ Email login failed:', error);

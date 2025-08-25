@@ -44,9 +44,10 @@ const EmailPasswordLogin = ({ businessId, onLoginSuccess, onError }) => {
       const data = await response.json();
 
       if (response.ok && data.status === 'success') {
-        // Store user data in localStorage for session management
+        // Store user data and token in localStorage for session management
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('businessId', businessId);
+        localStorage.setItem('userToken', data.token); // Store token for API calls
         
         onLoginSuccess(data.user);
       } else {
