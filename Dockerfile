@@ -5,11 +5,14 @@ FROM node:lts
 # Create and change to the app directory.
 WORKDIR /app
 
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install packages (use npm install instead of npm ci for flexibility)
+RUN npm install
+
 # Copy local code to the container image
 COPY . ./ 
-
-# Install packages
-RUN npm ci
 
 # Build the frontend
 RUN npm run build
