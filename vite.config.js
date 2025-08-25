@@ -11,5 +11,16 @@ export default defineConfig({
         ws: true
       }
     }
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: process.env.PORT || 4173,
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '0.0.0.0',
+      '.railway.app',
+      '.up.railway.app'
+    ]
   }
 }); 

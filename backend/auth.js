@@ -3,16 +3,24 @@ import { OAuth2Client } from 'google-auth-library';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 
-// Database connection
+// Database connection with Railway-specific config
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+  connectionTimeoutMillis: 60000,
+  idleTimeoutMillis: 30000
 });
 
 // Robust PG error handling and auto-reconnect
 client.on('error', (err) => {
   try {
     console.error('❌ Postgres client error:', err?.message || err);
+    // Auto-reconnect on connection loss
+    setTimeout(() => {
+      client.connect().catch(console.error);
+    }, 5000);
   } catch {}
 });
 
