@@ -609,7 +609,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     sendProducts
   };
 
-  if (!isLoggedIn) {
+  // If user is provided via props (from AuthenticatedApp), we're already authenticated
+  if (!user) {
     return (
       <LoginScreen 
         booting={booting}
