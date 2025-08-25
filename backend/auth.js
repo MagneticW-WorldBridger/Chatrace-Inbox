@@ -13,14 +13,10 @@ const client = new Client({
   idleTimeoutMillis: 30000
 });
 
-// Robust PG error handling and auto-reconnect
+// Robust PG error handling - NO AUTO-RECONNECT (causes "already connected" error)
 client.on('error', (err) => {
   try {
     console.error('❌ Postgres client error:', err?.message || err);
-    // Auto-reconnect on connection loss
-    setTimeout(() => {
-      client.connect().catch(console.error);
-    }, 5000);
   } catch {}
 });
 
