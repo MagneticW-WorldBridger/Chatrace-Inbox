@@ -16,5 +16,5 @@ COPY . ./
 # Build the React frontend
 RUN npm run build
 
-# Serve the built frontend using serve package (use -l flag for port)
-CMD ["/bin/sh", "-c", "exec npx serve -s dist -l ${PORT:-8080}"]
+# Serve the built frontend using npm start (standard Railway pattern)
+CMD ["npm", "run", "start"]

@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "serve -s dist -l ${PORT:-8080}",
     "serve": "serve --single --listen 8080 dist"
   },
   "dependencies": {
