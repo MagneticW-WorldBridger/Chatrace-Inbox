@@ -4,6 +4,6 @@
     "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "npm start"
+    "startCommand": "serve -s dist -l $PORT"
   }
 }
