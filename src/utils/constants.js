@@ -1,5 +1,5 @@
-// API Configuration
-export const API_BASE_URL = ''; // Empty to use relative URLs with Vite proxy
+// API Configuration - Use empty string to leverage Vite proxy
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 export const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
 
 // Agent Configuration
