@@ -8,16 +8,11 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install packages and fix Rollup Linux issue
-RUN npm install && \
-    rm -rf node_modules/.cache && \
-    npm install --force
+# Install packages
+RUN npm install
 
 # Copy local code to the container image
 COPY . ./ 
 
-# Build the frontend with clean cache
-RUN npm run build
-
-# Serve the app
+# Serve the backend (NO BUILD NEEDED FOR BACKEND)
 CMD ["npm", "run", "start"]
