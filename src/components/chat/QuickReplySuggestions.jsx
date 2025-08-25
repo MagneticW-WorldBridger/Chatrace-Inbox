@@ -27,21 +27,23 @@ const QuickReplySuggestions = ({
   if (displaySuggestions.length === 0) return null;
 
   return (
-    <div className={`p-4 border-t border-gray-200 bg-gray-50 ${className}`}>
-      <div className="flex flex-wrap gap-2">
-        {displaySuggestions.map((suggestion) => {
-          const Icon = suggestion.icon || FiMessageCircle;
-          return (
-            <button
-              key={suggestion.id}
-              onClick={() => onSuggestionClick?.(suggestion.text)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors text-black"
-            >
-              <Icon className="w-3 h-3 text-gray-500" />
-              <span>{suggestion.text}</span>
-            </button>
-          );
-        })}
+    <div className={`p-4 border-t border-gray-200 bg-gray-50 hidden md:block md:sticky md:bottom-0 md:z-10 ${className}`}>
+      <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+        <div className="flex flex-wrap gap-2">
+          {displaySuggestions.map((suggestion) => {
+            const Icon = suggestion.icon || FiMessageCircle;
+            return (
+              <button
+                key={suggestion.id}
+                onClick={() => onSuggestionClick?.(suggestion.text)}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-colors text-black"
+              >
+                <Icon className="w-3 h-3 text-gray-500" />
+                <span>{suggestion.text}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

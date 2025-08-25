@@ -31,8 +31,8 @@ const ConversationItem = ({
     <div
       className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-gray-50 mb-1 sm:mb-2 border ${
         isActive 
-          ? 'bg-blue-100 border-blue-300' 
-          : 'border-transparent hover:border-gray-200'
+          ? 'shadow-lg shadow-[#ff8a0e]/40 border-[#ff8a0e]/20' 
+          : 'border-transparent hover:shadow-lg hover:shadow-[#05a6f4]/10 hover:border-gray-200'
       }`}
       onClick={() => onClick(conversation)}
     >
