@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install packages including serve
-RUN npm ci && npm install serve
+# Install packages (use npm install to avoid ci lockfile issues)
+RUN npm install
 
 # Copy local code to the container image
 COPY . ./ 
