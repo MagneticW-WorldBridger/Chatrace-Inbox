@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './EmailPasswordLogin.css';
+import { API_BASE_URL } from '../../utils/constants';
 
 const EmailPasswordLogin = ({ businessId, onLoginSuccess, onError }) => {
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ const EmailPasswordLogin = ({ businessId, onLoginSuccess, onError }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/email-login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/email-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

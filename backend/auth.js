@@ -9,6 +9,13 @@ const client = new Client({
   ssl: { rejectUnauthorized: false }
 });
 
+// Robust PG error handling and auto-reconnect
+client.on('error', (err) => {
+  try {
+    console.error('❌ Postgres client error:', err?.message || err);
+  } catch {}
+});
+
 // Google OAuth client
 const googleClient = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
 

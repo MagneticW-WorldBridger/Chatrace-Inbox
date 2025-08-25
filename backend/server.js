@@ -44,13 +44,19 @@ app.use((req, res, next) => {
 
 // Minimal CORS (optional via env)
 app.use((req, res, next) => {
-  const origin = process.env.CORS_ORIGIN || '';
-  if (origin) {
+  const origin = req.headers.origin;
+  const allowed = new Set([
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://frontend-production-43b8.up.railway.app',
+    process.env.FRONTEND_ORIGIN
+  ].filter(Boolean));
+  if (origin && allowed.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ACCESS-TOKEN, Authorization, X-REQUEST-ID');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ACCESS-TOKEN, Authorization, X-REQUEST-ID, X-BUSINESS-ID, X-USER-EMAIL');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
