@@ -556,7 +556,7 @@ const AppContent = () => {
  * Root App component with context provider
  */
 const App = () => {
-  return (
+                  return (
     <ChatProvider>
       <AppContent />
     </ChatProvider>

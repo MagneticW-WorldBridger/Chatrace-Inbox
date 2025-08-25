@@ -21,11 +21,13 @@ export function useTextareaResize(value, rows = 1) {
         parseInt(computedStyle.paddingBottom, 10);
 
       const minHeight = lineHeight * rows + padding;
+      const maxHeight = 200; // Maximum height in pixels
 
       // Reset height to calculate scroll height
       textArea.style.height = "0px";
       const scrollHeight = Math.max(textArea.scrollHeight, minHeight);
-      textArea.style.height = `${scrollHeight + 2}px`;
+      const finalHeight = Math.min(scrollHeight + 2, maxHeight);
+      textArea.style.height = `${finalHeight}px`;
     }
   }, [value, rows]);
 

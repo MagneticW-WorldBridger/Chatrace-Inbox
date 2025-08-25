@@ -1,4 +1,4 @@
-import { FiX, FiUser, FiInfo, FiSettings, FiFilter, FiChevronRight } from 'react-icons/fi';
+import { FiX, FiUser, FiInfo, FiSettings, FiFilter, FiChevronRight, FiArrowLeft } from 'react-icons/fi';
 import Avatar from '../common/Avatar';
 import ContactInfo from './ContactInfo';
 import ConversationActions from './ConversationActions';
@@ -51,7 +51,7 @@ const ProfilePanel = ({
 
   const tabs = [
     { id: 'contact', label: 'Contact Info', icon: FiInfo },
-    { id: 'actions', label: 'Conversation Actions', icon: FiSettings }
+    { id: 'actions', label: 'Actions', icon: FiSettings }
   ];
 
   const handleFilterClick = () => {
@@ -74,50 +74,51 @@ const ProfilePanel = ({
       {/* Panel */}
       <div 
         ref={panelRef}
-        className={`fixed inset-y-0 left-0 w-80 bg-white border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-black flex items-center gap-2">
-              <FiUser className="w-5 h-5" />
-              Profile
-            </h3>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={handleFilterClick}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
-                title="Filter"
-              >
-                <FiFilter className="w-4 h-4" />
-              </button>
+        <div className="flex-shrink-0 p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={onClose}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
               >
-                <FiX className="w-5 h-5" />
+                <FiArrowLeft className="w-5 h-5" />
               </button>
+              <h3 className="text-lg font-bold text-black flex items-center gap-2">
+                <FiUser className="w-5 h-5" />
+                Profile
+              </h3>
             </div>
+            <button 
+              onClick={handleFilterClick}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
+              title="Filter"
+            >
+              <FiFilter className="w-4 h-4" />
+            </button>
           </div>
           
           {/* Contact Header - WhatsApp Style */}
-          <div className="text-center">
-            <Avatar 
-              src={contact.avatar} 
-              alt={contact.name} 
-              status={contact.status} 
-              size="xl" 
-              className="mx-auto mb-4"
-            />
-            <h3 className="text-lg font-bold text-black mb-1">{contact.name}</h3>
-            <p className="text-sm text-gray-600 mb-3">{contact.email || contact.id}</p>
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className={`w-2 h-2 rounded-full ${contact.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`} />
-              <span className="text-sm capitalize text-gray-600">
-                {contact.status === 'online' ? 'Online' : 'Offline'}
-              </span>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <img 
+                src={contact.avatar} 
+                alt={contact.name} 
+                className="w-16 h-16 rounded-full object-cover"
+              />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-black mb-1">{contact.name}</h3>
+              <p className="text-sm text-gray-600 mb-2">{contact.email || contact.id}</p>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-sm text-gray-600">Online</span>
+              </div>
             </div>
           </div>
         </div>
@@ -159,12 +160,12 @@ const ProfilePanel = ({
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
                     isActive
-                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      ? 'text-[#05a6f4] border-b-2 border-[#05a6f4]'
                       : 'text-gray-600 hover:text-black'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span>{tab.label}</span>
                 </button>
               );
             })}

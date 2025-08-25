@@ -61,7 +61,7 @@ const ContactInfo = ({ contact, profile }) => {
   ] : [];
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {/* Contact Information Section */}
       <div className="p-6 space-y-6">
         <div>
