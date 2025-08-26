@@ -151,7 +151,7 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
       </div>
 
       {/* Desktop: Side-by-side Layout */}
-      <div className="hidden md:flex w-full">
+      <div className="hidden md:flex w-full relative z-10">
         {/* Sidebar */}
         <Sidebar
           isOpen={sidebarOpen}
@@ -209,7 +209,9 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
         </div>
 
         {/* WebSocket Status */}
-        <WebSocketStatus />
+        <div className="relative z-50">
+          <WebSocketStatus />
+        </div>
 
         {/* Demo Mode Banner */}
         {appState.demoMode && (

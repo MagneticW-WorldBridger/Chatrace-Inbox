@@ -66,7 +66,7 @@ const ChatArea = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 relative">
       {/* Chat Header - Fixed at Top */}
       <div className="p-4 sm:p-6 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50 md:sticky md:top-0 md:z-40">
         <div className="flex items-center justify-between">
@@ -191,15 +191,17 @@ const ChatArea = ({
       {/* Quick Reply Suggestions */}
       <QuickReplySuggestions onSuggestionClick={handleSuggestionClick} />
 
-      {/* Message Input */}
-      <ErrorBoundary>
-        <MessageInput
-          value={composer}
-          onChange={onComposerChange}
-          onSend={onSendMessage}
-          isSending={isSending}
-        />
-      </ErrorBoundary>
+      {/* Message Input - ensure it's above background overlays */}
+      <div className="relative z-50">
+        <ErrorBoundary>
+          <MessageInput
+            value={composer}
+            onChange={onComposerChange}
+            onSend={onSendMessage}
+            isSending={isSending}
+          />
+        </ErrorBoundary>
+      </div>
 
       {/* Profile Panel - WhatsApp Style */}
       {profilePanelProps && (
