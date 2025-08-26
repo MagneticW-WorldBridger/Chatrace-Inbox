@@ -64,7 +64,9 @@ async function checkUserAuthorization(businessId, email) {
       SELECT au.*, b.name as business_name, b.subdomain 
       FROM authorized_users au
       JOIN businesses b ON au.business_id = b.business_id
-      WHERE au.business_id = $1 AND au.google_email = $2 AND au.active = true
+      WHERE au.business_id = $1 
+        AND (au.email = $2 OR au.google_email = $2)
+        AND au.active = true
     `;
     
     const result = await pool.query(query, [businessId, email]);
