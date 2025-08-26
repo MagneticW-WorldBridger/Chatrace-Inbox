@@ -4,6 +4,7 @@ import ChatArea from './ChatArea';
 import ProfilePanel from '../profile/ProfilePanel';
 import Toast from '../ui/Toast';
 import WebSocketStatus from '../common/WebSocketStatus';
+import UserHeader from './UserHeader';
 import { AGENT_NAME, AGENT_AVATAR_URL } from '../../utils/constants';
 
 /**
@@ -14,7 +15,7 @@ import { AGENT_NAME, AGENT_AVATAR_URL } from '../../utils/constants';
  * @param {Object} props.appActions - Application actions
  * @returns {JSX.Element} Main layout component
  */
-const MainLayout = ({ appState, appActions }) => {
+const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
   const [mobileView, setMobileView] = useState('chatList'); // 'chatList' | 'chatArea' | 'profile'
@@ -82,30 +83,37 @@ const MainLayout = ({ appState, appActions }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white text-black">
-      {/* Mobile: Chat List View */}
-      <div className={`md:hidden w-full ${mobileView === 'chatList' ? 'block' : 'hidden'}`}>
-        <Sidebar
-          isOpen={true}
-          onToggle={() => {}} // No toggle on mobile
-          conversations={conversations}
-          currentContact={currentContact}
-          onContactSelect={handleContactSelectWrapper}
-          searchState={{
-            searchText,
-            setSearchText
-          }}
-          platformState={{
-            platform,
-            setPlatform,
-            counts
-          }}
-          loading={loading}
-          onSwitchAccount={handleSwitchAccount}
-          onLogout={handleLogout}
-          isMobile={true}
-        />
-      </div>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden">
+      <UserHeader 
+        user={user}
+        onLogout={onLogout}
+        onChangePassword={onChangePassword}
+      />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile: Chat List View */}
+        <div className={`md:hidden w-full ${mobileView === 'chatList' ? 'block' : 'hidden'}`}>
+          <Sidebar
+            isOpen={true}
+            onToggle={() => {}} // No toggle on mobile
+            conversations={conversations}
+            currentContact={currentContact}
+            onContactSelect={handleContactSelectWrapper}
+            searchState={{
+              searchText,
+              setSearchText
+            }}
+            platformState={{
+              platform,
+              setPlatform,
+              counts
+            }}
+            loading={loading}
+            onSwitchAccount={handleSwitchAccount}
+            onLogout={handleLogout}
+            isMobile={true}
+          />
+        </div>
 
       {/* Mobile: Chat Area View */}
       <div className={`md:hidden w-full ${mobileView === 'chatArea' ? 'block' : 'hidden'}`}>
@@ -143,7 +151,7 @@ const MainLayout = ({ appState, appActions }) => {
       </div>
 
       {/* Desktop: Side-by-side Layout */}
-      <div className="hidden md:flex w-full">
+      <div className="hidden md:flex w-full relative z-10">
         {/* Sidebar */}
         <Sidebar
           isOpen={sidebarOpen}
@@ -187,29 +195,32 @@ const MainLayout = ({ appState, appActions }) => {
         />
       </div>
 
-      {/* Toast Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map(toast => (
-          <Toast
-            key={toast.id}
-            id={toast.id}
-            text={toast.text}
-            type={toast.type}
-            onClose={removeToast}
-          />
-        ))}
-      </div>
-
-      {/* WebSocket Status */}
-      <WebSocketStatus />
-
-      {/* Demo Mode Banner */}
-      {appState.demoMode && (
-        <div className="fixed bottom-4 left-4 bg-amber-600/20 border border-amber-600/30 text-amber-300 px-4 py-2 rounded-xl text-sm backdrop-blur-sm">
-          <span className="mr-2">🧪</span>
-          Demo Mode - Using sample data
+        {/* Toast Notifications */}
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {toasts.map(toast => (
+            <Toast
+              key={toast.id}
+              id={toast.id}
+              text={toast.text}
+              type={toast.type}
+              onClose={removeToast}
+            />
+          ))}
         </div>
-      )}
+
+        {/* WebSocket Status */}
+        <div className="relative z-50">
+          <WebSocketStatus />
+        </div>
+
+        {/* Demo Mode Banner */}
+        {appState.demoMode && (
+          <div className="fixed bottom-4 left-4 bg-amber-600/20 border border-amber-600/30 text-amber-300 px-4 py-2 rounded-xl text-sm backdrop-blur-sm">
+            <span className="mr-2">🧪</span>
+            Demo Mode - Using sample data
+          </div>
+        )}
+      </div>
     </div>
   );
 };

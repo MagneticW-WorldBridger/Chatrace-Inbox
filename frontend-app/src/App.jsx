@@ -34,6 +34,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     setWsConnecting
   } = useChat();
 
+  const businessId = user?.business_id;
+
   const ws = useRef(null);
   const autoAuthTried = useRef(false);
 
@@ -144,12 +146,20 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     })();
   }, [isLoggedIn]);
 
+  // Get token and load conversations when user is available
+  useEffect(() => {
+    if (user && !userToken) {
+      // Get the legacy token from backend
+      handleDirectLogin();
+    }
+  }, [user, userToken]);
+
   // Load conversations when logged in
   useEffect(() => {
-    if (isLoggedIn) {
+    if (userToken) {
       loadConversations();
     }
-  }, [isLoggedIn, platform]);
+  }, [userToken, platform]);
 
   const loadConversations = async () => {
     setLoading(true);
@@ -166,7 +176,12 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         });
       } else {
         result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50`, {
-          method: 'GET'
+          method: 'GET',
+          headers: {
+            'X-ACCESS-TOKEN': userToken || '',
+            'Authorization': `Bearer ${userToken || ''}`,
+            'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+          }
         });
       }
       
@@ -197,9 +212,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         try {
           if (!demoMode) {
             const [rWeb, rIg, rFb] = await Promise.all([
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`)
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
+              }),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
+              }),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
+              })
             ]);
             const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
             const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
@@ -233,7 +254,14 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         body: JSON.stringify({ type: 'messages' })
       });
     } else {
-      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { method: 'GET' });
+      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { 
+        method: 'GET',
+        headers: {
+          'X-ACCESS-TOKEN': userToken || '',
+          'Authorization': `Bearer ${userToken || ''}`,
+          'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+        }
+      });
     }
     
     const data = await result.json();
@@ -268,7 +296,14 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       }
       return;
     }
-    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { method: 'GET' });
+    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { 
+      method: 'GET',
+      headers: {
+        'X-ACCESS-TOKEN': userToken || '',
+        'Authorization': `Bearer ${userToken || ''}`,
+        'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+      }
+    });
     const data = await result.json();
     if ((data.status === 'OK' || data.status === 'success') && (data.data || data.contact)) {
       const u = data.data || data.contact;
@@ -330,7 +365,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-ACCESS-TOKEN': userToken || ''
+          'X-ACCESS-TOKEN': userToken || '',
+          'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
         },
         body: JSON.stringify({ message, channel: getChannelForPlatform(platform) })
       });
@@ -469,7 +505,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'PUT', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ text })
       });
       await resp.json().catch(() => ({}));
@@ -486,7 +522,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'DELETE', 
-        headers: { 'X-ACCESS-TOKEN': userToken || '' }
+        headers: { 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
       });
       await resp.json().catch(() => ({}));
       addToast('Note deleted', 'success');
@@ -500,7 +536,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/ai-suggestion`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ prompt: null })
       });
       const j = await resp.json().catch(() => ({}));
@@ -523,7 +559,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ flow_id: flowId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -538,7 +574,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ step_id: stepId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -554,7 +590,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ product_ids: productIds, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -609,7 +645,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     sendProducts
   };
 
-  if (!isLoggedIn) {
+  // If user is provided via props (from AuthenticatedApp), we're already authenticated
+  if (!user) {
     return (
       <LoginScreen 
         booting={booting}

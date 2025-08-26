@@ -44,13 +44,19 @@ app.use((req, res, next) => {
 
 // Minimal CORS (optional via env)
 app.use((req, res, next) => {
-  const origin = process.env.CORS_ORIGIN || '';
-  if (origin) {
+  const origin = req.headers.origin;
+  const allowed = new Set([
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://frontend-production-43b8.up.railway.app',
+    process.env.FRONTEND_ORIGIN
+  ].filter(Boolean));
+  if (origin && allowed.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ACCESS-TOKEN, Authorization, X-REQUEST-ID');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ACCESS-TOKEN, Authorization, X-REQUEST-ID, X-BUSINESS-ID, X-USER-EMAIL');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
@@ -335,7 +341,8 @@ app.post('/api/auth/email-login', async (req, res) => {
     
     res.json({
       status: 'success',
-      user: result.user
+      user: result.user,
+      token: process.env.USER_TOKEN // Use legacy token for API calls
     });
   } catch (error) {
     console.error('❌ Email login failed:', error);
@@ -447,6 +454,7 @@ app.get('/invite/:token', (_req, res) => {
 // Resolve account_id from request (query > cookie > env)
 function resolveAccountId(req, payload) {
   if (payload && payload.account_id) return payload.account_id;
+  if (req?.headers?.['x-business-id']) return req.headers['x-business-id'];
   if (req?.query?.account_id) return req.query.account_id;
   if (req?.cookies?.account_id) return req.cookies.account_id;
   return process.env.BUSINESS_ID;
@@ -454,8 +462,7 @@ function resolveAccountId(req, payload) {
 
 // Helper to call upstream API
 async function callUpstream(payload, tokenOverride, req) {
-  const apiUrl = process.env.API_URL;
-  if (!apiUrl) throw new Error('Missing API_URL');
+  const apiUrl = process.env.API_URL || 'https://app.aiprlassist.com/php/user';
 
   const headers = {
     'Content-Type': 'application/json',
@@ -503,9 +510,19 @@ function rateLimit(req, res, next) {
 // Inbox API: Get whitelabel info for WebSocket
 app.get('/api/whitelabel', async (req, res) => {
   try {
-    // Agregar CORS específico para este endpoint
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // CORS: allow Railway frontend and localhost
+    const origin = req.headers.origin;
+    const allowed = new Set([
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'https://frontend-production-43b8.up.railway.app',
+      process.env.FRONTEND_ORIGIN
+    ].filter(Boolean));
+    if (origin && allowed.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     
     // Según Postman, la operación correcta es wt/get y requiere USER_TOKEN
     const tokenToUse = process.env.USER_TOKEN || process.env.API_TOKEN || '';
@@ -528,6 +545,9 @@ app.get('/api/whitelabel', async (req, res) => {
 // Inbox API: Get conversations
 app.get('/api/inbox/conversations', async (req, res) => {
   try {
+    const resolvedAccountId = resolveAccountId(req);
+    console.log(`[CONVERSATIONS] Attempting to load for account_id: ${resolvedAccountId}`);
+
     const platform = String(req.query.platform || 'webchat');
     const limit = Math.max(1, Math.min(500, Number(req.query.limit || 25)));
     const offset = Math.max(0, Number(req.query.offset || 0));
@@ -542,7 +562,7 @@ app.get('/api/inbox/conversations', async (req, res) => {
     const upstream = await callUpstream({
       op: 'conversations',
       op1: 'get',
-      account_id: resolveAccountId(req),
+      account_id: resolvedAccountId,
       offset,
       limit,
     }, undefined, req);
