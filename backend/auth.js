@@ -236,10 +236,9 @@ async function createAccessRequest(businessId, email, name, requestedRole = 'use
 
 // Approve/reject access request
 async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) {
+  const db = await pool.connect();
   try {
-    const db = await pool.connect();
-    try {
-      await db.query('BEGIN');
+    await db.query('BEGIN');
     
     // Update request status
     const updateQuery = `
@@ -277,11 +276,11 @@ async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) 
     await db.query('COMMIT');
     return request;
   } catch (error) {
-    try { await db?.query('ROLLBACK'); } catch {}
+    try { await db.query('ROLLBACK'); } catch {}
     console.error('❌ Access request review failed:', error);
     return null;
   } finally {
-    db?.release?.();
+    db.release();
   }
 }
 
