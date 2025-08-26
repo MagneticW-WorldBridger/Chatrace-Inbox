@@ -145,7 +145,7 @@ async function useInvitation(token, userEmail, userName) {
     const invitation = invitationResult.rows[0];
     
     if (!invitation) {
-      await client.query('ROLLBACK');
+      await db.query('ROLLBACK');
       return null;
     }
     
@@ -225,7 +225,7 @@ async function createAccessRequest(businessId, email, name, requestedRole = 'use
       RETURNING *
     `;
     
-    const result = await client.query(query, [businessId, email, name, requestedRole]);
+    const result = await pool.query(query, [businessId, email, name, requestedRole]);
     return result.rows[0];
   } catch (error) {
     console.error('❌ Access request creation failed:', error);
@@ -252,7 +252,7 @@ async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) 
     const request = requestResult.rows[0];
     
     if (!request) {
-      await client.query('ROLLBACK');
+      await db.query('ROLLBACK');
       return null;
     }
     
