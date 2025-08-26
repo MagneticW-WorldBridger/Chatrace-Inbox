@@ -128,11 +128,10 @@ async function validateInvitation(token) {
 
 // Use invitation (mark as used)
 async function useInvitation(token, userEmail, userName) {
+  const db = await pool.connect();
   try {
-    const db = await pool.connect();
-    try {
-      await db.query('BEGIN');
-    
+    await db.query('BEGIN');
+
     // Mark invitation as used
     const updateQuery = `
       UPDATE invitations 
@@ -140,15 +139,15 @@ async function useInvitation(token, userEmail, userName) {
       WHERE token = $2
       RETURNING *
     `;
-    
+
     const invitationResult = await db.query(updateQuery, [userEmail, token]);
     const invitation = invitationResult.rows[0];
-    
+
     if (!invitation) {
       await db.query('ROLLBACK');
       return null;
     }
-    
+
     // Add user to authorized_users
     const insertQuery = `
       INSERT INTO authorized_users (business_id, google_email, name, role)
@@ -157,26 +156,26 @@ async function useInvitation(token, userEmail, userName) {
       DO UPDATE SET name = $3, role = $4, active = true
       RETURNING *
     `;
-    
+
     const userResult = await db.query(insertQuery, [
       invitation.business_id,
       userEmail,
       userName,
       invitation.role
     ]);
-    
+
     await db.query('COMMIT');
-    
+
     return {
       invitation,
       user: userResult.rows[0]
     };
   } catch (error) {
-    try { await db?.query('ROLLBACK'); } catch {}
+    try { await db.query('ROLLBACK'); } catch {}
     console.error('❌ Invitation usage failed:', error);
     return null;
   } finally {
-    db?.release?.();
+    db.release();
   }
 }
 
