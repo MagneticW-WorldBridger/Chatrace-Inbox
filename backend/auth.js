@@ -307,16 +307,22 @@ async function requireAdmin(req, res, next) {
     const businessId = req.headers['x-business-id'] || process.env.BUSINESS_ID;
     const userEmail = req.headers['x-user-email'];
     
+    console.log(`🔍 requireAdmin DEBUG: businessId=${businessId}, userEmail=${userEmail}`);
+    
     if (!businessId || !userEmail) {
+      console.log('❌ Missing businessId or userEmail');
       return res.status(400).json({ error: 'Business ID and user email required' });
     }
     
     const user = await checkUserAuthorization(businessId, userEmail);
+    console.log(`🔍 checkUserAuthorization result:`, user ? `Found user with role: ${user.role}` : 'User not found');
     
     if (!user || user.role !== 'admin') {
+      console.log(`❌ Access denied: user=${!!user}, role=${user?.role}`);
       return res.status(403).json({ error: 'Admin access required' });
     }
     
+    console.log('✅ Admin access granted');
     req.user = user;
     req.businessId = businessId;
     next();
