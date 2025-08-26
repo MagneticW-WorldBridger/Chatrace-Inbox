@@ -34,6 +34,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     setWsConnecting
   } = useChat();
 
+  const businessId = user?.business_id;
+
   const ws = useRef(null);
   const autoAuthTried = useRef(false);
 
