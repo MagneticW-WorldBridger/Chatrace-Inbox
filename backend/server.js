@@ -545,6 +545,9 @@ app.get('/api/whitelabel', async (req, res) => {
 // Inbox API: Get conversations
 app.get('/api/inbox/conversations', async (req, res) => {
   try {
+    const resolvedAccountId = resolveAccountId(req);
+    console.log(`[CONVERSATIONS] Attempting to load for account_id: ${resolvedAccountId}`);
+
     const platform = String(req.query.platform || 'webchat');
     const limit = Math.max(1, Math.min(500, Number(req.query.limit || 25)));
     const offset = Math.max(0, Number(req.query.offset || 0));
@@ -559,7 +562,7 @@ app.get('/api/inbox/conversations', async (req, res) => {
     const upstream = await callUpstream({
       op: 'conversations',
       op1: 'get',
-      account_id: resolveAccountId(req),
+      account_id: resolvedAccountId,
       offset,
       limit,
     }, undefined, req);
