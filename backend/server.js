@@ -461,8 +461,7 @@ function resolveAccountId(req, payload) {
 
 // Helper to call upstream API
 async function callUpstream(payload, tokenOverride, req) {
-  const apiUrl = process.env.API_URL;
-  if (!apiUrl) throw new Error('Missing API_URL');
+  const apiUrl = process.env.API_URL || 'https://app.aiprlassist.com/php/user';
 
   const headers = {
     'Content-Type': 'application/json',
@@ -510,9 +509,19 @@ function rateLimit(req, res, next) {
 // Inbox API: Get whitelabel info for WebSocket
 app.get('/api/whitelabel', async (req, res) => {
   try {
-    // Agregar CORS específico para este endpoint
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    // CORS: allow Railway frontend and localhost
+    const origin = req.headers.origin;
+    const allowed = new Set([
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'https://frontend-production-43b8.up.railway.app',
+      process.env.FRONTEND_ORIGIN
+    ].filter(Boolean));
+    if (origin && allowed.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     
     // Según Postman, la operación correcta es wt/get y requiere USER_TOKEN
     const tokenToUse = process.env.USER_TOKEN || process.env.API_TOKEN || '';
