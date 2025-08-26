@@ -34,35 +34,35 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiCheck,
       handler: actions.markRead,
       color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      hoverColor: 'hover:bg-green-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'markUnread',
       label: 'Mark as Unread',
       icon: FiEyeOff,
       handler: actions.markUnread,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      hoverColor: 'hover:bg-blue-100'
+      color: 'text-[#05a6f4]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'archive',
       label: 'Archive',
       icon: FiArchive,
       handler: actions.archive,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      hoverColor: 'hover:bg-orange-100'
+      color: 'text-[#ff8a0e]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'unarchive',
       label: 'Unarchive',
       icon: FiArchive,
       handler: actions.unarchive,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      hoverColor: 'hover:bg-orange-100'
+      color: 'text-[#ff8a0e]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'follow',
@@ -70,8 +70,8 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiUserPlus,
       handler: actions.follow,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      hoverColor: 'hover:bg-purple-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'unfollow',
@@ -79,8 +79,8 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiUserMinus,
       handler: actions.unfollow,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      hoverColor: 'hover:bg-purple-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'block',
@@ -88,8 +88,8 @@ const ConversationActions = ({ actions = {} }) => {
       icon: MdBlock,
       handler: actions.block,
       color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      hoverColor: 'hover:bg-red-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'unblock',
@@ -97,26 +97,26 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiUnlock,
       handler: actions.unblock,
       color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      hoverColor: 'hover:bg-red-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'assign',
       label: 'Assign',
       icon: FiUserCheck,
       handler: actions.assign,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      hoverColor: 'hover:bg-indigo-100'
+      color: 'text-[#05a6f4]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'unassign',
       label: 'Unassign',
       icon: FiUser,
       handler: actions.unassign,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      hoverColor: 'hover:bg-indigo-100'
+      color: 'text-[#05a6f4]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'liveToHuman',
@@ -132,9 +132,9 @@ const ConversationActions = ({ actions = {} }) => {
       label: 'Live to Bot',
       icon: FiMessageSquare,
       handler: actions.liveToBot,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      hoverColor: 'hover:bg-blue-100'
+      color: 'text-[#05a6f4]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     }
   ];
 
@@ -145,8 +145,8 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiEdit,
       handler: actions.addNote,
       color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-      hoverColor: 'hover:bg-gray-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'updateNote',
@@ -154,8 +154,8 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiEdit,
       handler: actions.updateNote,
       color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-      hoverColor: 'hover:bg-gray-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'deleteNote',
@@ -163,8 +163,8 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiTrash2,
       handler: actions.deleteNote,
       color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      hoverColor: 'hover:bg-red-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'requestAiSuggestion',
@@ -172,26 +172,26 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiMessageSquare,
       handler: actions.requestAiSuggestion,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      hoverColor: 'hover:bg-purple-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'sendFlow',
       label: 'Send Flow',
       icon: FiPlay,
       handler: actions.sendFlow,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      hoverColor: 'hover:bg-blue-100'
+      color: 'text-[#05a6f4]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'sendStep',
       label: 'Send Step',
       icon: FiSend,
       handler: actions.sendStep,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      hoverColor: 'hover:bg-blue-100'
+      color: 'text-[#05a6f4]',
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     },
     {
       id: 'sendProducts',
@@ -199,45 +199,42 @@ const ConversationActions = ({ actions = {} }) => {
       icon: FiPackage,
       handler: actions.sendProducts,
       color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      hoverColor: 'hover:bg-green-100'
+      bgColor: 'bg-transparent',
+      hoverColor: 'hover:bg-gray-50'
     }
   ];
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-4">
         {/* Basic Actions */}
-        <div>
-          <h4 className="font-semibold mb-4 text-black text-lg">Conversation Actions</h4>
-          <div className="space-y-3">
-            {actionButtons.map(action => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.id}
-                  onClick={action.handler}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${action.bgColor} ${action.color} ${action.hoverColor}`}
-                >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm font-medium">{action.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="space-y-1">
+          {actionButtons.map(action => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.id}
+                onClick={action.handler}
+                className={`w-full flex items-center gap-3 p-3 transition-colors ${action.bgColor} ${action.color} ${action.hoverColor}`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm font-medium">{action.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Advanced Actions */}
         <div>
-          <h4 className="font-semibold mb-4 text-black text-lg">Advanced Actions</h4>
-          <div className="space-y-3">
+          <h4 className="font-semibold mb-3 text-black text-base">Advanced Actions</h4>
+          <div className="space-y-1">
             {advancedActions.map(action => {
               const Icon = action.icon;
               return (
                 <button
                   key={action.id}
                   onClick={action.handler}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${action.bgColor} ${action.color} ${action.hoverColor}`}
+                  className={`w-full flex items-center gap-3 p-3 transition-colors ${action.bgColor} ${action.color} ${action.hoverColor}`}
                 >
                   <Icon className="w-4 h-4 flex-shrink-0" />
                   <span className="text-sm font-medium">{action.label}</span>
