@@ -1,10 +1,10 @@
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import { OAuth2Client } from 'google-auth-library';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 
-// Database connection with Railway-specific config
-const client = new Client({
+// Database pool with Railway-specific config
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   keepAlive: true,
@@ -13,8 +13,8 @@ const client = new Client({
   idleTimeoutMillis: 30000
 });
 
-// Robust PG error handling - NO AUTO-RECONNECT (causes "already connected" error)
-client.on('error', (err) => {
+// Robust PG pool error handling
+pool.on('error', (err) => {
   try {
     console.error('❌ Postgres client error:', err?.message || err);
   } catch {}
@@ -26,7 +26,9 @@ const googleClient = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
 // Initialize database connection
 async function initializeAuth() {
   try {
-    await client.connect();
+    const conn = await pool.connect();
+    await conn.query('SELECT 1');
+    conn.release();
     console.log('✅ Database connected for auth module');
   } catch (error) {
     console.error('❌ Database connection failed:', error);
@@ -65,7 +67,7 @@ async function checkUserAuthorization(businessId, email) {
       WHERE au.business_id = $1 AND au.google_email = $2 AND au.active = true
     `;
     
-    const result = await client.query(query, [businessId, email]);
+    const result = await pool.query(query, [businessId, email]);
     return result.rows[0] || null;
   } catch (error) {
     console.error('❌ Authorization check failed:', error);
@@ -77,7 +79,7 @@ async function checkUserAuthorization(businessId, email) {
 async function getBusinessBySubdomain(subdomain) {
   try {
     const query = 'SELECT * FROM businesses WHERE subdomain = $1 AND active = true';
-    const result = await client.query(query, [subdomain]);
+    const result = await pool.query(query, [subdomain]);
     return result.rows[0] || null;
   } catch (error) {
     console.error('❌ Business lookup failed:', error);
@@ -98,7 +100,7 @@ async function createInvitation(businessId, createdBy, role = 'user', expiresInH
       RETURNING *
     `;
     
-    const result = await client.query(query, [businessId, token, createdBy, role, expiresAt]);
+    const result = await pool.query(query, [businessId, token, createdBy, role, expiresAt]);
     return result.rows[0];
   } catch (error) {
     console.error('❌ Invitation creation failed:', error);
@@ -116,7 +118,7 @@ async function validateInvitation(token) {
       WHERE i.token = $1 AND i.active = true AND i.expires_at > NOW() AND i.used_at IS NULL
     `;
     
-    const result = await client.query(query, [token]);
+    const result = await pool.query(query, [token]);
     return result.rows[0] || null;
   } catch (error) {
     console.error('❌ Invitation validation failed:', error);
@@ -127,7 +129,9 @@ async function validateInvitation(token) {
 // Use invitation (mark as used)
 async function useInvitation(token, userEmail, userName) {
   try {
-    await client.query('BEGIN');
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
     
     // Mark invitation as used
     const updateQuery = `
@@ -137,7 +141,7 @@ async function useInvitation(token, userEmail, userName) {
       RETURNING *
     `;
     
-    const invitationResult = await client.query(updateQuery, [userEmail, token]);
+    const invitationResult = await db.query(updateQuery, [userEmail, token]);
     const invitation = invitationResult.rows[0];
     
     if (!invitation) {
@@ -154,23 +158,25 @@ async function useInvitation(token, userEmail, userName) {
       RETURNING *
     `;
     
-    const userResult = await client.query(insertQuery, [
+    const userResult = await db.query(insertQuery, [
       invitation.business_id,
       userEmail,
       userName,
       invitation.role
     ]);
     
-    await client.query('COMMIT');
+    await db.query('COMMIT');
     
     return {
       invitation,
       user: userResult.rows[0]
     };
   } catch (error) {
-    await client.query('ROLLBACK');
+    try { await db?.query('ROLLBACK'); } catch {}
     console.error('❌ Invitation usage failed:', error);
     return null;
+  } finally {
+    db?.release?.();
   }
 }
 
@@ -183,7 +189,7 @@ async function getAuthorizedUsers(businessId) {
       ORDER BY registered_at DESC
     `;
     
-    const result = await client.query(query, [businessId]);
+    const result = await pool.query(query, [businessId]);
     return result.rows;
   } catch (error) {
     console.error('❌ Failed to get authorized users:', error);
@@ -200,7 +206,7 @@ async function getPendingRequests(businessId) {
       ORDER BY requested_at DESC
     `;
     
-    const result = await client.query(query, [businessId]);
+    const result = await pool.query(query, [businessId]);
     return result.rows;
   } catch (error) {
     console.error('❌ Failed to get pending requests:', error);
@@ -230,7 +236,9 @@ async function createAccessRequest(businessId, email, name, requestedRole = 'use
 // Approve/reject access request
 async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) {
   try {
-    await client.query('BEGIN');
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
     
     // Update request status
     const updateQuery = `
@@ -240,7 +248,7 @@ async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) 
       RETURNING *
     `;
     
-    const requestResult = await client.query(updateQuery, [status, reviewedBy, notes, requestId]);
+    const requestResult = await db.query(updateQuery, [status, reviewedBy, notes, requestId]);
     const request = requestResult.rows[0];
     
     if (!request) {
@@ -257,7 +265,7 @@ async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) 
         DO UPDATE SET active = true, role = $4
       `;
       
-      await client.query(insertQuery, [
+      await db.query(insertQuery, [
         request.business_id,
         request.google_email,
         request.name,
@@ -265,12 +273,14 @@ async function reviewAccessRequest(requestId, reviewedBy, status, notes = null) 
       ]);
     }
     
-    await client.query('COMMIT');
+    await db.query('COMMIT');
     return request;
   } catch (error) {
-    await client.query('ROLLBACK');
+    try { await db?.query('ROLLBACK'); } catch {}
     console.error('❌ Access request review failed:', error);
     return null;
+  } finally {
+    db?.release?.();
   }
 }
 
@@ -371,7 +381,7 @@ async function loginWithEmailPassword(email, password, businessId) {
       WHERE au.business_id = $1 AND au.email = $2 AND au.active = true
     `;
     
-    const result = await client.query(query, [businessId, email]);
+    const result = await pool.query(query, [businessId, email]);
     const user = result.rows[0];
     
     if (!user) {
@@ -389,7 +399,7 @@ async function loginWithEmailPassword(email, password, businessId) {
     }
     
     // Update last login
-    await client.query(
+    await pool.query(
       'UPDATE authorized_users SET last_login = NOW() WHERE id = $1',
       [user.id]
     );
@@ -422,7 +432,7 @@ async function changePassword(email, businessId, currentPassword, newPassword, i
       WHERE business_id = $1 AND email = $2 AND active = true
     `;
     
-    const result = await client.query(query, [businessId, email]);
+    const result = await pool.query(query, [businessId, email]);
     const user = result.rows[0];
     
     if (!user) {
@@ -441,7 +451,7 @@ async function changePassword(email, businessId, currentPassword, newPassword, i
     const newPasswordHash = await hashPassword(newPassword);
     
     // Update password (force password change on admin reset)
-    await client.query(`
+    await pool.query(`
       UPDATE authorized_users 
       SET password_hash = $1, must_change_password = $2, temp_password = $3
       WHERE id = $4
@@ -475,7 +485,7 @@ async function createUserWithPassword(userData, createdBy) {
       WHERE business_id = $1 AND email = $2
     `;
     
-    const existingResult = await client.query(existingQuery, [businessId, email]);
+    const existingResult = await pool.query(existingQuery, [businessId, email]);
     if (existingResult.rows.length > 0) {
       return { success: false, error: 'User already exists' };
     }
@@ -491,7 +501,7 @@ async function createUserWithPassword(userData, createdBy) {
       RETURNING id, business_id, email, name, role, temp_password, must_change_password, registered_at
     `;
     
-    const result = await client.query(insertQuery, [
+    const result = await pool.query(insertQuery, [
       businessId, email, name, role, passwordHash
     ]);
     
