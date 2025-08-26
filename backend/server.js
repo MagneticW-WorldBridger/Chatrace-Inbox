@@ -454,6 +454,7 @@ app.get('/invite/:token', (_req, res) => {
 // Resolve account_id from request (query > cookie > env)
 function resolveAccountId(req, payload) {
   if (payload && payload.account_id) return payload.account_id;
+  if (req?.headers?.['x-business-id']) return req.headers['x-business-id'];
   if (req?.query?.account_id) return req.query.account_id;
   if (req?.cookies?.account_id) return req.cookies.account_id;
   return process.env.BUSINESS_ID;

@@ -177,7 +177,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           method: 'GET',
           headers: {
             'X-ACCESS-TOKEN': userToken || '',
-            'Authorization': `Bearer ${userToken || ''}`
+            'Authorization': `Bearer ${userToken || ''}`,
+            'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
           }
         });
       }
@@ -210,13 +211,13 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           if (!demoMode) {
             const [rWeb, rIg, rFb] = await Promise.all([
               fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
-                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}` }
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
               }),
               fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
-                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}` }
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
               }),
               fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
-                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}` }
+                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
               })
             ]);
             const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
@@ -255,7 +256,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         method: 'GET',
         headers: {
           'X-ACCESS-TOKEN': userToken || '',
-          'Authorization': `Bearer ${userToken || ''}`
+          'Authorization': `Bearer ${userToken || ''}`,
+          'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
         }
       });
     }
@@ -296,7 +298,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       method: 'GET',
       headers: {
         'X-ACCESS-TOKEN': userToken || '',
-        'Authorization': `Bearer ${userToken || ''}`
+        'Authorization': `Bearer ${userToken || ''}`,
+        'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
       }
     });
     const data = await result.json();
@@ -360,7 +363,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-ACCESS-TOKEN': userToken || ''
+          'X-ACCESS-TOKEN': userToken || '',
+          'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
         },
         body: JSON.stringify({ message, channel: getChannelForPlatform(platform) })
       });
@@ -499,7 +503,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'PUT', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ text })
       });
       await resp.json().catch(() => ({}));
@@ -516,7 +520,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'DELETE', 
-        headers: { 'X-ACCESS-TOKEN': userToken || '' }
+        headers: { 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
       });
       await resp.json().catch(() => ({}));
       addToast('Note deleted', 'success');
@@ -530,7 +534,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/ai-suggestion`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ prompt: null })
       });
       const j = await resp.json().catch(() => ({}));
@@ -553,7 +557,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ flow_id: flowId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -568,7 +572,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ step_id: stepId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -584,7 +588,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
         body: JSON.stringify({ product_ids: productIds, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
