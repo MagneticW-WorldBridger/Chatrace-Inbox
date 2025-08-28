@@ -66,7 +66,7 @@ const ChatArea = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 relative">
+    <div className="flex-1 flex flex-col min-h-0 overflow-y-scroll relative">
       {/* Chat Header - Fixed at Top */}
       <div className="p-4 sm:p-6 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50 md:sticky md:top-0 md:z-40">
         <div className="flex items-center justify-between">

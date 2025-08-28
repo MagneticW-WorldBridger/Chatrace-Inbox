@@ -83,14 +83,14 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden">
+    <div className="flex flex-col h-screen overflow-y-scroll bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden">
       <UserHeader 
         user={user}
         onLogout={onLogout}
         onChangePassword={onChangePassword}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-y-scroll">
         {/* Mobile: Chat List View */}
         <div className={`md:hidden w-full ${mobileView === 'chatList' ? 'block' : 'hidden'}`}>
           <Sidebar
@@ -110,8 +110,10 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
             }}
             loading={loading}
             onSwitchAccount={handleSwitchAccount}
-            onLogout={handleLogout}
+            onLogout={onLogout}
+            onChangePassword={onChangePassword}
             isMobile={true}
+            user={user}
           />
         </div>
 
@@ -151,7 +153,7 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
       </div>
 
       {/* Desktop: Side-by-side Layout */}
-      <div className="hidden md:flex w-full relative z-10">
+      <div className="hidden overflow-y-scroll md:flex w-full relative z-10">
         {/* Sidebar */}
         <Sidebar
           isOpen={sidebarOpen}
@@ -170,8 +172,10 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
           }}
           loading={loading}
           onSwitchAccount={handleSwitchAccount}
-          onLogout={handleLogout}
+          onLogout={onLogout}
+          onChangePassword={onChangePassword}
           isMobile={false}
+          user={user}
         />
 
         {/* Chat Area */}

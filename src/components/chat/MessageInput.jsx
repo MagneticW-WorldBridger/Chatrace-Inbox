@@ -73,7 +73,7 @@ const MessageInput = ({
   }, [showEmojiPicker]);
 
   return (
-    <div className={`bg-white border-t border-gray-200 p-4 sm:p-6 fixed bottom-0 left-0 right-0 z-40 md:relative md:bottom-auto md:left-auto md:right-auto ${className}`}>
+    <div className={`bg-white border-t border-gray-200 p-4 sm:p-6 fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto ${className}`}>
       {/* Selected Files Display */}
       {selectedFiles.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-2">

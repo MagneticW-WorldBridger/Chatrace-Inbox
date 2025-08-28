@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import AdminPanel from '../admin/AdminPanel';
+import LogoutConfirmation from '../common/LogoutConfirmation';
 import './UserHeader.css';
 
 const UserHeader = ({ user, onLogout, onChangePassword }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   const getInitials = (name) => {
     return name
@@ -21,6 +23,11 @@ const UserHeader = ({ user, onLogout, onChangePassword }) => {
 
   const handleLogout = () => {
     setShowDropdown(false);
+    setShowLogoutConfirmation(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirmation(false);
     onLogout();
   };
 
@@ -35,36 +42,36 @@ const UserHeader = ({ user, onLogout, onChangePassword }) => {
   };
 
   return (
-    <div className="user-header">
-      <div className="user-header-content">
-        <div className="business-info">
+    <div className="user-header shadow-lg ">
+      <div className="user-header-content ">
+        <div className="business-info rounded-lg">
           <h1 className="business-name">{user.business_name || 'Inbox'}</h1>
           <span className="business-subdomain">@{user.subdomain}</span>
         </div>
         
-        <div className="user-menu">
-          <div className="user-info" onClick={handleDropdownToggle}>
+        <div className="user-men">
+          <div className="user-inf" onClick={handleDropdownToggle}>
             <div className="user-avatar">
               {getInitials(user.name)}
             </div>
-            <div className="user-details">
+            {/* <div className="user-details">
               <span className="user-name">{user.name}</span>
               <span className="user-role">{user.role}</span>
               {(user.temp_password || user.must_change_password) && (
                 <span className="temp-password-badge">Temp Password</span>
               )}
-            </div>
-            <svg 
+            </div> */}
+            {/* <svg 
               className={`dropdown-arrow ${showDropdown ? 'open' : ''}`}
               width="12" 
               height="12" 
               viewBox="0 0 12 12"
             >
               <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none"/>
-            </svg>
+            </svg> */}
           </div>
 
-          {showDropdown && (
+          {/* {showDropdown && (
             <div className="user-dropdown">
               {user.role === 'admin' && (
                 <>
@@ -104,13 +111,19 @@ const UserHeader = ({ user, onLogout, onChangePassword }) => {
                 Logout
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
       
-      {showAdminPanel && (
+      {/* {showAdminPanel && (
         <AdminPanel onClose={() => setShowAdminPanel(false)} />
       )}
+
+      <LogoutConfirmation
+        isOpen={showLogoutConfirmation}
+        onClose={() => setShowLogoutConfirmation(false)}
+        onConfirm={confirmLogout}
+      /> */}
     </div>
   );
 };
