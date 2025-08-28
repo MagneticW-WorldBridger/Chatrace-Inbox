@@ -1,10 +1,24 @@
 import { useChat } from '../../context/ChatContext';
+import { useState, useEffect } from 'react';
 
 /**
  * Indicador visual del estado de conexión WebSocket
  */
 const WebSocketStatus = () => {
   const { wsConnected, wsConnecting } = useChat();
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    // Hide the component after 4 seconds
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Don't render if not visible
+  if (!isVisible) return null;
 
   return (
     <div className="fixed top-4 right-4 z-50">
