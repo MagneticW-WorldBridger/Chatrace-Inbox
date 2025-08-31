@@ -192,7 +192,7 @@ const ChatArea = ({
       <QuickReplySuggestions onSuggestionClick={handleSuggestionClick} />
 
       {/* Message Input - ensure it's above background overlays */}
-      <div className="relative z-50">
+      <div className="relative z-10">
         <ErrorBoundary>
           <MessageInput
             value={composer}
