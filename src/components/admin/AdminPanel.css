@@ -36,7 +36,7 @@
 
 .admin-panel-header h2 {
   color: #333;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   margin: 0;
 }
@@ -86,8 +86,8 @@
 }
 
 .tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: #ff8a0e;
+  border-bottom-color: #ff8a0e;
   background: white;
 }
 
@@ -165,11 +165,11 @@
 
 /* Button Styles */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #05a6f4;
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -179,17 +179,17 @@
   gap: 6px;
 }
 
-.btn-primary:hover:not(:disabled) {
+/* .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
+  box-shadow: 0 4px 12px rgba(234, 166, 102, 0.3);
+} */
 
 .btn-secondary {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #05a6f4;
+  border: 1px solid #05a6f4;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -357,7 +357,7 @@
   }
   
   .admin-panel-header h2 {
-    font-size: 20px;
+    font-size: 16px;
   }
   
   .admin-panel-content {
@@ -366,8 +366,21 @@
   
   .tab-header {
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
     align-items: flex-start;
+  }
+
+  .tab-header h3 {
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .btn-secondary {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
   }
   
   .tab-actions {

@@ -74,7 +74,7 @@ const ProfilePanel = ({
       {/* Panel */}
       <div 
         ref={panelRef}
-        className={`fixed inset-0 bg-white z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed inset-y-0 right-0 bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out flex flex-col w-full sm:w-1/2 md:w-1/3 lg:w-1/4 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -93,13 +93,13 @@ const ProfilePanel = ({
                 Profile
               </h3>
             </div>
-            <button 
+            {/* <button 
               onClick={handleFilterClick}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
               title="Filter"
             >
               <FiFilter className="w-4 h-4" />
-            </button>
+            </button> */}
           </div>
           
           {/* Contact Header - WhatsApp Style */}
@@ -110,7 +110,7 @@ const ProfilePanel = ({
                 alt={contact.name} 
                 className="w-16 h-16 rounded-full object-cover"
               />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+              {/* <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" /> */}
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold text-black mb-1">{contact.name}</h3>

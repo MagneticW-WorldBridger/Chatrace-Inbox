@@ -84,11 +84,11 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
 
   return (
     <div className="flex flex-col h-screen overflow-y-scroll bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden">
-      <UserHeader 
+      {/* <UserHeader 
         user={user}
         onLogout={onLogout}
         onChangePassword={onChangePassword}
-      />
+      /> */}
 
       <div className="flex-1 flex flex-col overflow-y-scroll">
         {/* Mobile: Chat List View */}

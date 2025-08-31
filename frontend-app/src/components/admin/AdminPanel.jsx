@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../../utils/constants';
 import { useAuth } from '../auth/AuthProvider';
 import UserManagement from './UserManagement';
 import CreateUserModal from './CreateUserModal';
@@ -28,7 +27,7 @@ const AdminPanel = ({ onClose }) => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      const response = await fetch('/api/admin/users', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('userToken') || 'admin-token'}`,
           'x-business-id': businessId,
@@ -50,7 +49,7 @@ const AdminPanel = ({ onClose }) => {
 
   const fetchPendingRequests = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/pending-requests`, {
+      const response = await fetch('/api/admin/pending-requests', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('userToken') || 'admin-token'}`,
           'x-business-id': businessId,
@@ -82,7 +81,7 @@ const AdminPanel = ({ onClose }) => {
 
   const handleCreateUser = async (userData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/create-user-with-password`, {
+      const response = await fetch('/api/admin/create-user-with-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +112,7 @@ const AdminPanel = ({ onClose }) => {
 
   const handleResetPassword = async (email, newPassword) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/reset-user-password`, {
+      const response = await fetch('/api/admin/reset-user-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +179,7 @@ const AdminPanel = ({ onClose }) => {
     <div className="admin-panel-overlay" onClick={onClose}>
       <div className="admin-panel-container" onClick={(e) => e.stopPropagation()}>
         <div className="admin-panel-header">
-          <h2>Admin Panel - {user.business_name}</h2>
+          <h2 className="">{user.business_name} <br/> Admin Panel</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
 
@@ -213,13 +212,13 @@ const AdminPanel = ({ onClose }) => {
                     <h3>User Management</h3>
                     <div className="tab-actions">
                       <button 
-                        className="btn-secondary"
+                        className="btn-secondary shadow-sm shadow-[#05a6f4]"
                         onClick={() => setShowBulkModal(true)}
                       >
                         Bulk Create
                       </button>
                       <button 
-                        className="btn-primary"
+                        className="btn-primary shadow-2xl"
                         onClick={() => setShowCreateModal(true)}
                       >
                         Create User

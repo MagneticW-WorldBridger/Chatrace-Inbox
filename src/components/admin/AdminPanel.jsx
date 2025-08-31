@@ -179,7 +179,7 @@ const AdminPanel = ({ onClose }) => {
     <div className="admin-panel-overlay" onClick={onClose}>
       <div className="admin-panel-container" onClick={(e) => e.stopPropagation()}>
         <div className="admin-panel-header">
-          <h2>Admin Panel - {user.business_name}</h2>
+          <h2 className="">{user.business_name} <br/> Admin Panel</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
 
@@ -212,13 +212,13 @@ const AdminPanel = ({ onClose }) => {
                     <h3>User Management</h3>
                     <div className="tab-actions">
                       <button 
-                        className="btn-secondary"
+                        className="btn-secondary shadow-sm shadow-[#05a6f4]"
                         onClick={() => setShowBulkModal(true)}
                       >
                         Bulk Create
                       </button>
                       <button 
-                        className="btn-primary"
+                        className="btn-primary shadow-2xl"
                         onClick={() => setShowCreateModal(true)}
                       >
                         Create User
