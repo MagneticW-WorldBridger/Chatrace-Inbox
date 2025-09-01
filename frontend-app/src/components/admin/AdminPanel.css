@@ -349,7 +349,8 @@
   }
   
   .admin-panel-container {
-    max-height: 95vh;
+    max-height: 90vh;
+    padding-bottom: 20px;
   }
   
   .admin-panel-header {

@@ -136,7 +136,7 @@ const ChatArea = ({
           <>
             <div 
               className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 pointer-events-none"
-              style={{ backgroundImage: 'url(/Doodle_Background.jpeg)' }}
+              style={{ backgroundImage: 'url(./Doodle_Background.jpeg)' }}
             />
             {/* Subtle overlay for better text readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-white/10 pointer-events-none" />

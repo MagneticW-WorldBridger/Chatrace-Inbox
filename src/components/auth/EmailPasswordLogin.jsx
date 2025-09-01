@@ -80,7 +80,7 @@ const EmailPasswordLogin = ({ businessId, onLoginSuccess, onError }) => {
             <p className='text-2xl font-bold text-black/90'>AiprlAssist Inbox</p>
           </div>
           <img src="/HelloAiprl.svg" alt="" className="w-full h-full" />
-          <p className="text-xl text-black/90 mt-10">Signed in to access your conversations</p> 
+          <p className="text-xl text-black/90 mt-10">Sign in to access your conversations</p> 
         </div>
       </div>
 

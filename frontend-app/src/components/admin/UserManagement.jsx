@@ -1,10 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  FiUser, 
+  FiMoreVertical, 
+  FiEdit3, 
+  FiEye, 
+  FiUserX, 
+  FiUserCheck,
+  FiCalendar,
+  FiClock,
+  FiShield,
+  FiAlertCircle
+} from 'react-icons/fi';
+import { FaCrown } from "react-icons/fa";
 import './UserManagement.css';
 
 const UserManagement = ({ users, onResetPassword, onRefresh }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [activeActionMenu, setActiveActionMenu] = useState(null);
+  const actionMenuRef = useRef(null);
+
+  // Close action menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
+        setActiveActionMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,7 +61,28 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
     }
   });
 
-  const formatDate = (dateString) => {
+  const formatRelativeTime = (dateString) => {
+    if (!dateString) return null;
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+
+    if (diffInDays > 0) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else if (diffInMinutes > 0) {
+      return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    } else {
+      return 'Just now';
+    }
+  };
+
+  const formatExactTime = (dateString) => {
     if (!dateString) return 'Never';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -43,12 +93,72 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
     });
   };
 
+  const getRoleBadge = (role) => {
+    const isAdmin = role.toLowerCase() === 'admin';
+    return (
+      <div className={`role-badge-modern ${role.toLowerCase()}`}>
+        <span className="role-icon">
+          {isAdmin ? <FaCrown /> : <FiUser />}
+        </span>
+        <span className="role-text">{role}</span>
+      </div>
+    );
+  };
+
   const getStatusBadge = (user) => {
-    if (!user.active) return <span className="status-badge inactive">Inactive</span>;
-    if (user.temp_password || user.must_change_password) {
-      return <span className="status-badge temp">Temp Password</span>;
+    if (!user.active) {
+      return (
+        <div className="status-chip inactive" title="User account is deactivated">
+          <span className="status-dot"></span>
+          <span className="status-text">Inactive</span>
+        </div>
+      );
     }
-    return <span className="status-badge active">Active</span>;
+    
+    if (user.temp_password || user.must_change_password) {
+      return (
+        <div className="status-chip temp-password" title="Temporary password expires in 24h">
+          <span className="status-dot pulsing"></span>
+          <span className="status-text">Temp Password</span>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="status-chip active" title="User account is active and verified">
+        <span className="status-dot glowing"></span>
+        <span className="status-text">Active</span>
+      </div>
+    );
+  };
+
+  const getLastLoginStatus = (user) => {
+    if (!user.last_login) {
+      return (
+        <div className="last-login-never">
+          <span className="never-text">Never</span>
+        </div>
+      );
+    }
+
+    const lastLogin = new Date(user.last_login);
+    const now = new Date();
+    const diffInHours = (now - lastLogin) / (1000 * 60 * 60);
+    
+    return (
+      <div className="last-login-status">
+        <div className="time-display">
+          <FiClock className="time-icon" />
+          <span className="relative-time">{formatRelativeTime(user.last_login)}</span>
+        </div>
+        <div className="exact-time" title={formatExactTime(user.last_login)}>
+          {formatExactTime(user.last_login)}
+        </div>
+        {diffInHours < 24 && (
+          <span className="online-indicator" title="Online within last 24 hours"></span>
+        )}
+      </div>
+    );
   };
 
   const handleSort = (field) => {
@@ -60,10 +170,18 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
     }
   };
 
+  const toggleActionMenu = (userId) => {
+    setActiveActionMenu(activeActionMenu === userId ? null : userId);
+  };
+
+  const closeActionMenu = () => {
+    setActiveActionMenu(null);
+  };
+
   return (
     <div className="user-management">
       <div className="user-management-controls">
-        <div className="search-container flex gap-3 rounded-2xl ">
+        <div className="search-container flex gap-3 rounded-2xl">
           <input
             type="text"
             placeholder="Search users by name or email..."
@@ -91,8 +209,8 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
           <p>No users found</p>
         </div>
       ) : (
-        <div className="users-table-container">
-          <table className="users-table">
+        <div className="users-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table className="users-table" style={{ minWidth: '950px' }}>
             <thead>
               <tr>
                 <th onClick={() => handleSort('name')} className="sortable">
@@ -151,46 +269,89 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
                     </div>
                   </td>
                   <td>{user.email}</td>
-                  <td>
-                    <span className={`role-badge ${user.role}`}>
-                      {user.role}
-                    </span>
-                  </td>
+                  <td>{getRoleBadge(user.role)}</td>
                   <td>{getStatusBadge(user)}</td>
-                  <td>{formatDate(user.registered_at)}</td>
-                  <td>{formatDate(user.last_login)}</td>
                   <td>
-                    <div className="user-actions">
+                    <div className="registered-time">
+                      <div className="time-display">
+                        <FiCalendar className="time-icon" />
+                        <span className="relative-time">{formatRelativeTime(user.registered_at)}</span>
+                      </div>
+                      <div className="exact-time" title={formatExactTime(user.registered_at)}>
+                        {formatExactTime(user.registered_at)}
+                      </div>
+                    </div>
+                  </td>
+                  <td>{getLastLoginStatus(user)}</td>
+                  <td>
+                    <div className="user-actions-modern" ref={actionMenuRef}>
                       <button
-                        onClick={() => onResetPassword(user)}
-                        className="btn-action reset"
-                        title="Reset Password"
+                        className="action-menu-trigger"
+                        onClick={() => toggleActionMenu(user.id)}
+                        title="More actions"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11V12z"/>
-                        </svg>
+                        <FiMoreVertical />
                       </button>
                       
-                      {!user.active && (
-                        <button
-                          className="btn-action activate"
-                          title="Activate User"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                          </svg>
-                        </button>
-                      )}
-                      
-                      {user.active && (
-                        <button
-                          className="btn-action deactivate"
-                          title="Deactivate User"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                          </svg>
-                        </button>
+                      {activeActionMenu === user.id && (
+                        <div className="action-menu-dropdown">
+                          <button 
+                            className="action-menu-item view"
+                            onClick={() => {
+                              // Handle view user
+                              closeActionMenu();
+                            }}
+                          >
+                            <FiEye />
+                            <span>View Profile</span>
+                          </button>
+                          
+                          <button 
+                            className="action-menu-item edit"
+                            onClick={() => {
+                              // Handle edit user
+                              closeActionMenu();
+                            }}
+                          >
+                            <FiEdit3 />
+                            <span>Edit User</span>
+                          </button>
+                          
+                          <button 
+                            className="action-menu-item reset"
+                            onClick={() => {
+                              onResetPassword(user);
+                              closeActionMenu();
+                            }}
+                          >
+                            <FiShield />
+                            <span>Reset Password</span>
+                          </button>
+                          
+                          {user.active ? (
+                            <button 
+                              className="action-menu-item deactivate"
+                              onClick={() => {
+                                // Handle deactivate user
+                                closeActionMenu();
+                              }}
+                            >
+                              <FiUserX />
+                              <span>Deactivate</span>
+                            </button>
+                          ) : (
+                            <button 
+                              className="action-menu-item activate"
+                              onClick={() => {
+                                // Handle activate user
+                                closeActionMenu();
+                              }}
+                            >
+                              <FiUserCheck />
+                              <span>Activate</span>
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </td>
@@ -202,10 +363,7 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
       )}
       
       <div className="users-summary">
-        <p>
-          Showing {sortedUsers.length} of {users.length} users
-          {searchTerm && ` (filtered by "${searchTerm}")`}
-        </p>
+        <p>Showing {sortedUsers.length} of {sortedUsers.length} users</p>
       </div>
     </div>
   );

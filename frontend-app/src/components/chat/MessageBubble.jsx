@@ -45,13 +45,13 @@ const MessageBubble = ({
       )}
       
       {/* Message Content */}
-      <div className="max-w-[80%] lg:max-w-[70%]">
-        <div className={`rounded-2xl px-4 py-3 text-sm ${
+      <div className="max-w-[75%] sm:max-w-[80%] lg:max-w-[70%] min-w-0">
+        <div className={`rounded-2xl px-4 py-3 text-sm break-words ${
           isOwn 
-            ? 'bg-blue-600 text-white' 
+            ? 'bg-[#05a6f4]/80 text-white' 
             : 'bg-gray-100 text-black'
         }`}>
-          <p className="leading-relaxed whitespace-pre-wrap">{content}</p>
+          <p className="leading-relaxed whitespace-pre-wrap break-words">{content}</p>
         </div>
         
         {/* Message Meta */}
