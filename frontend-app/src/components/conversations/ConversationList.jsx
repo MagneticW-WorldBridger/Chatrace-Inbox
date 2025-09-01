@@ -35,7 +35,7 @@ const ConversationList = ({
 
   if (filteredConversations.length === 0) {
     return (
-      <div className="p-4 sm:p-6 text-center text-gray-600">
+      <div className="p-4 sm:p-6 text-center h-screen text-gray-600">
         <FiInbox className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" />
         <p className="text-base sm:text-lg font-medium mb-2">
           {searchText ? 'No conversations found' : 'No conversations'}

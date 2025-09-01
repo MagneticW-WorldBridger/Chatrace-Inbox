@@ -255,7 +255,7 @@ const Sidebar = ({
           {/* Toggle Button - Fixed Bottom Center */}
           <button 
             onClick={() => setShowAgentStatus(!showAgentStatus)}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all hover:scale-110 z-50 flex items-center justify-center"
+            className="fixed bottom-3 ml-80 translate-x-2/2 w-12 h-12 bg-[#05a6f4] hover:bg-blue-700 text-white rounded-full shadow-lg transition-all hover:scale-110 z-50 flex items-center justify-center"
           >
             <FiChevronUp className={`w-5 h-5 transition-transform ${showAgentStatus ? 'rotate-180' : ''}`} />
           </button>
@@ -270,7 +270,7 @@ const Sidebar = ({
               />
               
               {/* Agent Status Panel - Full Width */}
-              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 rounded-t-2xl shadow-2xl p-6 animate-in slide-in-from-bottom-2 duration-300 z-50">
+              <div onClick={() => setShowAgentStatus(false)} className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 rounded-t-2xl shadow-2xl px-2 py-2 animate-in slide-in-from-bottom-2 duration-300 z-50">
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     {/* <img 
@@ -291,7 +291,7 @@ const Sidebar = ({
                     onClick={() => setShowAgentStatus(false)}
                     className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
                   >
-                    <FiX className="w-5 h-5" />
+                    {/* <FiX className="w-5 h-5" /> */}
                   </button>
                 </div>
               </div>
