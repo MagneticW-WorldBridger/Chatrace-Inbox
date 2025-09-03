@@ -350,7 +350,7 @@ const Sidebar = ({
 
       {/* Admin Panel Modal */}
       {showAdminPanel && (
-          <AdminPanel onClose={() => setShowAdminPanel(false)} />
+          <AdminPanel onClose={() => setShowAdminPanel(false)} user={user} />
       )}
 
       {/* {showAdminPanel && (

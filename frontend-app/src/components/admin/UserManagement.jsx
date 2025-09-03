@@ -14,7 +14,8 @@ import {
 import { FaCrown } from "react-icons/fa";
 import './UserManagement.css';
 
-const UserManagement = ({ users, onResetPassword, onRefresh }) => {
+const UserManagement = ({ users, onResetPassword, onRefresh, onViewUser, onEditUser, onToggleUserStatus }) => {
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -178,6 +179,24 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
     setActiveActionMenu(null);
   };
 
+  const handleViewUser = (user) => {
+    if (onViewUser) {
+      onViewUser(user);
+    }
+  };
+
+  const handleEditUser = (user) => {
+    if (onEditUser) {
+      onEditUser(user);
+    }
+  };
+
+  const handleToggleUserStatus = (user, active) => {
+    if (onToggleUserStatus) {
+      onToggleUserStatus(user, active);
+    }
+  };
+
   return (
     <div className="user-management">
       <div className="user-management-controls">
@@ -209,8 +228,8 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
           <p>No users found</p>
         </div>
       ) : (
-        <div className="users-table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <table className="users-table" style={{ minWidth: '950px' }}>
+        <div className="users-table-container">
+          <table className="users-table">
             <thead>
               <tr>
                 <th onClick={() => handleSort('name')} className="sortable">
@@ -284,75 +303,47 @@ const UserManagement = ({ users, onResetPassword, onRefresh }) => {
                   </td>
                   <td>{getLastLoginStatus(user)}</td>
                   <td>
-                    <div className="user-actions-modern" ref={actionMenuRef}>
+                    {/* ELEGANT ICON ACTIONS - NO DROPDOWN NEEDED */}
+                    <div className="user-actions-elegant" style={{ 
+                      display: 'flex', 
+                      gap: '8px', 
+                      alignItems: 'center',
+                      justifyContent: 'flex-end'
+                    }}>
                       <button
-                        className="action-menu-trigger"
-                        onClick={() => toggleActionMenu(user.id)}
-                        title="More actions"
+                        onClick={() => handleViewUser(user)}
+                        className="action-icon-btn"
+                        data-tooltip="View Profile"
                       >
-                        <FiMoreVertical />
+                        <FiEye />
                       </button>
                       
-                      {activeActionMenu === user.id && (
-                        <div className="action-menu-dropdown">
                           <button 
-                            className="action-menu-item view"
-                            onClick={() => {
-                              // Handle view user
-                              closeActionMenu();
-                            }}
-                          >
-                            <FiEye />
-                            <span>View Profile</span>
-                          </button>
-                          
-                          <button 
-                            className="action-menu-item edit"
-                            onClick={() => {
-                              // Handle edit user
-                              closeActionMenu();
-                            }}
+                        onClick={() => handleEditUser(user)}
+                        className="action-icon-btn"
+                        data-tooltip="Edit User"
                           >
                             <FiEdit3 />
-                            <span>Edit User</span>
                           </button>
                           
                           <button 
-                            className="action-menu-item reset"
-                            onClick={() => {
-                              onResetPassword(user);
-                              closeActionMenu();
-                            }}
+                        onClick={() => onResetPassword(user)}
+                        className="action-icon-btn"
+                        data-tooltip="Reset Password"
                           >
                             <FiShield />
-                            <span>Reset Password</span>
                           </button>
                           
-                          {user.active ? (
                             <button 
-                              className="action-menu-item deactivate"
                               onClick={() => {
-                                // Handle deactivate user
-                                closeActionMenu();
-                              }}
-                            >
-                              <FiUserX />
-                              <span>Deactivate</span>
+                          // Let AdminPanel handle confirmation
+                          handleToggleUserStatus(user, !user.active);
+                        }}
+                        className={`action-icon-btn ${user.active ? 'deactivate-btn' : 'activate-btn'}`}
+                        data-tooltip={user.active ? 'Deactivate User' : 'Activate User'}
+                      >
+                        {user.active ? <FiUserX /> : <FiUserCheck />}
                             </button>
-                          ) : (
-                            <button 
-                              className="action-menu-item activate"
-                              onClick={() => {
-                                // Handle activate user
-                                closeActionMenu();
-                              }}
-                            >
-                              <FiUserCheck />
-                              <span>Activate</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </td>
                 </tr>

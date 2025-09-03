@@ -3,7 +3,6 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  /* padding: 0px; */
 }
 
 .user-management-controls {
@@ -469,53 +468,6 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .users-table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    /* padding-bottom: 20px; */
-  }
-  
-  .users-table-container::-webkit-scrollbar {
-    height: 3px;
-  }
-  
-  .users-table-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-  
-  .users-table-container::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-  }
-  
-  .users-table-container::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-  
-  .users-table {
-    min-width: 800px;
-  }
-  
-  .users-table th,
-  .users-table td {
-    padding: 8px 6px;
-    font-size: 13px;
-  }
-  
-  .user-avatar-small {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
-  }
-
-  .time-icon {
-    width: 12px;
-    height: 12px;
-    color: #9ca3af;
-  }
-  
   .action-menu-dropdown {
     right: auto;
     left: 0;
@@ -560,4 +512,73 @@
 
 .users-summary p {
   margin: 0;
+}
+
+/* ELEGANT ACTION BUTTONS */
+.action-icon-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+  transform: translateY(-1px);
+}
+
+.action-icon-btn.deactivate-btn {
+  color: #ef4444;
+}
+
+.action-icon-btn.deactivate-btn:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.action-icon-btn.activate-btn {
+  color: #10b981;
+}
+
+.action-icon-btn.activate-btn:hover {
+  background-color: #f0fdf4;
+  color: #059669;
+}
+
+/* TOOLTIPS */
+.action-icon-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+.action-icon-btn[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+  margin-bottom: 1px;
+  z-index: 1000;
 }

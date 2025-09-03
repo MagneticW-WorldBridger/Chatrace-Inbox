@@ -5,7 +5,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(168, 85, 247, 0.1) 50%,
+    rgba(236, 72, 153, 0.1) 100%);
+  backdrop-filter: blur(20px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -326,6 +330,46 @@
   }
 }
 
+/* LIQUID GLASS CONTENT STYLING */
+.admin-panel-content-glass {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.admin-panel-content-glass .admin-panel-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+}
+
+.admin-panel-content-glass .admin-panel-header h2 {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.admin-panel-content-glass .close-button {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-content-glass .close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 1);
+}
+
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -349,8 +393,7 @@
   }
   
   .admin-panel-container {
-    max-height: 90vh;
-    padding-bottom: 20px;
+    max-height: 95vh;
   }
   
   .admin-panel-header {
