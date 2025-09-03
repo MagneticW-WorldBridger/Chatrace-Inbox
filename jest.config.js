@@ -14,10 +14,5 @@ export default {
   resetMocks: true,
   restoreMocks: true,
   transform: {},
-  extensionsToTreatAsEsm: ['.js'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  }
+  preset: 'es-modules'
 };

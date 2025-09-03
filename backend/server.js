@@ -1,8 +1,13 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Load .env from parent directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+config({ path: path.join(__dirname, '..', '.env') });
 import fetch from 'node-fetch';
 import cookieParser from 'cookie-parser';
 import Busboy from 'busboy';
@@ -23,14 +28,49 @@ import {
   // Password functions
   loginWithEmailPassword,
   changePassword,
-  createUserWithPassword
+  createUserWithPassword,
+  // User management functions
+  getUserById,
+  updateUser,
+  updateUserStatus,
+  deleteUser
 } from './auth.js';
 
-// Resolve __dirname in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
+
+// CORS configuration - DEBE IR ANTES DE OTROS MIDDLEWARES
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log('🌐 CORS request from origin:', origin);
+  
+  // Allow localhost during development
+  if (origin && (
+    origin.includes('localhost:5173') || 
+    origin.includes('localhost:3000') || 
+    origin.includes('127.0.0.1')
+  )) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log('✅ CORS: Allowing localhost origin:', origin);
+  } else {
+    // Allow specific production domains if needed
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    console.log('🔧 CORS: Using default localhost:5173');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-ACCESS-TOKEN, X-BUSINESS-ID, X-USER-EMAIL, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('✅ CORS: Handling preflight request');
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
+
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.disable('x-powered-by');
@@ -39,26 +79,6 @@ app.use((_, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); 
 app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  next();
-});
-
-// Minimal CORS (optional via env)
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  const allowed = new Set([
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://frontend-production-43b8.up.railway.app',
-    process.env.FRONTEND_ORIGIN
-  ].filter(Boolean));
-  if (origin && allowed.has(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ACCESS-TOKEN, Authorization, X-REQUEST-ID, X-BUSINESS-ID, X-USER-EMAIL');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  if (req.method === 'OPTIONS') return res.status(204).end();
   next();
 });
 
@@ -75,9 +95,21 @@ function requireAuth(req, res, next) {
   const headerToken = req.headers['x-access-token'] || (req.headers.authorization?.toString().replace(/^Bearer\s+/i, ''));
   const cookieToken = req.cookies?.user_token;
   const token = headerToken || cookieToken || null;
+  
   if (!token) {
     return res.status(401).json({ status: 'ERROR', message: 'Missing authentication token' });
   }
+  
+  // Validate token against environment variables
+  const validTokens = [process.env.USER_TOKEN, process.env.API_TOKEN].filter(Boolean);
+  if (!validTokens.includes(token)) {
+    console.log('🔐 Token validation failed:', {
+      provided: token?.substring(0, 20) + '...',
+      validTokens: validTokens.map(t => t?.substring(0, 20) + '...')
+    });
+    return res.status(401).json({ status: 'ERROR', message: 'Invalid authentication token' });
+  }
+  
   next();
 }
 
@@ -441,6 +473,119 @@ app.post('/api/admin/reset-user-password', requireAdmin, async (req, res) => {
   }
 });
 
+// Get specific user by ID (admin only)
+app.get('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const businessId = req.businessId;
+    
+    const user = await getUserById(businessId, userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Remove sensitive data
+    const { password_hash, ...userWithoutPassword } = user;
+    
+    res.json({
+      status: 'success',
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error('❌ Failed to get user:', error);
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// Update user profile (admin only)
+app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const businessId = req.businessId;
+    const { name, email, role } = req.body;
+    
+    if (!name || !email || !role) {
+      return res.status(400).json({ 
+        error: 'Name, email, and role are required' 
+      });
+    }
+    
+    const result = await updateUser(businessId, userId, { name, email, role });
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    res.json({
+      status: 'success',
+      message: 'User updated successfully',
+      user: result.user
+    });
+  } catch (error) {
+    console.error('❌ Failed to update user:', error);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+// Update user status (activate/deactivate) (admin only)
+app.put('/api/admin/users/:id/status', requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const businessId = req.businessId;
+    const { active } = req.body;
+    
+    if (typeof active !== 'boolean') {
+      return res.status(400).json({ 
+        error: 'Active status (boolean) is required' 
+      });
+    }
+    
+    const result = await updateUserStatus(businessId, userId, active);
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+    
+    res.json({
+      status: 'success',
+      message: 'User status updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Failed to update user status:', error);
+    res.status(500).json({ error: 'Failed to update user status' });
+  }
+});
+
+// Delete user (admin only)
+app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const businessId = req.businessId;
+    
+    // Prevent self-deletion
+    if (req.user.id.toString() === userId.toString()) {
+      return res.status(400).json({ 
+        error: 'Cannot delete your own account' 
+      });
+    }
+    
+    const result = await deleteUser(businessId, userId);
+    
+    if (!result.success) {
+      return res.status(404).json({ error: result.error });
+    }
+    
+    res.json({
+      status: 'success',
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Failed to delete user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 // Serve static admin inbox file
 app.get('/admin-inbox-v2.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'admin-inbox-v2.html'));
@@ -755,7 +900,8 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
 
     const accountId = resolveAccountId(req);
     const headerToken = req.headers['x-access-token'] || (req.headers.authorization?.toString().replace(/^Bearer\s+/i, ''));
-    const tokenToUse = headerToken || body.user_token || process.env.USER_TOKEN || process.env.API_TOKEN || '';
+    // Use API_TOKEN first for HTTP API calls (as per working repo instructions)
+    const tokenToUse = headerToken || body.user_token || process.env.API_TOKEN || process.env.USER_TOKEN || '';
 
     // Supported payloads:
     // 1) Text message: { message, channel? }
@@ -807,11 +953,11 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
         channel: body.channel,
       };
     } else if (body && typeof body.message === 'string' && body.message.trim().length > 0) {
-      // Plain text message - trying conversations/send format (without op2)
+      // Plain text message - using HTTP API format (exact format from user)
       upstreamPayload = {
-        account_id: accountId,
         op: 'conversations',
         op1: 'send',
+        account_id: accountId,
         contact_id: conversationId,
         channel: body.channel,
         message: body.message,
@@ -829,6 +975,9 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
     
     console.log('📥 Respuesta de ChatRace:', text);
     console.log('📊 Status Code:', upstreamRes.status);
+    console.log('📊 Response Headers:', Object.fromEntries(upstreamRes.headers.entries()));
+    console.log('📊 Text length:', text?.length || 0);
+    console.log('📊 Text type:', typeof text);
     try {
       const json = JSON.parse(text);
       // If plain message failed, try fallback to conversations/send message
@@ -858,9 +1007,10 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
         broadcastEvent({ type: 'message_sent', conversation_id: conversationId, channel: ch });
       }
       return res.status(200).json(json);
-    } catch {
+    } catch (parseError) {
+      console.log('📥 ChatRace response is not JSON, sending as text:', text);
       res.setHeader('Content-Type', 'text/plain');
-      return res.status(200).send(text);
+      return res.status(200).send(text || 'OK');
     }
   } catch (error) {
     return res.status(200).json({ status: 'error', message: error.message });
@@ -1022,6 +1172,29 @@ app.post('/api/test-auth', async (_req, res) => {
     return res.status(200).json({ status: 'OK', token, account_id: accountId, demoMode: false });
   } catch (error) {
     return res.status(200).json({ status: 'error', message: error.message });
+  }
+});
+
+// Test admin endpoint without auth (for debugging)
+app.get('/api/admin/test', async (req, res) => {
+  try {
+    console.log('🧪 Test admin endpoint called');
+    console.log('Headers:', req.headers);
+    console.log('USER_TOKEN:', process.env.USER_TOKEN?.substring(0, 20) + '...');
+    console.log('API_TOKEN:', process.env.API_TOKEN?.substring(0, 20) + '...');
+    
+    return res.json({
+      status: 'success',
+      message: 'Admin test endpoint working',
+      headers: req.headers,
+      env_check: {
+        has_user_token: !!process.env.USER_TOKEN,
+        has_api_token: !!process.env.API_TOKEN,
+        business_id: process.env.BUSINESS_ID
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 });
 

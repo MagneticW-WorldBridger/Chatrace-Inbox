@@ -150,7 +150,10 @@ const ChatArea = ({
           onTouchMove={disableAutoScroll}
         >
           <div className="space-y-4 min-h-full flex flex-col justify-end">
-            {messages.map((message, index) => (
+            {(() => {
+              console.log('🔥 CHATAREA RENDER - messages type:', Array.isArray(messages) ? `Array(${messages.length})` : typeof messages);
+              return (Array.isArray(messages) ? messages : []);
+            })().map((message, index) => (
               <MessageBubble
                 key={`${message.id}-${index}`}
                 message={message}

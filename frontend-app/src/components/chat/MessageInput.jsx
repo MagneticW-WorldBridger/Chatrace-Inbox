@@ -38,7 +38,9 @@ const MessageInput = ({
   };
 
   const handleSend = () => {
+    console.log('🔥 MESSAGE INPUT HANDLE SEND - value:', value.trim(), 'isSending:', isSending, 'onSend:', typeof onSend);
     if (value.trim() && !isSending) {
+      console.log('🔥 MESSAGE INPUT - CALLING onSend with:', value);
       onSend(value);
     }
   };

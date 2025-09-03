@@ -34,8 +34,6 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     setWsConnecting
   } = useChat();
 
-  const businessId = user?.business_id;
-
   const ws = useRef(null);
   const autoAuthTried = useRef(false);
 
@@ -51,11 +49,18 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     onMessageReceived: (message) => {
       console.log('📥 Nuevo mensaje recibido via WebSocket:', message);
       
-      // Solo recargar conversaciones para actualizar contadores
-      loadConversations();
+      // NO recargar conversaciones - solo actualizar contadores sin cambiar orden
+      // loadConversations();
       
       // Para mensajes nuevos, agregarlos directamente al array en lugar de recargar todo
       if (currentContact?.id && message?.data?.message) {
+        // Solo procesar mensajes que pertenecen a la conversación actual
+        const messageContactId = message.data.conversation_id || message.data.contact_id;
+        if (messageContactId && messageContactId !== currentContact.id) {
+          console.log('📥 Ignorando mensaje de otra conversación:', messageContactId, 'vs current:', currentContact.id);
+          return; // Ignorar mensajes de otras conversaciones
+        }
+        
         const newMessage = {
           id: message.data.ms_id || Date.now().toString(),
           content: message.data.message[0]?.text || message.data.message,
@@ -64,10 +69,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           status: 'received'
         };
         
+        console.log('🔥 WEBSOCKET CALLBACK - ANTES de setMessages - newMessage:', newMessage);
         setMessages(prev => {
-          const updated = [...prev, newMessage];
-          // Ordenar por timestamp para mantener orden correcto
-          return updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+          const currentMessages = Array.isArray(prev) ? prev : [];
+          console.log('🔥 WEBSOCKET CALLBACK - DENTRO de setMessages - currentMessages length:', currentMessages.length);
+          const updated = [...currentMessages, newMessage];
+          console.log('🔥 WEBSOCKET CALLBACK - DESPUÉS de agregar - updated length:', updated.length);
+          const sorted = updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+          console.log('🔥 WEBSOCKET CALLBACK - DESPUÉS de sort - sorted length:', sorted.length);
+          return sorted;
         });
       }
     },
@@ -87,11 +97,9 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         try {
           const payload = JSON.parse(evt.data || '{}');
           if (payload?.type === 'conversation_updated' || payload?.type === 'message_sent') {
-            // Refresh conversations and messages
-            loadConversations();
-            if (currentContact?.id) {
-              loadMessages(currentContact.id);
-            }
+            // NO recargar mensajes - ya se manejan via WebSocket optimisticamente
+            // Solo actualizar contadores si es necesario
+            console.log('📡 SSE event received but ignoring to prevent message clearing:', payload.type);
           }
         } catch {}
       };
@@ -146,20 +154,12 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     })();
   }, [isLoggedIn]);
 
-  // Get token and load conversations when user is available
-  useEffect(() => {
-    if (user && !userToken) {
-      // Get the legacy token from backend
-      handleDirectLogin();
-    }
-  }, [user, userToken]);
-
   // Load conversations when logged in
   useEffect(() => {
-    if (userToken) {
+    if (isLoggedIn) {
       loadConversations();
     }
-  }, [userToken, platform]);
+  }, [isLoggedIn, platform]);
 
   const loadConversations = async () => {
     setLoading(true);
@@ -179,8 +179,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           method: 'GET',
           headers: {
             'X-ACCESS-TOKEN': userToken || '',
-            'Authorization': `Bearer ${userToken || ''}`,
-            'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+            'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
           }
         });
       }
@@ -212,15 +211,9 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         try {
           if (!demoMode) {
             const [rWeb, rIg, rFb] = await Promise.all([
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
-                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
-              }),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
-                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
-              }),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
-                headers: { 'X-ACCESS-TOKEN': userToken || '', 'Authorization': `Bearer ${userToken || ''}`, 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
-              })
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`)
             ]);
             const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
             const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
@@ -258,8 +251,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         method: 'GET',
         headers: {
           'X-ACCESS-TOKEN': userToken || '',
-          'Authorization': `Bearer ${userToken || ''}`,
-          'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+          'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
         }
       });
     }
@@ -300,8 +292,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       method: 'GET',
       headers: {
         'X-ACCESS-TOKEN': userToken || '',
-        'Authorization': `Bearer ${userToken || ''}`,
-        'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+        'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
       }
     });
     const data = await result.json();
@@ -321,6 +312,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
   };
 
   const handleSendMessage = async (message) => {
+    console.log('🔥 HANDLE SEND MESSAGE LLAMADO - message:', message, 'currentContact:', currentContact?.name);
     if (!currentContact || !message.trim()) return;
     
     // Add message immediately to UI
@@ -333,9 +325,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     };
     
     // Agregar mensaje y mantener orden por timestamp
+    console.log('🔥 HANDLE SEND - ANTES de setMessages - newMessage:', newMessage);
     setMessages(prev => {
-      const updated = [...prev, newMessage];
-      return updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      const currentMessages = Array.isArray(prev) ? prev : [];
+      console.log('🔥 DENTRO de setMessages - currentMessages length:', currentMessages.length);
+      const updated = [...currentMessages, newMessage];
+      console.log('🔥 DESPUÉS de agregar - updated length:', updated.length);
+      const sorted = updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      console.log('🔥 DESPUÉS de sort - sorted length:', sorted.length);
+      return sorted;
     });
     
     setComposer('');
@@ -365,14 +363,16 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-ACCESS-TOKEN': userToken || '',
-          'x-business-id': String(businessId || localStorage.getItem('businessId') || '')
+          'X-ACCESS-TOKEN': userToken || ''
         },
         body: JSON.stringify({ message, channel: getChannelForPlatform(platform) })
       });
-      await resp.text();
-      // Refresh messages from server
-      await loadMessages(currentContact.id);
+      const result = await resp.text();
+      console.log('📥 HTTP send result:', result);
+      
+      // NO RECARGAR MENSAJES - el mensaje ya se agregó arriba
+      // await loadMessages(currentContact.id); // ❌ ESTO VACÍA EL CHAT!
+      
       addToast('Message sent via HTTP', 'success');
     } catch (e) {
       console.error('Send message failed', e);
@@ -505,7 +505,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'PUT', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
         body: JSON.stringify({ text })
       });
       await resp.json().catch(() => ({}));
@@ -522,7 +522,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/notes/${encodeURIComponent(noteId)}`, {
         method: 'DELETE', 
-        headers: { 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }
+        headers: { 'X-ACCESS-TOKEN': userToken || '' }
       });
       await resp.json().catch(() => ({}));
       addToast('Note deleted', 'success');
@@ -536,7 +536,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/ai-suggestion`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
         body: JSON.stringify({ prompt: null })
       });
       const j = await resp.json().catch(() => ({}));
@@ -559,7 +559,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
         body: JSON.stringify({ flow_id: flowId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -574,7 +574,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
         body: JSON.stringify({ step_id: stepId, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -590,7 +590,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       const resp = await fetch(`${API_BASE_URL}/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/send`, {
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '', 'x-business-id': String(businessId || localStorage.getItem('businessId') || '') }, 
+        headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': userToken || '' }, 
         body: JSON.stringify({ product_ids: productIds, channel: getChannelForPlatform(platform) })
       });
       await resp.text();
@@ -645,8 +645,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     sendProducts
   };
 
-  // If user is provided via props (from AuthenticatedApp), we're already authenticated
-  if (!user) {
+  if (!isLoggedIn) {
     return (
       <LoginScreen 
         booting={booting}
