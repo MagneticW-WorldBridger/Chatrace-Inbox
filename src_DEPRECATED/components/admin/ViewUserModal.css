@@ -1,0 +1,163 @@
+/* View User Modal Styles */
+.view-user-modal {
+  max-width: 600px;
+  width: 90%;
+  padding: 32px !important;
+}
+
+.view-user-modal .modal-content {
+  padding: 0 8px;
+}
+
+.user-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e1e5e9;
+  margin-bottom: 24px;
+}
+
+.user-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.user-basic-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-email {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.user-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-details-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #555;
+  font-size: 14px;
+}
+
+.detail-label svg {
+  width: 16px;
+  height: 16px;
+  color: #667eea;
+}
+
+.detail-value {
+  font-size: 16px;
+  color: #333;
+  padding-left: 24px;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.admin {
+  background: linear-gradient(135deg, #ff8a00 0%, #e52e71 100%);
+  color: white;
+}
+
+.role-badge.user {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-badge.inactive {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-badge.temp-password {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.business-info {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e1e5e9;
+}
+
+.business-info h4 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .user-profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .user-avatar-large {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+  }
+  
+  .user-basic-info h3 {
+    font-size: 20px;
+  }
+}

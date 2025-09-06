@@ -49,42 +49,24 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     onMessageReceived: (message) => {
       console.log('📥 Nuevo mensaje recibido via WebSocket:', message);
       
-      // CRITICAL: NEVER reload conversations from WebSocket messages
-      // This was causing the chat to empty and conversation list to change
+      // NO recargar conversaciones - solo actualizar contadores sin cambiar orden
+      // loadConversations();
       
-      // Only process messages for the current conversation
+      // Para mensajes nuevos, agregarlos directamente al array en lugar de recargar todo
       if (currentContact?.id && message?.data?.message) {
-        // Only process messages that belong to the current conversation
-        const messageContactId = message.data.conversation_id || message.data.contact_id;
-        if (messageContactId && messageContactId !== currentContact.id) {
-          console.log('📥 Ignorando mensaje de otra conversación:', messageContactId, 'vs current:', currentContact.id);
-          return; // Ignore messages from other conversations
-        }
-        
         const newMessage = {
           id: message.data.ms_id || Date.now().toString(),
           content: message.data.message[0]?.text || message.data.message,
           timestamp: new Date(message.data.timestamp || Date.now()),
-          isOwn: message.data.dir === 0, // dir: 0 = own message, dir: 1 = received message
+          isOwn: message.data.dir === 0, // dir: 0 = mensaje propio, dir: 1 = mensaje recibido
           status: 'received'
         };
         
-        console.log('🔥 WEBSOCKET CALLBACK - Adding message to current conversation:', newMessage);
         setMessages(prev => {
           const currentMessages = Array.isArray(prev) ? prev : [];
-          console.log('🔥 WEBSOCKET CALLBACK - Current messages length:', currentMessages.length);
-          
-          // Check if message already exists to prevent duplicates
-          const exists = currentMessages.some(m => m.id === newMessage.id);
-          if (exists) {
-            console.log('🔥 WEBSOCKET CALLBACK - Message already exists, skipping');
-            return currentMessages;
-          }
-          
           const updated = [...currentMessages, newMessage];
-          const sorted = updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-          console.log('🔥 WEBSOCKET CALLBACK - Final messages length:', sorted.length);
-          return sorted;
+          // Ordenar por timestamp para mantener orden correcto
+          return updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
         });
       }
     },
@@ -104,15 +86,16 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         try {
           const payload = JSON.parse(evt.data || '{}');
           if (payload?.type === 'conversation_updated' || payload?.type === 'message_sent') {
-            // CRITICAL: Never reload conversations or messages from SSE
-            // This was causing the chat to empty and conversation list to change
-            console.log('📡 SSE event received but ignoring to prevent conversation/message clearing:', payload.type);
+            // Solo recargar mensajes, NO conversaciones para evitar cambio de orden
+            if (currentContact?.id) {
+              loadMessages(currentContact.id);
+            }
           }
         } catch {}
       };
     } catch {}
     return () => { try { es?.close(); } catch {} };
-  }, [isLoggedIn, platform]); // Removed currentContact?.id to prevent SSE reconnection on conversation change
+  }, [isLoggedIn, platform, currentContact?.id]);
 
   // Initialize app state
   useEffect(() => {
@@ -183,11 +166,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         });
       } else {
         result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50`, {
-          method: 'GET',
-          headers: {
-            'X-ACCESS-TOKEN': userToken || '',
-            'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
-          }
+          method: 'GET'
         });
       }
       
@@ -254,13 +233,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         body: JSON.stringify({ type: 'messages' })
       });
     } else {
-      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { 
-        method: 'GET',
-        headers: {
-          'X-ACCESS-TOKEN': userToken || '',
-          'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
-        }
-      });
+      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { method: 'GET' });
     }
     
     const data = await result.json();
@@ -295,13 +268,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       }
       return;
     }
-    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { 
-      method: 'GET',
-      headers: {
-        'X-ACCESS-TOKEN': userToken || '',
-        'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
-      }
-    });
+    result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/contact`, { method: 'GET' });
     const data = await result.json();
     if ((data.status === 'OK' || data.status === 'success') && (data.data || data.contact)) {
       const u = data.data || data.contact;
@@ -319,7 +286,6 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
   };
 
   const handleSendMessage = async (message) => {
-    console.log('🔥 HANDLE SEND MESSAGE LLAMADO - message:', message, 'currentContact:', currentContact?.name);
     if (!currentContact || !message.trim()) return;
     
     // Add message immediately to UI
@@ -332,15 +298,10 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     };
     
     // Agregar mensaje y mantener orden por timestamp
-    console.log('🔥 HANDLE SEND - ANTES de setMessages - newMessage:', newMessage);
     setMessages(prev => {
       const currentMessages = Array.isArray(prev) ? prev : [];
-      console.log('🔥 DENTRO de setMessages - currentMessages length:', currentMessages.length);
       const updated = [...currentMessages, newMessage];
-      console.log('🔥 DESPUÉS de agregar - updated length:', updated.length);
-      const sorted = updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-      console.log('🔥 DESPUÉS de sort - sorted length:', sorted.length);
-      return sorted;
+      return updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     });
     
     setComposer('');
@@ -374,12 +335,9 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         },
         body: JSON.stringify({ message, channel: getChannelForPlatform(platform) })
       });
-      const result = await resp.text();
-      console.log('📥 HTTP send result:', result);
-      
-      // NO RECARGAR MENSAJES - el mensaje ya se agregó arriba
-      // await loadMessages(currentContact.id); // ❌ ESTO VACÍA EL CHAT!
-      
+      await resp.text();
+      // Refresh messages from server
+      await loadMessages(currentContact.id);
       addToast('Message sent via HTTP', 'success');
     } catch (e) {
       console.error('Send message failed', e);
@@ -463,8 +421,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     if (!currentContact) return;
     try {
       const j = await postJson(`/api/inbox/conversations/${encodeURIComponent(currentContact.id)}/update`, { action, ...payload });
-      // Don't reload messages after conversation updates to prevent chat clearing
-      // await loadMessages(currentContact.id); // ❌ THIS CLEARS THE CHAT!
+      await loadMessages(currentContact.id);
       addToast(`${action} done`, 'success');
       return j;
     } catch (e) {
@@ -676,7 +633,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
 /**
  * Root App component with context provider
  */
-const App = ({ user = null, onLogout = () => {}, onChangePassword = () => {} }) => {
+const App = ({ user, onLogout, onChangePassword }) => {
   return (
     <ChatProvider>
       <AppContent 

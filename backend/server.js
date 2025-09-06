@@ -713,6 +713,10 @@ app.get('/api/inbox/conversations', async (req, res) => {
     }, undefined, req);
 
     const data = await upstream.json().catch(() => null);
+    console.log('🔥 CHATRACE CONVERSATIONS RESPONSE:', JSON.stringify(data, null, 2));
+    if (data && data.data && data.data.length > 0) {
+      console.log('🔥 FIRST CONVERSATION RAW:', JSON.stringify(data.data[0], null, 2));
+    }
     if (data && data.status === 'OK' && Array.isArray(data.data)) {
       const base = data.data
         .filter(row => (filterChannel ? String(row.channel) === filterChannel : true))
@@ -731,6 +735,10 @@ app.get('/api/inbox/conversations', async (req, res) => {
           last_message_at: row.timestamp || null,
           last_message_content: row.last_msg || '',
           _platform: platform.charAt(0).toUpperCase() + platform.slice(1),
+          // CRITICAL: Add hash and channel fields for WebSocket messages
+          // From chatracemobile.md: channel={{channel_ID}}, hash={{contact_hash}}
+          hash: '', // Empty hash - will get from contact API when needed
+          channel: row.channel || filterChannel || '9', // Use ChatRace channel field!
         };
       });
       return res.json({ status: 'success', data: mapped });

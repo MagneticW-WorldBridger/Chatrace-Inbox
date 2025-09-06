@@ -1,0 +1,58 @@
+{
+  "hash": "5e5e835c",
+  "configHash": "2d71a212",
+  "lockfileHash": "e3b0c442",
+  "browserHash": "8c896ada",
+  "optimized": {
+    "react": {
+      "src": "../../frontend-app/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "18e0cbe7",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../frontend-app/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "d4ef297b",
+      "needsInterop": true
+    },
+    "react-icons/fa": {
+      "src": "../../frontend-app/node_modules/react-icons/fa/index.mjs",
+      "file": "react-icons_fa.js",
+      "fileHash": "9c3e323d",
+      "needsInterop": false
+    },
+    "react-icons/fi": {
+      "src": "../../frontend-app/node_modules/react-icons/fi/index.mjs",
+      "file": "react-icons_fi.js",
+      "fileHash": "7979cbf4",
+      "needsInterop": false
+    },
+    "react-icons/gr": {
+      "src": "../../frontend-app/node_modules/react-icons/gr/index.mjs",
+      "file": "react-icons_gr.js",
+      "fileHash": "07dab982",
+      "needsInterop": false
+    },
+    "react-icons/io5": {
+      "src": "../../frontend-app/node_modules/react-icons/io5/index.mjs",
+      "file": "react-icons_io5.js",
+      "fileHash": "a2f0afa5",
+      "needsInterop": false
+    },
+    "react-icons/md": {
+      "src": "../../frontend-app/node_modules/react-icons/md/index.mjs",
+      "file": "react-icons_md.js",
+      "fileHash": "5f884d56",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-B5CDZGSV": {
+      "file": "chunk-B5CDZGSV.js"
+    },
+    "chunk-HZL3P6ML": {
+      "file": "chunk-HZL3P6ML.js"
+    }
+  }
+}

@@ -38,7 +38,7 @@ const Sidebar = ({
   loading,
   onLogout,
   isMobile = false,
-  user = null
+  user
 }) => {
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [showAgentStatus, setShowAgentStatus] = useState(false);
@@ -161,7 +161,7 @@ const Sidebar = ({
                       <GrShield className="w-4 h-4 text-gray-600" />
                       <span className="text-black">Change Password</span>
                     </button>
-                    {user?.role === 'admin' && (
+                    {user.role === 'admin' && (
                       <>
                         <button 
                           title="AdminPanel"
@@ -202,7 +202,7 @@ const Sidebar = ({
                 <GrShield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
 
-              {user?.role === 'admin' && (
+              {user.role === 'admin' && (
                 <>
                   <button 
                     className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
@@ -279,13 +279,13 @@ const Sidebar = ({
                       alt={AGENT_NAME} 
                     /> */}
                     <div className="user-avatar">
-                      {getInitials(user?.name || 'User')}
+                      {getInitials(user.name)}
                     </div>
                     <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900 shadow-green-500/50" />
                   </div>
                   <div className="flex-1">
-                    <h1 className="text-sm font-medium text-black">{user?.business_name || 'Inbox'}</h1>
-                    <span className="text-xs text-gray-600">@{user?.subdomain || 'default'}</span>
+                    <h1 className="text-sm font-medium text-black">{user.business_name || 'Inbox'}</h1>
+                    <span className="text-xs text-gray-600">@{user.subdomain}</span>
                   </div>
                   <button 
                     onClick={() => setShowAgentStatus(false)}
@@ -309,7 +309,7 @@ const Sidebar = ({
                 alt={AGENT_NAME} 
               /> */}
               <div className="rounded-full h-12 w-12 p-2 bg-[#333]/10 text-center items-center justify-center text-xl shadow-inner shadow-2xl font-semibold">
-                {getInitials(user?.name || 'User')}
+                {getInitials(user.name)}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900 shadow-green-500/50" />
             </div>
@@ -318,8 +318,8 @@ const Sidebar = ({
               <p className="text-xs text-gray-600">Online • Ready to help</p>
             </div> */}
             <div className="flex-1">
-              <h1 className="text-sm font-medium text-black">{user?.business_name || 'Inbox'}</h1>
-              <span className="text-xs text-gray-600">@{user?.subdomain || 'default'}</span>
+              <h1 className="text-sm font-medium text-black">{user.business_name || 'Inbox'}</h1>
+              <span className="text-xs text-gray-600">@{user.subdomain}</span>
             </div>
             <button 
               onClick={handleLogout}
@@ -349,9 +349,9 @@ const Sidebar = ({
       )}
 
       {/* Admin Panel Modal */}
-      {showAdminPanel && (
+            {showAdminPanel && (
           <AdminPanel onClose={() => setShowAdminPanel(false)} user={user} />
-      )}
+        )}
 
       {/* {showAdminPanel && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

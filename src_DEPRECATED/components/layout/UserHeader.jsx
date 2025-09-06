@@ -45,19 +45,19 @@ const UserHeader = ({ user, onLogout, onChangePassword }) => {
     <div className="user-header shadow-lg ">
       <div className="user-header-content ">
         <div className="business-info rounded-lg">
-          <h1 className="business-name">{user?.business_name || 'Inbox'}</h1>
-          <span className="business-subdomain">@{user?.subdomain || 'default'}</span>
+          <h1 className="business-name">{user.business_name || 'Inbox'}</h1>
+          <span className="business-subdomain">@{user.subdomain}</span>
         </div>
         
         <div className="user-men">
           <div className="user-inf" onClick={handleDropdownToggle}>
             <div className="user-avatar">
-              {getInitials(user?.name || 'User')}
+              {getInitials(user.name)}
             </div>
             {/* <div className="user-details">
-              <span className="user-name">{user?.name || 'User'}</span>
-              <span className="user-role">{user?.role || 'user'}</span>
-              {(user?.temp_password || user?.must_change_password) && (
+              <span className="user-name">{user.name}</span>
+              <span className="user-role">{user.role}</span>
+              {(user.temp_password || user.must_change_password) && (
                 <span className="temp-password-badge">Temp Password</span>
               )}
             </div> */}
@@ -73,7 +73,7 @@ const UserHeader = ({ user, onLogout, onChangePassword }) => {
 
           {/* {showDropdown && (
             <div className="user-dropdown">
-              {user?.role === 'admin' && (
+              {user.role === 'admin' && (
                 <>
                   <button 
                     className="dropdown-item"
@@ -115,8 +115,8 @@ const UserHeader = ({ user, onLogout, onChangePassword }) => {
         </div>
       </div>
       
-      {/* {showAdminPanel && (
-        <AdminPanel onClose={() => setShowAdminPanel(false)} />
+      {showAdminPanel && (
+        <AdminPanel onClose={() => setShowAdminPanel(false)} user={user} />
       )}
 
       <LogoutConfirmation

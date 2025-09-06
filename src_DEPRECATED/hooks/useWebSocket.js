@@ -119,7 +119,7 @@ export const useWebSocket = ({
       console.error('❌ Error creando WebSocket:', error);
       setIsConnecting(false);
     }
-  }, [isLoggedIn, userToken, wsUrl]); // Removed currentContact?.id to prevent reconnection on conversation change
+  }, [isLoggedIn, userToken, wsUrl, currentContact?.id]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimer.current) {
@@ -142,10 +142,6 @@ export const useWebSocket = ({
       return false;
     }
 
-    // Use hash and channel from current contact if available
-    const contactHash = currentContact?.hash || '';
-    const contactChannel = currentContact?.channel || channel;
-
     const messagePayload = {
       action: 0,
       data: {
@@ -156,15 +152,15 @@ export const useWebSocket = ({
         user_id: USER_ID,
         token: userToken,
         fromInbox: true,
-        channel: contactChannel,
+        channel: channel,
         from: USER_ID,
-        hash: contactHash, // Use hash from current contact
+        hash: '', // TODO: obtener hash del contacto
         timestamp: Date.now().toString(),
         message: [{
           type: "text",
           text: messageText,
           dir: 0,
-          channel: contactChannel,
+          channel: channel,
           from: USER_ID,
           replyingTo: null
         }]

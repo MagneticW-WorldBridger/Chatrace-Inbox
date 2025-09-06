@@ -208,7 +208,29 @@ export const ChatProvider = ({ children }) => {
   }, []);
 
   const value = {
-    ...state,
+    // State properties first
+    conversations: state.conversations,
+    currentContact: state.currentContact,
+    messages: state.messages, // Explicitly preserve the messages array
+    profile: state.profile,
+    isLoggedIn: state.isLoggedIn,
+    userToken: state.userToken,
+    demoMode: state.demoMode,
+    loading: state.loading,
+    platform: state.platform,
+    counts: state.counts,
+    composer: state.composer,
+    isSending: state.isSending,
+    toasts: state.toasts,
+    searchText: state.searchText,
+    currentFilter: state.currentFilter,
+    isTyping: state.isTyping,
+    sidebarOpen: state.sidebarOpen,
+    debugMode: state.debugMode,
+    booting: state.booting,
+    wsConnected: state.wsConnected,
+    wsConnecting: state.wsConnecting,
+    // Action functions
     setConversations,
     setCurrentContact,
     setMessages,
