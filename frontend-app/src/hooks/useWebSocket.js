@@ -21,7 +21,7 @@ export const useWebSocket = ({
   // WebSocket configuration - obtained from whitelabel API
   const [wsUrl, setWsUrl] = useState(null);
   const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID || '1145545';
-  const USER_ID = '1000026757'; // From .env
+  const USER_ID = import.meta.env.VITE_USER_ID || '1000026757'; // From .env
 
   // Keep stable refs for callbacks to avoid effect re-runs
   const onMsgRef = useRef(onMessageReceived);

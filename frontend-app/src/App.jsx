@@ -31,7 +31,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     platform,
     currentContact,
     setWsConnected,
-    setWsConnecting
+    setWsConnecting,
+    appendMessage
   } = useChat();
 
   const ws = useRef(null);
@@ -49,43 +50,23 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     onMessageReceived: (message) => {
       console.log('📥 Nuevo mensaje recibido via WebSocket:', message);
       
-      // CRITICAL: NEVER reload conversations from WebSocket messages
-      // This was causing the chat to empty and conversation list to change
-      
-      // Only process messages for the current conversation
-      if (currentContact?.id && message?.data?.message) {
-        // Only process messages that belong to the current conversation
-        const messageContactId = message.data.conversation_id || message.data.contact_id;
-        if (messageContactId && messageContactId !== currentContact.id) {
-          console.log('📥 Ignorando mensaje de otra conversación:', messageContactId, 'vs current:', currentContact.id);
-          return; // Ignore messages from other conversations
-        }
+      // ✅ Usar appendMessage para agregar mensaje sin perder estado
+      if (message?.data?.contact_id === currentContact?.id) {
+        console.log('🔄 WebSocket message for current contact, appending...');
         
+        // Procesar el mensaje según el formato de la API
         const newMessage = {
-          id: message.data.ms_id || Date.now().toString(),
-          content: message.data.message[0]?.text || message.data.message,
+          id: message.data.ms_id || message.data.id || Date.now().toString(),
+          content: message.data.message?.[0]?.text || message.data.message || message.data.text || '',
           timestamp: new Date(message.data.timestamp || Date.now()),
-          isOwn: message.data.dir === 0, // dir: 0 = own message, dir: 1 = received message
+          isOwn: message.data.dir === 0, // dir: 0 = mensaje propio, dir: 1 = mensaje recibido
           status: 'received'
         };
         
-        console.log('🔥 WEBSOCKET CALLBACK - Adding message to current conversation:', newMessage);
-        setMessages(prev => {
-          const currentMessages = Array.isArray(prev) ? prev : [];
-          console.log('🔥 WEBSOCKET CALLBACK - Current messages length:', currentMessages.length);
-          
-          // Check if message already exists to prevent duplicates
-          const exists = currentMessages.some(m => m.id === newMessage.id);
-          if (exists) {
-            console.log('🔥 WEBSOCKET CALLBACK - Message already exists, skipping');
-            return currentMessages;
-          }
-          
-          const updated = [...currentMessages, newMessage];
-          const sorted = updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-          console.log('🔥 WEBSOCKET CALLBACK - Final messages length:', sorted.length);
-          return sorted;
-        });
+        console.log('🔥 WEBSOCKET - Parsed message:', newMessage);
+        appendMessage(newMessage);
+      } else {
+        console.log('📥 WebSocket message for different contact, ignoring:', message?.data?.contact_id);
       }
     },
     onConnectionChange: (connected) => {
@@ -319,29 +300,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
   };
 
   const handleSendMessage = async (message) => {
-    console.log('🔥 HANDLE SEND MESSAGE LLAMADO - message:', message, 'currentContact:', currentContact?.name);
+    console.log('🔥 HANDLE SEND MESSAGE - message:', message, 'currentContact:', currentContact?.name);
     if (!currentContact || !message.trim()) return;
-    
-    // Add message immediately to UI
-    const newMessage = {
-      id: Date.now().toString(),
-      content: message,
-      timestamp: new Date(),
-      isOwn: true,
-      status: 'sent'
-    };
-    
-    // Agregar mensaje y mantener orden por timestamp
-    console.log('🔥 HANDLE SEND - ANTES de setMessages - newMessage:', newMessage);
-    setMessages(prev => {
-      const currentMessages = Array.isArray(prev) ? prev : [];
-      console.log('🔥 DENTRO de setMessages - currentMessages length:', currentMessages.length);
-      const updated = [...currentMessages, newMessage];
-      console.log('🔥 DESPUÉS de agregar - updated length:', updated.length);
-      const sorted = updated.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-      console.log('🔥 DESPUÉS de sort - sorted length:', sorted.length);
-      return sorted;
-    });
     
     setComposer('');
 
@@ -358,8 +318,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         );
         
         if (success) {
+          // Agregar mensaje inmediatamente al UI
+          appendMessage({
+            id: Date.now().toString(),
+            content: message,
+            timestamp: new Date(),
+            isOwn: true,
+            status: 'sent'
+          });
           addToast('Message sent via WebSocket', 'success');
-          // El mensaje aparecerá automáticamente via WebSocket callback
           return;
         }
       }
@@ -377,8 +344,14 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       const result = await resp.text();
       console.log('📥 HTTP send result:', result);
       
-      // NO RECARGAR MENSAJES - el mensaje ya se agregó arriba
-      // await loadMessages(currentContact.id); // ❌ ESTO VACÍA EL CHAT!
+      // ✅ Agregar mensaje inmediatamente al UI (HTTP también funciona)
+      appendMessage({
+        id: Date.now().toString(),
+        content: message,
+        timestamp: new Date(),
+        isOwn: true,
+        status: 'sent'
+      });
       
       addToast('Message sent via HTTP', 'success');
     } catch (e) {

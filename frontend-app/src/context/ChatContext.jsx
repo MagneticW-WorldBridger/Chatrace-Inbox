@@ -31,6 +31,7 @@ const ACTIONS = {
   SET_CONVERSATIONS: 'SET_CONVERSATIONS',
   SET_CURRENT_CONTACT: 'SET_CURRENT_CONTACT',
   SET_MESSAGES: 'SET_MESSAGES',
+  APPEND_MESSAGE: 'APPEND_MESSAGE',
   SET_PROFILE: 'SET_PROFILE',
   SET_LOGGED_IN: 'SET_LOGGED_IN',
   SET_USER_TOKEN: 'SET_USER_TOKEN',
@@ -62,6 +63,19 @@ const chatReducer = (state, action) => {
       return { ...state, currentContact: action.payload };
     case ACTIONS.SET_MESSAGES:
       return { ...state, messages: action.payload };
+    case ACTIONS.APPEND_MESSAGE:
+      // Check for duplicates by ID
+      const existingMessage = state.messages.find(m => m.id === action.payload.id);
+      if (existingMessage) {
+        console.log('🔥 CONTEXT - Message already exists, skipping:', action.payload.id);
+        return state;
+      }
+      // Add message and sort by timestamp
+      const newMessages = [...state.messages, action.payload].sort((a, b) => 
+        a.timestamp.getTime() - b.timestamp.getTime()
+      );
+      console.log('🔥 CONTEXT - appendMessage - Final messages length:', newMessages.length);
+      return { ...state, messages: newMessages };
     case ACTIONS.SET_PROFILE:
       return { ...state, profile: action.payload };
     case ACTIONS.SET_LOGGED_IN:
@@ -207,6 +221,10 @@ export const ChatProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_WS_CONNECTING, payload: connecting });
   }, []);
 
+  const appendMessage = useCallback((message) => {
+    dispatch({ type: ACTIONS.APPEND_MESSAGE, payload: message });
+  }, []);
+
   const value = {
     // State properties first
     conversations: state.conversations,
@@ -252,7 +270,8 @@ export const ChatProvider = ({ children }) => {
     setDebugMode,
     setBooting,
     setWsConnected,
-    setWsConnecting
+    setWsConnecting,
+    appendMessage
   };
 
   return (
