@@ -38,7 +38,10 @@ const Sidebar = ({
   loading,
   onLogout,
   isMobile = false,
-  user = null
+  user = null,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMoreConversations = () => {}
 }) => {
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [showAgentStatus, setShowAgentStatus] = useState(false);
@@ -246,6 +249,9 @@ const Sidebar = ({
               currentContact={currentContact}
               onContactSelect={onContactSelect}
               searchText={searchState.searchText}
+              hasMore={hasMore}
+              isLoadingMore={isLoadingMore}
+              onLoadMore={onLoadMoreConversations}
             />
           )}
         </div>

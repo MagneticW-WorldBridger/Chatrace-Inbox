@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 config({ path: path.join(__dirname, '..', '.env') });
 import fetch from 'node-fetch';
 import cookieParser from 'cookie-parser';
+import pg from 'pg';
 import Busboy from 'busboy';
 import FormData from 'form-data';
 import {
@@ -35,6 +36,13 @@ import {
   updateUserStatus,
   deleteUser
 } from './auth.js';
+
+// 🚀 UNIFIED INBOX INTEGRATION - IMPORT UNIFIED ENDPOINTS
+import { 
+  getUnifiedConversations, 
+  getUnifiedMessages,
+  triggerUnifiedSync 
+} from '../unified-inbox-endpoints.js';
 
 const app = express();
 
@@ -687,149 +695,16 @@ app.get('/api/whitelabel', async (req, res) => {
   }
 });
 
-// Inbox API: Get conversations
-app.get('/api/inbox/conversations', async (req, res) => {
-  try {
-    const resolvedAccountId = resolveAccountId(req);
-    console.log(`[CONVERSATIONS] Attempting to load for account_id: ${resolvedAccountId}`);
-
-    const platform = String(req.query.platform || 'webchat');
-    const limit = Math.max(1, Math.min(500, Number(req.query.limit || 25)));
-    const offset = Math.max(0, Number(req.query.offset || 0));
-
-    const channelMap = {
-      webchat: '9',
-      facebook: '0',
-      instagram: '10', // original inbox.js uses 10 for Instagram
-    };
-    const filterChannel = channelMap[platform] || null;
-
-    const upstream = await callUpstream({
-      op: 'conversations',
-      op1: 'get',
-      account_id: resolvedAccountId,
-      offset,
-      limit,
-    }, undefined, req);
-
-    const data = await upstream.json().catch(() => null);
-    console.log('🔥 CHATRACE CONVERSATIONS RESPONSE:', JSON.stringify(data, null, 2));
-    if (data && data.data && data.data.length > 0) {
-      console.log('🔥 FIRST CONVERSATION RAW:', JSON.stringify(data.data[0], null, 2));
-    }
-    if (data && data.status === 'OK' && Array.isArray(data.data)) {
-      const base = data.data
-        .filter(row => (filterChannel ? String(row.channel) === filterChannel : true))
-        .slice(0, limit);
-
-      const mapped = base.map((row, idx) => {
-        const conversationId = String(row.ms_id || row.id || idx + 1);
-        const displayName = String(row.full_name || `Guest ${idx + 1}`);
-        const avatarUrl = row.profile_pic || '';
-        return {
-          conversation_id: conversationId,
-          display_name: displayName,
-          username: displayName,
-          user_identifier: conversationId,
-          avatar_url: avatarUrl,
-          last_message_at: row.timestamp || null,
-          last_message_content: row.last_msg || '',
-          _platform: platform.charAt(0).toUpperCase() + platform.slice(1),
-          // CRITICAL: Add hash and channel fields for WebSocket messages
-          // From chatracemobile.md: channel={{channel_ID}}, hash={{contact_hash}}
-          hash: '', // Empty hash - will get from contact API when needed
-          channel: row.channel || filterChannel || '9', // Use ChatRace channel field!
-        };
-      });
-      return res.json({ status: 'success', data: mapped });
-    }
-    return res.json({ status: 'success', data: [] });
-  } catch (error) {
-    return res.status(200).json({ status: 'error', message: error.message });
-  }
+// 🚀 UNIFIED INBOX API: Get conversations (ChatRace + Woodstock + VAPI)
+app.get('/api/inbox/conversations', (req, res) => {
+  console.log('🌟 USING UNIFIED CONVERSATIONS ENDPOINT');
+  return getUnifiedConversations(req, res, callUpstream, resolveAccountId);
 });
 
-// Inbox API: Get messages for a conversation
-app.get('/api/inbox/conversations/:id/messages', async (req, res) => {
-  try {
-    const conversationId = String(req.params.id);
-    const limit = Math.max(1, Math.min(1000, Number(req.query.limit || 200)));
-
-    const upstream = await callUpstream({
-      op: 'conversations',
-      op1: 'get',
-      id: conversationId,
-      account_id: resolveAccountId(req),
-      offset: 0,
-      limit: Math.min(limit, 100),
-      expand: { comments: {}, refs: {}, appointments: {} },
-    }, undefined, req);
-
-    const data = await upstream.json().catch(() => null);
-    if (data && data.status === 'OK' && Array.isArray(data.data)) {
-      const mapped = data.data
-        .map(row => {
-          const parts = [];
-          try {
-            const arr = JSON.parse(row.message || '[]');
-            for (const item of arr) {
-              if (item.type === 'typing') continue;
-              if (typeof item.text === 'string' && item.text.trim().length > 0) {
-                parts.push(item.text);
-              } else if (item.attachment && item.attachment.payload) {
-                const element = item.attachment.payload.elements?.[0];
-                const url = element?.url || item.attachment.payload.url;
-                if (url) parts.push(`[media] ${url}`);
-              }
-            }
-          } catch {
-            if (row.message) parts.push(String(row.message));
-          }
-          const content = parts.join('\n').trim();
-          return {
-            message_created_at: Number(row.timestamp || Date.now()),
-            message_content: content,
-            message_role: (String(row.dir) === '0' ? 'assistant' : 'user'),
-            function_execution_status: 'read',
-          };
-        })
-        .filter(m => m.message_content && m.message_content.length > 0);
-
-      if (mapped.length > 0) return res.json({ status: 'success', data: mapped });
-    }
-
-    // Fallback: synthesize from conversations list
-    try {
-      const convRes = await callUpstream({
-        op: 'conversations',
-        op1: 'get',
-        account_id: resolveAccountId(req),
-        offset: 0,
-        limit: 1000,
-      }, undefined, req);
-      const convData = await convRes.json().catch(() => null);
-      if (convData && convData.status === 'OK' && Array.isArray(convData.data)) {
-        const match = convData.data.find(r => String(r.ms_id || r.id || '') === String(conversationId));
-        if (match && (match.last_msg || match.timestamp)) {
-          return res.json({
-            status: 'success',
-            data: [
-              {
-                message_created_at: Number(match.timestamp || Date.now()),
-                message_content: String(match.last_msg || ''),
-                message_role: 'user',
-                function_execution_status: 'read',
-              },
-            ],
-          });
-        }
-      }
-    } catch {}
-
-    return res.json({ status: 'success', data: [] });
-  } catch (error) {
-    return res.status(200).json({ status: 'error', message: error.message });
-  }
+// 🚀 UNIFIED INBOX API: Get messages for conversation (ChatRace + Woodstock + VAPI)
+app.get('/api/inbox/conversations/:id/messages', (req, res) => {
+  console.log('🌟 USING UNIFIED MESSAGES ENDPOINT');
+  return getUnifiedMessages(req, res, callUpstream, resolveAccountId);
 });
 
 // Inbox API: Dedup preview (stub)
@@ -1631,8 +1506,59 @@ app.post('/api/logout', (req, res) => {
   return res.status(200).json({ status: 'OK' });
 });
 
+// 🚀 UNIFIED INBOX: Manual sync endpoint
+app.post('/api/inbox/sync', requireAuth, (req, res) => {
+  console.log('🔄 MANUAL UNIFIED SYNC TRIGGERED');
+  return triggerUnifiedSync(req, res);
+});
+
+// Helper function to store VAPI calls
+async function storeVAPICall(callData) {
+  const db = new pg.Client({
+    connectionString: process.env.DATABASE_URL
+  });
+  
+  try {
+    await db.connect();
+    
+    const query = `
+      INSERT INTO vapi_calls (
+        call_id, customer_phone, customer_name, transcript, summary,
+        call_started_at, call_ended_at, recording_url, created_at, synced_to_chatrace
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (call_id) DO UPDATE SET
+        transcript = EXCLUDED.transcript,
+        summary = EXCLUDED.summary,
+        call_ended_at = EXCLUDED.call_ended_at,
+        recording_url = EXCLUDED.recording_url
+    `;
+    
+    const values = [
+      callData.call_id,
+      callData.customer_phone,
+      callData.customer_name,
+      callData.transcript,
+      callData.summary,
+      callData.call_started_at,
+      callData.call_ended_at,
+      callData.recording_url,
+      callData.created_at,
+      false // synced_to_chatrace
+    ];
+    
+    await db.query(query, values);
+    console.log(`✅ VAPI call ${callData.call_id} stored successfully`);
+    
+  } catch (error) {
+    console.error('❌ Error storing VAPI call:', error);
+    throw error;
+  } finally {
+    await db.end();
+  }
+}
+
 // VAPI Webhook endpoint - receives call events
-app.post('/webhook/vapi', (req, res) => {
+app.post('/webhook/vapi', async (req, res) => {
   console.log('🔔 VAPI Webhook received:', JSON.stringify(req.body, null, 2));
   
   const { type, call, assistant, timestamp } = req.body;
@@ -1663,7 +1589,24 @@ app.post('/webhook/vapi', (req, res) => {
       if (call.summary) {
         console.log('📋 Summary:', call.summary);
       }
-      // TODO: Save to database here
+      // Store call data for unified inbox
+      try {
+        await storeVAPICall({
+          call_id: call.id,
+          customer_phone: call.customer?.number || '',
+          customer_name: call.customer?.name || '',
+          transcript: call.transcript || '',
+          summary: call.summary || '',
+          call_started_at: call.startedAt ? new Date(call.startedAt) : new Date(),
+          call_ended_at: call.endedAt ? new Date(call.endedAt) : new Date(),
+          recording_url: call.recordingUrl || '',
+          created_at: new Date()
+        });
+        
+        console.log(`✅ Stored VAPI call ${call.id} for unified inbox`);
+      } catch (error) {
+        console.error('❌ Error storing VAPI call:', error);
+      }
       break;
     case 'transcript':
       console.log('📝 Transcript update:', req.body.transcript);

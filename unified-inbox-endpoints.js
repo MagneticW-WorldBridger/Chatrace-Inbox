@@ -1,0 +1,299 @@
+// unified-inbox-endpoints.js
+// Enhanced endpoints that support both ChatRace + external sources
+
+import { DatabaseBridgeIntegration } from './database-bridge-integration.js';
+
+let dbBridge = null;
+
+// Initialize database bridge
+async function initializeUnifiedInbox() {
+  if (!dbBridge) {
+    dbBridge = new DatabaseBridgeIntegration();
+    await dbBridge.initialize();
+    
+    // Start periodic sync (every 5 minutes)
+    setInterval(async () => {
+      try {
+        await dbBridge.runSync();
+      } catch (error) {
+        console.error('❌ Periodic sync failed:', error);
+      }
+    }, 5 * 60 * 1000);
+    
+    console.log('✅ Unified inbox initialized');
+  }
+}
+
+// Enhanced conversations endpoint
+export async function getUnifiedConversations(req, res, callUpstream, resolveAccountId) {
+  try {
+    await initializeUnifiedInbox();
+    
+    const resolvedAccountId = resolveAccountId(req);
+    const platform = String(req.query.platform || 'all');
+    const limit = Math.max(1, Math.min(500, Number(req.query.limit || 25)));
+    const offset = Math.max(0, Number(req.query.offset || 0));
+    
+    console.log(`[UNIFIED CONVERSATIONS] Loading for platform: ${platform}`);
+    
+    let allConversations = [];
+    
+    // 1. Get ChatRace conversations (existing logic)
+    if (platform === 'all' || ['webchat', 'facebook', 'instagram'].includes(platform)) {
+      try {
+        const channelMap = {
+          webchat: '9',
+          facebook: '0', 
+          instagram: '10'
+        };
+        const filterChannel = channelMap[platform] || null;
+        
+        // Get ALL ChatRace conversations for proper unified sorting
+        const upstream = await callUpstream({
+          op: 'conversations',
+          op1: 'get',
+          account_id: resolvedAccountId,
+          offset: 0,
+          limit: 200, // Get more conversations for proper sorting
+        }, undefined, req);
+        
+        const chatraceData = await upstream.json().catch(() => null);
+        
+        if (chatraceData && chatraceData.status === 'OK' && Array.isArray(chatraceData.data)) {
+          const chatraceConversations = chatraceData.data
+            .filter(row => (filterChannel ? String(row.channel) === filterChannel : true))
+            .map((row, idx) => {
+              const conversationId = String(row.ms_id || row.id || idx + 1);
+              const displayName = String(row.full_name || `Guest ${idx + 1}`);
+              const avatarUrl = row.profile_pic || '';
+              return {
+                conversation_id: conversationId,
+                display_name: displayName,
+                username: displayName,
+                user_identifier: conversationId,
+                avatar_url: avatarUrl,
+                last_message_at: row.timestamp || null,
+                last_message_content: row.last_msg || '',
+                _platform: platform.charAt(0).toUpperCase() + platform.slice(1),
+                hash: '',
+                channel: row.channel || filterChannel || '9',
+                source: 'chatrace'
+              };
+            });
+          
+          allConversations.push(...chatraceConversations);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching ChatRace conversations:', error);
+      }
+    }
+    
+    // 2. Get unified conversations (Woodstock + VAPI)
+    if (platform === 'all' || ['woodstock', 'vapi'].includes(platform)) {
+      try {
+        // Get ALL Woodstock conversations for proper unified sorting  
+        const unifiedConversations = await dbBridge.getUnifiedConversations(
+          platform === 'all' ? null : platform,
+          200, // Get more conversations for proper sorting
+          0    // Start from beginning for unified sorting
+        );
+        
+        // Add source indicator
+        const enhancedUnified = unifiedConversations.map(convo => ({
+          ...convo,
+          source: convo._platform.toLowerCase(),
+          // Add visual indicators
+          display_name: `${getSourceIcon(convo._platform)} ${convo.display_name}`,
+        }));
+        
+        allConversations.push(...enhancedUnified);
+      } catch (error) {
+        console.error('❌ Error fetching unified conversations:', error);
+      }
+    }
+    
+    // 3. Sort all conversations by TRUE TIMESTAMP ORDER - most recent first
+    allConversations.sort((a, b) => {
+      const timeA = new Date(a.last_message_at || 0).getTime();
+      const timeB = new Date(b.last_message_at || 0).getTime();
+      return timeB - timeA; // Most recent first - PURE CHRONOLOGICAL ORDER
+    });
+    
+    console.log(`📊 Total conversations before pagination: ${allConversations.length}`);
+    
+    // 4. Apply pagination
+    const paginatedConversations = allConversations.slice(offset, offset + limit);
+    
+    console.log(`✅ Returning ${paginatedConversations.length} unified conversations`);
+    console.log(`📊 Sources: ${[...new Set(paginatedConversations.map(c => c.source))].join(', ')}`);
+    
+    return res.json({ 
+      status: 'success', 
+      data: paginatedConversations,
+      total: allConversations.length,
+      sources: {
+        chatrace: allConversations.filter(c => c.source === 'chatrace').length,
+        woodstock: allConversations.filter(c => c.source === 'woodstock').length,
+        vapi: allConversations.filter(c => c.source === 'vapi').length
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in unified conversations:', error);
+    return res.status(200).json({ status: 'error', message: error.message });
+  }
+}
+
+// Enhanced messages endpoint
+export async function getUnifiedMessages(req, res, callUpstream, resolveAccountId) {
+  try {
+    await initializeUnifiedInbox();
+    
+    const conversationId = String(req.params.id);
+    const limit = Math.max(1, Math.min(1000, Number(req.query.limit || 200)));
+    
+    console.log(`[UNIFIED MESSAGES] Loading for conversation: ${conversationId}`);
+    
+    // Determine source from conversation ID
+    const source = getConversationSource(conversationId);
+    
+    if (source === 'chatrace') {
+      // Use existing ChatRace logic
+      const upstream = await callUpstream({
+        op: 'conversations',
+        op1: 'get',
+        id: conversationId,
+        account_id: resolveAccountId(req),
+        offset: 0,
+        limit: Math.min(limit, 100),
+        expand: { comments: {}, refs: {}, appointments: {} },
+      }, undefined, req);
+      
+      const data = await upstream.json().catch(() => null);
+      if (data && data.status === 'OK' && Array.isArray(data.data)) {
+        const mapped = data.data
+          .map(row => {
+            const parts = [];
+            try {
+              const arr = JSON.parse(row.message || '[]');
+              for (const item of arr) {
+                if (item.type === 'typing') continue;
+                if (typeof item.text === 'string' && item.text.trim().length > 0) {
+                  parts.push(item.text);
+                } else if (item.attachment && item.attachment.payload) {
+                  const element = item.attachment.payload.elements?.[0];
+                  const url = element?.url || item.attachment.payload.url;
+                  if (url) parts.push(`[media] ${url}`);
+                }
+              }
+            } catch {
+              if (row.message) parts.push(String(row.message));
+            }
+            const content = parts.join('\n').trim();
+            return {
+              message_created_at: Number(row.timestamp || Date.now()),
+              message_content: content,
+              message_role: (String(row.dir) === '0' ? 'assistant' : 'user'),
+              function_execution_status: 'read',
+              source: 'chatrace'
+            };
+          })
+          .filter(m => m.message_content && m.message_content.length > 0);
+        
+        return res.json({ status: 'success', data: mapped });
+      }
+    } else {
+      // Use unified database
+      const messages = await dbBridge.getUnifiedMessages(conversationId, limit);
+      
+      // Enhance messages with source info
+      const enhancedMessages = messages.map(msg => ({
+        ...msg,
+        source: source,
+        // Add visual indicators for function calls
+        message_content: enhanceFunctionCallDisplay(msg.message_content, msg.function_data)
+      }));
+      
+      return res.json({ status: 'success', data: enhancedMessages });
+    }
+    
+    return res.json({ status: 'success', data: [] });
+    
+  } catch (error) {
+    console.error('❌ Error in unified messages:', error);
+    return res.status(200).json({ status: 'error', message: error.message });
+  }
+}
+
+// Helper functions
+function getConversationSource(conversationId) {
+  if (conversationId.startsWith('woodstock_')) return 'woodstock';
+  if (conversationId.startsWith('vapi_')) return 'vapi';
+  return 'chatrace';
+}
+
+function getSourceIcon(platform) {
+  const icons = {
+    'Woodstock': '🌲',
+    'Vapi': '📞',
+    'Webchat': '💬',
+    'Facebook': '📘',
+    'Instagram': '📷'
+  };
+  return icons[platform] || '💬';
+}
+
+function enhanceFunctionCallDisplay(content, functionData) {
+  if (!functionData || !functionData.function_name) {
+    return content;
+  }
+  
+  let enhanced = content;
+  
+  // Add function call visualization
+  enhanced += `\n\n🔧 **Function Call: ${functionData.function_name}**`;
+  
+  if (functionData.input_parameters) {
+    try {
+      const params = typeof functionData.input_parameters === 'string' 
+        ? JSON.parse(functionData.input_parameters) 
+        : functionData.input_parameters;
+      enhanced += `\n📥 **Input:** ${JSON.stringify(params, null, 2)}`;
+    } catch (e) {
+      enhanced += `\n📥 **Input:** ${functionData.input_parameters}`;
+    }
+  }
+  
+  if (functionData.output_result) {
+    try {
+      const result = typeof functionData.output_result === 'string' 
+        ? JSON.parse(functionData.output_result) 
+        : functionData.output_result;
+      enhanced += `\n📤 **Result:** ${JSON.stringify(result, null, 2)}`;
+    } catch (e) {
+      enhanced += `\n📤 **Result:** ${functionData.output_result}`;
+    }
+  }
+  
+  return enhanced;
+}
+
+// Sync endpoint for manual refresh
+export async function triggerUnifiedSync(req, res) {
+  try {
+    await initializeUnifiedInbox();
+    await dbBridge.runSync();
+    
+    return res.json({ 
+      status: 'success', 
+      message: 'Unified sync completed successfully' 
+    });
+  } catch (error) {
+    console.error('❌ Manual sync failed:', error);
+    return res.status(500).json({ 
+      status: 'error', 
+      message: error.message 
+    });
+  }
+}
+

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChatProvider, useChat } from './context/ChatContext';
 import MainLayout from './components/layout/MainLayout';
 import LoginScreen from './components/auth/LoginScreen';
@@ -149,11 +149,28 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     }
   }, [isLoggedIn, platform]);
 
-  const loadConversations = async () => {
-    setLoading(true);
+  // Infinite scroll state
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const loadConversations = async (offset = 0, append = false) => {
+    if (!append) {
+      setLoading(true);
+      setHasMore(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+    
     let result;
     
-    console.log('🔥 Loading conversations, demoMode:', demoMode, 'platform:', platform);
+    // 🧪 UNIFIED INBOX BETA TEST - Safe feature flag
+    const useUnifiedInbox = localStorage.getItem('UNIFIED_INBOX_BETA') === 'true';
+    const effectivePlatform = useUnifiedInbox ? 'all' : platform;
+    
+    console.log('🔥 Loading conversations, demoMode:', demoMode, 'platform:', platform, 'offset:', offset);
+    if (useUnifiedInbox) {
+      console.log('🧪 BETA: Using unified inbox (platform=all) - ChatRace + Woodstock conversations');
+    }
     
     try {
       if (demoMode) {
@@ -163,7 +180,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           body: JSON.stringify({ type: 'conversations' })
         });
       } else {
-        result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(platform)}&limit=50`, {
+        result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(effectivePlatform)}&limit=50&offset=${offset}`, {
           method: 'GET',
           headers: {
             'X-ACCESS-TOKEN': userToken || '',
@@ -178,22 +195,43 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       
       if ((data.status === 'OK' || data.status === 'success') && Array.isArray(data.data)) {
         const base = data.data;
-        const mappedConversations = base.map((item, idx) => ({
-          id: item.conversation_id || item.ms_id || item.id,
-          name: item.display_name || item.full_name || item.name || 'Unknown',
-          email: item.email || `${item.display_name || 'guest'}@example.com`,
-          avatar: item.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(item.user_identifier || item.conversation_id || 'visitor_'+idx)}`,
-          status: 'online',
-          lastMessage: item.last_message_content || item.last_msg || 'No messages',
-          timestamp: new Date(item.last_message_at || Date.now()),
-          unreadCount: 0,
-          priority: 'low',
-          tags: [platform.charAt(0).toUpperCase() + platform.slice(1)],
-          department: 'Support'
-        }));
+        const mappedConversations = base.map((item, idx) => {
+          // Determine source for tags and identification
+          const source = item.source || 'chatrace'; // Default to chatrace for compatibility
+          const sourceLabel = source === 'woodstock' ? 'Woodstock' : 
+                             source === 'vapi' ? 'VAPI' : 
+                             'ChatRace';
+          
+          return {
+            id: item.conversation_id || item.ms_id || item.id,
+            name: item.display_name || item.full_name || item.name || 'Unknown',
+            email: item.email || `${item.display_name || 'guest'}@example.com`,
+            avatar: item.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(item.user_identifier || item.conversation_id || 'visitor_'+idx)}`,
+            status: 'online',
+            lastMessage: item.last_message_content || item.last_msg || 'No messages',
+            timestamp: new Date(item.last_message_at || Date.now()),
+            unreadCount: 0,
+            priority: 'low',
+            tags: useUnifiedInbox ? [sourceLabel] : [platform.charAt(0).toUpperCase() + platform.slice(1)],
+            department: 'Support',
+            source: source // Keep source for message routing
+          };
+        });
         
         console.log('✅ Conversaciones mapeadas:', mappedConversations);
-        setConversations(mappedConversations);
+        
+        if (append) {
+          // Append new conversations to existing ones
+          setConversations(prev => [...prev, ...mappedConversations]);
+        } else {
+          // Replace conversations (initial load)
+          setConversations(mappedConversations);
+        }
+        
+        // Check if we got fewer conversations than requested (end of list)
+        if (mappedConversations.length < 50) {
+          setHasMore(false);
+        }
         
         // Update counts
         try {
@@ -219,10 +257,22 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
       }
     } catch (error) {
       console.error('Error loading conversations:', error);
-      setConversations([]);
+      if (!append) {
+        setConversations([]);
+      }
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
     }
+  };
+
+  const loadMoreConversations = async () => {
+    if (!hasMore || isLoadingMore) return;
+    
+    const currentCount = conversations.length;
+    console.log(`🔄 Loading more conversations. Current count: ${currentCount}`);
+    
+    await loadConversations(currentCount, true);
   };
 
   const loadMessages = async (contactId) => {
@@ -593,7 +643,10 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     counts: useChat().counts,
     loading: useChat().loading,
     toasts: useChat().toasts,
-    demoMode: useChat().demoMode
+    demoMode: useChat().demoMode,
+    // Infinite scroll state
+    hasMore: hasMore,
+    isLoadingMore: isLoadingMore
   };
 
   const appActions = {
@@ -623,7 +676,9 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     requestAiSuggestion,
     sendFlow,
     sendStep,
-    sendProducts
+    sendProducts,
+    // Infinite scroll action
+    loadMoreConversations
   };
 
   if (!isLoggedIn) {

@@ -32,7 +32,9 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
     platform,
     counts,
     loading,
-    toasts
+    toasts,
+    hasMore,
+    isLoadingMore
   } = appState;
 
   // Handle mobile view changes
@@ -60,6 +62,7 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
     handleSwitchAccount,
     handleLogout,
     removeToast,
+    loadMoreConversations,
     ...actionHandlers
   } = appActions;
 
@@ -114,6 +117,9 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
             onChangePassword={onChangePassword}
             isMobile={true}
             user={user}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMoreConversations={loadMoreConversations}
           />
         </div>
 
@@ -176,6 +182,9 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
           onChangePassword={onChangePassword}
           isMobile={false}
           user={user}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          onLoadMoreConversations={loadMoreConversations}
         />
 
         {/* Chat Area */}
