@@ -114,9 +114,28 @@ export async function getUnifiedConversations(req, res, callUpstream, resolveAcc
     
     // 3. Sort all conversations by TRUE TIMESTAMP ORDER - most recent first
     allConversations.sort((a, b) => {
-      const timeA = new Date(a.last_message_at || 0).getTime();
-      const timeB = new Date(b.last_message_at || 0).getTime();
-      return timeB - timeA; // Most recent first - PURE CHRONOLOGICAL ORDER
+      // Handle different timestamp formats: Unix ms (ChatRace) vs ISO strings (Woodstock)
+      let timeA = a.last_message_at || 0;
+      let timeB = b.last_message_at || 0;
+      
+      // Convert Unix timestamp strings to numbers for ChatRace
+      if (typeof timeA === 'string' && /^\d+$/.test(timeA)) {
+        timeA = parseInt(timeA);
+      }
+      if (typeof timeB === 'string' && /^\d+$/.test(timeB)) {
+        timeB = parseInt(timeB);
+      }
+      
+      // Convert to Date objects for proper comparison
+      const dateA = new Date(timeA).getTime();
+      const dateB = new Date(timeB).getTime();
+      
+      // Debug logging to see what's happening
+      if (Math.random() < 0.01) { // Only log 1% of comparisons to avoid spam
+        console.log(`🔄 Sort compare: ${dateA} vs ${dateB} (${new Date(dateA).toISOString()} vs ${new Date(dateB).toISOString()})`);
+      }
+      
+      return dateB - dateA; // Most recent first - PURE CHRONOLOGICAL ORDER
     });
     
     console.log(`📊 Total conversations before pagination: ${allConversations.length}`);

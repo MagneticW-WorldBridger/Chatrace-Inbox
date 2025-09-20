@@ -2,6 +2,10 @@
 // WORKING PULL Integration: Bridge external databases to unified inbox
 
 import pg from 'pg';
+import { config } from 'dotenv';
+
+// Load environment variables
+config();
 
 class DatabaseBridgeIntegration {
   constructor() {
