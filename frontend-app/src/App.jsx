@@ -184,7 +184,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           method: 'GET',
           headers: {
             'X-ACCESS-TOKEN': userToken || '',
-            'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
+            'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || '',
+            'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false'
           }
         });
       }
@@ -237,9 +238,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         try {
           if (!demoMode) {
             const [rWeb, rIg, rFb] = await Promise.all([
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`)
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
+                headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+              }),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
+                headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+              }),
+              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
+                headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+              })
             ]);
             const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
             const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;

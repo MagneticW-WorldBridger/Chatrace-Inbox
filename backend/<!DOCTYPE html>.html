@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jean de Lassé Sobrado — CV</title>
+<style>
+  /* ====== Theme (one accent color) ====== */
+  :root{
+    --ink:#111;
+    --sub:#666;
+    --accent:#0B84F3;             /* change this one hex if you want a different accent */
+    --bg:#fff;
+    --s1:8px; --s2:12px; --s3:16px; --s4:20px; --s5:28px; --s6:36px; --s7:48px;
+    --maxw:780px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#f5f5f5}
+  body{font:400 14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);padding:24px}
+  .cv{max-width:var(--maxw);margin:0 auto;background:var(--bg);padding:28px 32px;box-shadow:0 0 20px rgba(0,0,0,.06)}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  strong{font-weight:700}
+
+  /* ====== Header ====== */
+  header{display:flex;align-items:flex-start;gap:16px;margin-bottom:var(--s4)}
+  .headshot{
+    width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:50% 15%;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);flex:0 0 auto;
+  }
+  .titleblock{flex:1 1 auto}
+  .name{font-weight:900;font-size:var(--s7);line-height:.92;letter-spacing:-.5px}
+  .tag{margin-top:6px;color:var(--sub);font-size:15px}
+  .meta{margin-top:6px;color:var(--sub);font-size:13px}
+
+  /* ====== Sections ====== */
+  section{margin-top:var(--s5)}
+  h2{
+    font:800 15px/1.2 inherit; color:var(--accent); letter-spacing:.6px;
+    text-transform:uppercase; margin-bottom:10px;
+    border-bottom:2px solid var(--accent); padding-bottom:4px;
+  }
+  p{margin:6px 0}
+  ul{margin-left:18px}
+  li{margin:5px 0}
+  .block{margin-top:10px;break-inside:avoid}
+  .role{font-weight:700}
+  .where{color:var(--sub)}
+  .when{float:right;color:var(--sub)}
+  .clear{clear:both}
+  .chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{background:#f1f3f5;border-radius:4px;padding:2px 8px;font-size:12px;color:#555}
+
+  /* ====== Print ====== */
+  @page{size: letter; margin: 0.6in}
+  @media print{
+    html,body{background:#fff}
+    .cv{box-shadow:none;padding:0}
+    a{color:inherit;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+  <div class="cv">
+    <header>
+      <img class="headshot" alt="Jean headshot"
+        src="https://scontent.fpcm1-2.fna.fbcdn.net/v/t39.30808-6/491276504_10225007719414775_4609042468807074679_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGlfoy4ZKn-MgC0uxAJNGZmbz_VJfaI7-9vP9Ul9ojv75W4PbguQksqRB-ob50mLO4&_nc_ohc=3RY-ViOIFWQQ7kNvwFsItXm&_nc_oc=Adl5NZ2AH4qV4H3aLVVmh7_tEw_6wD-W4s8GrOMxlZfX-Vw5HfqZTPOzmc-dfk_2KGUyQvQ34faqi9nB3Kl06KcU&_nc_zt=23&_nc_ht=scontent.fpcm1-2.fna&_nc_gid=uD1fAqi8jPsycmIlXqB1ng&oh=00_AfbhveD8cVn8nANZz8KhhrgV1bxXxXkO7nRBTkoWY1Wc-Q&oe=68D2ABC5">
+      <div class="titleblock">
+        <div class="name">JEAN DE LASSÉ SOBRADO</div>
+        <div class="tag">Ex-Founder • Systems/Platform Architect • Agentic AI</div>
+        <div class="meta">
+          Playa del Carmen, MX (US-Remote) • <a href="tel:+525578072778">+52 55-7807-2778</a> •
+          <a href="mailto:fotostesia@hotmail.com">fotostesia@hotmail.com</a> • Portfolio links in Projects
+        </div>
+      </div>
+    </header>
+
+    <section id="summary">
+      <h2>Summary</h2>
+      <p>Systems/AI engineer who ships <strong>real-time agentic</strong> products end-to-end. I build <strong>inference gateways</strong> (WebRTC/WebSocket), <strong>multi-tenant RAG</strong> on Postgres/pgvector, and <strong>LLM evaluation/guardrail</strong> pipelines (offline regression + shadow testing) with production SLOs. Operate from product shaping → architecture → hands-on delivery → observability & reliability at scale.</p>
+      <p><strong>Core:</strong> Agent runtimes • Realtime (WebRTC/WebSockets) • RAG (Vector Postgres) • LLM tool-use • Eval pipelines • Node/FastAPI • Postgres/Prisma • Redis • Twilio SIP/voice/SMS • OAuth2/OIDC/JWT/RBAC • CI/CD • Sentry/PostHog • TLS/AES-256/HMAC</p>
+    </section>
+
+    <section id="experience">
+      <h2>Experience</h2>
+
+      <div class="block">
+        <div><span class="role">Head of Systems (Partner) — LightFlow (AiPRL Assist)</span>
+          <span class="when">Remote | 2023–Present</span></div>
+        <div class="clear"></div>
+        <ul>
+          <li>Built an <strong>inference gateway</strong> (Node/FastAPI) with deadline propagation, timeouts, retries, <strong>circuit breakers</strong>, backpressure, and structured logging (trace IDs/OpenTelemetry); drove voice→LLM E2E to <strong>~350–400 ms p50</strong> (p95 tracked).</li>
+          <li>Designed <strong>LLM evaluation</strong>: golden datasets, offline regression suites, <strong>shadow evals</strong>, metric gates; prompt/version pinning & rollback; reduced hallucinations and tightened prompt change lead time.</li>
+          <li>Shipped <strong>multi-tenant RAG</strong> (Postgres + pgvector) with <strong>namespace-scoped retrieval</strong>, <strong>Row-Level Security</strong>, gateway RBAC/ABAC; <strong>tokenized device binding</strong> (QR) for kiosk/frontline.</li>
+          <li><strong>Telephony:</strong> Twilio SIP trunking, TTS/STT, speech-to-speech endpoints; webhook <strong>HMAC-SHA256</strong>, token-bucket rate limits, idempotent jobs.</li>
+          <li><strong>Legacy integration:</strong> middleware bridge to <strong>Trapeze</strong> (no modern API) with idempotent queues and safe scheduling intents (ADA transit).</li>
+          <li><strong>Build-vs-Buy:</strong> replaced a bespoke console with a focused vendor to hit <strong>time-to-value</strong> while retaining internal gateway/evals for quality control.</li>
+          <li><strong>Security/Compliance:</strong> SOC-2 aligned: least-privilege IAM, secrets mgmt, audit trails, <strong>TLS 1.2+</strong> in transit, <strong>AES-256</strong> at rest; incident runbooks; CCPA/GDPR readiness.</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div><span class="role">Founder — Fotostesia Group (Product Studio)</span>
+          <span class="when">Remote | 2019–Present</span></div>
+        <div class="clear"></div>
+        <ul>
+          <li>Delivered full-stack AI products (Next.js/Node/Python) and analytics dashboards; multi-tenant Stripe billing/provisioning.</li>
+          <li>Established trunk-based dev, GitHub Actions CI/CD, review apps, on-call rotation, incident response; mentored 2–4 ICs/engagement.</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <div><span class="role">Business Development & Portfolio Manager — Realty Trust Services</span>
+          <span class="when">Remote | 2019–Present</span></div>
+        <div class="clear"></div>
+        <ul>
+          <li>Built a <strong>multi-tenant knowledge RAG</strong> with role-scoped access (leasing/maintenance/accounting/investor) via <strong>JWT + RBAC</strong>; migrated internal ops to a modern stack.</li>
+        </ul>
+      </div>
+
+      <div class="block where">Earlier (select): Trilingual Service Desk Analyst (Compucom/Saputo), Project Executive (Marcus Evans), Medical Interpreter (LanguageLine).</div>
+    </section>
+
+    <section id="projects">
+      <h2>Selected Projects (live)</h2>
+
+      <div class="block">
+        <strong>Boost Mobile — Metadata Analytics Dashboard</strong> (Lead Architect) — Next.js • time-series SQL • instrumentation & SLOs<br/>
+        Live: <a href="https://metadata-dashboard-boost-mobile.vercel.app">metadata-dashboard-boost-mobile.vercel.app</a> — Observability across ~1M+ interactions; response-time & satisfaction by store.
+      </div>
+
+      <div class="block">
+        <strong>Multimodal Live-API Web Console</strong> (Solo Full-Stack) — <strong>WebRTC/WebSockets</strong> • tool-use<br/>
+        Live: <a href="https://multimodal-live-api-web-console-main-khaki.vercel.app/">multimodal-live-api-web-console-main-khaki.vercel.app</a> — Streaming voice/video assistant with transcript timeline and <strong>shadow-eval hooks</strong>.
+      </div>
+
+      <div class="block">
+        <strong>MV Transit Conversational Scheduling (pilot architecture)</strong> (Head of Systems) — Twilio SIP • STT/TTS • <strong>legacy bridge to Trapeze</strong><br/>
+        VoIP→LLM→Ops orchestration; call-event extraction → scheduling intents; designed for systems without a public API.
+      </div>
+
+      <div class="block">
+        <strong>RTS Pricing — Mira / LEO</strong> (Lead Dev/Engineer) — Next.js • Postgres • ML<br/>
+        Mira: <a href="https://rts-pricing-mira.vercel.app">rts-pricing-mira.vercel.app</a> &nbsp; LEO: <a href="https://rts-leo-pricing.vercel.app">rts-leo-pricing.vercel.app</a> — Nightly-rate optimization with explainability & human-in-the-loop controls.
+      </div>
+
+      <div class="block">
+        <strong>RTS RAG Knowledge Chat</strong> (Full-Stack) — Next.js • <strong>pgvector</strong> • Vercel AI SDK<br/>
+        Live: <a href="https://rts-rag.vercel.app">rts-rag.vercel.app</a> — “Chat with your data” over org chat history; <strong>namespace-scoped</strong> retrieval with citations.
+      </div>
+
+      <div class="block">
+        <strong>AI Employee — Number Manager (Billing/Admin)</strong> (Platform) — Next.js • Twilio • Stripe • RBAC<br/>
+        Billing: <a href="https://aiemployee-number-manager.vercel.app/billing/LusFdDhrjmcz5fWAUIqm">link</a> &nbsp; Admin: <a href="https://aiemployee-number-manager.vercel.app/admin/tr41n3dby41">link</a> — Usage-aware billing, provisioning; <strong>webhook HMAC</strong>, audit logs, rate limits.
+      </div>
+    </section>
+
+    <section id="systems">
+      <h2>Systems & Practices</h2>
+      <ul>
+        <li><strong>SLOs & Reliability:</strong> request budgets; timeout/retry/backoff; <strong>circuit breakers</strong>; idempotency; canary/blue-green; synthetic checks; p50/p95/error-budgets; runbooks/on-call.</li>
+        <li><strong>LLM Quality & Safety:</strong> offline regression; <strong>shadow evals</strong>; metric gates; PII/PHI detectors; refusal policies; routing; prompt/version control & rollback.</li>
+        <li><strong>Data Isolation:</strong> tenant namespaces; <strong>RLS</strong> in Postgres; RBAC/ABAC at gateway; JWT; <strong>tokenized device binding</strong> for kiosk/frontline.</li>
+        <li><strong>Security:</strong> OAuth2/OIDC/JWT; <strong>TLS 1.2+</strong>; <strong>AES-256-GCM</strong> at rest; <strong>HMAC-SHA256</strong> webhooks; least-privilege IAM; secrets & key rotation; audit trails.</li>
+      </ul>
+    </section>
+
+    <section id="tech">
+      <h2>Tech Stack</h2>
+      <div class="chiprow">
+        <div class="chip">OpenAI/Gemini</div><div class="chip">Function Calling</div><div class="chip">RAG (pgvector)</div>
+        <div class="chip">WebRTC/WebSockets</div><div class="chip">Twilio SIP/TTS/STT</div><div class="chip">Node/Express</div>
+        <div class="chip">Python/FastAPI</div><div class="chip">React/Next.js</div><div class="chip">TypeScript</div>
+        <div class="chip">PostgreSQL/Prisma</div><div class="chip">Redis</div><div class="chip">Vercel/Railway</div>
+        <div class="chip">GitHub Actions</div><div class="chip">Sentry/PostHog</div>
+      </div>
+    </section>
+
+    <section id="edu">
+      <h2>Education & Languages</h2>
+      <p><strong>Universidad Autónoma de Aguascalientes</strong> — French & Spanish Teaching (2015–2016) • Self-directed CS/AI via production builds</p>
+      <p><strong>English</strong> (Native) • <strong>Spanish</strong> (Native) • <strong>French</strong> (Professional)</p>
+    </section>
+  </div>
+</body>
+</html> 
