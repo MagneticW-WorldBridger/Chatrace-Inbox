@@ -11,7 +11,8 @@ export const AGENT_AVATAR_URL = '/AI%20AIPRL%20modern.png';
 export const PLATFORMS = {
   WEBCHAT: 'webchat',
   INSTAGRAM: 'instagram',
-  FACEBOOK: 'facebook'
+  FACEBOOK: 'facebook',
+  RURAL_KING: 'rural_king'
 };
 
 // Platform to Channel Mapping
@@ -21,6 +22,8 @@ export const getChannelForPlatform = (platform) => {
       return 10;
     case PLATFORMS.FACEBOOK:
       return 0;
+    case PLATFORMS.RURAL_KING:
+      return 12; // Rural King channel
     default:
       return 9; // webchat
   }

@@ -201,6 +201,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           const source = item.source || 'chatrace'; // Default to chatrace for compatibility
           const sourceLabel = source === 'woodstock' ? 'Woodstock' : 
                              source === 'vapi' ? 'VAPI' : 
+                             source === 'vapi_rural' ? 'Rural King' :
                              'ChatRace';
           
           return {
@@ -237,24 +238,55 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         // Update counts
         try {
           if (!demoMode) {
-            const [rWeb, rIg, rFb] = await Promise.all([
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
-                headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-              }),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
-                headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-              }),
-              fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
-                headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-              })
-            ]);
-            const [jWeb, jIg, jFb] = await Promise.all([rWeb.json(), rIg.json(), rFb.json()]);
-            const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
-            const cIg = Array.isArray(jIg?.data) ? jIg.data.length : 0;
-            const cFb = Array.isArray(jFb?.data) ? jFb.data.length : 0;
-            setCounts({ all: cWeb + cIg + cFb, webchat: cWeb, instagram: cIg, facebook: cFb });
+            // Use unified sources data if available (better performance)
+            if (useUnifiedInbox && data.sources) {
+              console.log('📊 Using unified sources for counts:', data.sources);
+              setCounts({
+                all: data.total || mappedConversations.length,
+                webchat: data.sources.chatrace || 0,
+                instagram: 0, // Instagram is part of ChatRace
+                facebook: 0,  // Facebook is part of ChatRace  
+                woodstock: data.sources.woodstock || 0,
+                vapi: data.sources.vapi || 0,
+                rural_king: data.sources.rural_king || 0
+              });
+            } else {
+              // Fallback to individual platform calls (original behavior)
+              const [rWeb, rIg, rFb, rRural] = await Promise.all([
+                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
+                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+                }),
+                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
+                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+                }),
+                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
+                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+                }),
+                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=rural_king&limit=50`, {
+                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
+                })
+              ]);
+              const [jWeb, jIg, jFb, jRural] = await Promise.all([rWeb.json(), rIg.json(), rFb.json(), rRural.json()]);
+              const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
+              const cIg = Array.isArray(jIg?.data) ? jIg.data.length : 0;
+              const cFb = Array.isArray(jFb?.data) ? jFb.data.length : 0;
+              const cRural = Array.isArray(jRural?.data) ? jRural.data.length : 0;
+              setCounts({ 
+                all: cWeb + cIg + cFb + cRural, 
+                webchat: cWeb, 
+                instagram: cIg, 
+                facebook: cFb,
+                rural_king: cRural
+              });
+            }
           } else {
-            setCounts({ all: mappedConversations.length, webchat: mappedConversations.length, instagram: 0, facebook: 0 });
+            setCounts({ 
+              all: mappedConversations.length, 
+              webchat: mappedConversations.length, 
+              instagram: 0, 
+              facebook: 0,
+              rural_king: 0
+            });
           }
         } catch (e) {
           console.warn('Counts update failed:', e);

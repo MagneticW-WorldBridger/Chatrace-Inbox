@@ -6,6 +6,7 @@ import Toast from '../ui/Toast';
 import WebSocketStatus from '../common/WebSocketStatus';
 import UserHeader from './UserHeader';
 import { AGENT_NAME, AGENT_AVATAR_URL } from '../../utils/constants';
+import '../../debug-borders.css';
 
 /**
  * Main Layout component that orchestrates the entire application
@@ -86,7 +87,8 @@ const MainLayout = ({ appState, appActions, user, onLogout, onChangePassword }) 
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-y-scroll bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden">
+    <div className="flex flex-col h-screen overflow-y-scroll bg-gradient-to-br from-gray-50 to-white text-black overflow-hidden debug-main-layout">
+      <div className="debug-label">🔴 MAIN LAYOUT</div>
       {/* <UserHeader 
         user={user}
         onLogout={onLogout}

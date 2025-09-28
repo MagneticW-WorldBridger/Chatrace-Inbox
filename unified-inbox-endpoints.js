@@ -88,22 +88,27 @@ export async function getUnifiedConversations(req, res, callUpstream, resolveAcc
       }
     }
     
-    // 2. Get unified conversations (Woodstock + VAPI)
-    if (platform === 'all' || ['woodstock', 'vapi'].includes(platform)) {
+    // 2. Get unified conversations (Woodstock + VAPI + Rural King)  
+    if (platform === 'all' || ['woodstock', 'vapi', 'vapi_rural', 'rural_king', 'sms', 'calls'].includes(platform)) {
       try {
-        // Get ALL Woodstock conversations for proper unified sorting  
+        // Map special filters to vapi_rural for Rural King data
+        let dbPlatform = platform;
+        if (platform === 'rural_king' || platform === 'sms' || platform === 'calls') {
+          dbPlatform = 'vapi_rural'; // All these filters show Rural King data
+        }
+        
+        // Get ALL unified conversations for proper unified sorting  
         const unifiedConversations = await dbBridge.getUnifiedConversations(
-          platform === 'all' ? null : platform,
+          platform === 'all' ? null : dbPlatform,
           200, // Get more conversations for proper sorting
           0    // Start from beginning for unified sorting
         );
         
-        // Add source indicator
+        // Add source indicator (display_name already includes icon from database bridge)
         const enhancedUnified = unifiedConversations.map(convo => ({
           ...convo,
-          source: convo._platform.toLowerCase(),
-          // Add visual indicators
-          display_name: `${getSourceIcon(convo._platform)} ${convo.display_name}`,
+          source: convo.source, // Keep original source
+          // Display name already has icon from database bridge
         }));
         
         allConversations.push(...enhancedUnified);
@@ -153,7 +158,9 @@ export async function getUnifiedConversations(req, res, callUpstream, resolveAcc
       sources: {
         chatrace: allConversations.filter(c => c.source === 'chatrace').length,
         woodstock: allConversations.filter(c => c.source === 'woodstock').length,
-        vapi: allConversations.filter(c => c.source === 'vapi').length
+        vapi: allConversations.filter(c => c.source === 'vapi').length,
+        vapi_rural: allConversations.filter(c => c.source === 'vapi_rural').length,
+        rural_king: allConversations.filter(c => c.source === 'vapi_rural').length // Alias for frontend
       }
     });
     
@@ -247,6 +254,7 @@ export async function getUnifiedMessages(req, res, callUpstream, resolveAccountI
 // Helper functions
 function getConversationSource(conversationId) {
   if (conversationId.startsWith('woodstock_')) return 'woodstock';
+  if (conversationId.startsWith('vapi_rural_')) return 'vapi_rural';
   if (conversationId.startsWith('vapi_')) return 'vapi';
   return 'chatrace';
 }
@@ -254,7 +262,9 @@ function getConversationSource(conversationId) {
 function getSourceIcon(platform) {
   const icons = {
     'Woodstock': '🌲',
+    'VAPI': '📞',
     'Vapi': '📞',
+    'Rural King': '🏪',
     'Webchat': '💬',
     'Facebook': '📘',
     'Instagram': '📷'

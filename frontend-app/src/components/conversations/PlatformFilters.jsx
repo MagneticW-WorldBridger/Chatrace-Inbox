@@ -35,11 +35,30 @@ const PlatformFilters = ({
       icon: FiFacebook, 
       label: 'Facebook', 
       count: counts.facebook || 0 
+    },
+    { 
+      id: PLATFORMS.RURAL_KING, 
+      icon: () => <span style={{fontSize: '16px'}}>🏪</span>, 
+      label: 'Rural King', 
+      count: counts.rural_king || 0 
+    },
+    { 
+      id: 'sms', 
+      icon: () => <span style={{fontSize: '16px'}}>💬</span>, 
+      label: 'SMS Only', 
+      count: counts.sms || 0 
+    },
+    { 
+      id: 'calls', 
+      icon: () => <span style={{fontSize: '16px'}}>📞</span>, 
+      label: 'Calls Only', 
+      count: counts.calls || 0 
     }
   ];
 
   return (
-    <div className={`overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${className}`}>
+    <div className={`overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] debug-platform-filters ${className}`}>
+      <div className="debug-label">🟡 PLATFORM FILTERS</div>
       <div className="flex items-center gap-2 min-w-max pb-1">
         {platforms.map(platform => {
           const Icon = platform.icon;

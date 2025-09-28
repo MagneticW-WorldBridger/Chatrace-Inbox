@@ -462,21 +462,64 @@ class DatabaseBridgeIntegration {
     
     const result = await this.mainDb.query(query, params);
     
-    // Transform to inbox format
+    // Transform to inbox format with PROPER SOURCE ICONS
     return result.rows.map(row => ({
       conversation_id: row.conversation_id,
-      display_name: `🌲 ${row.customer_name || 'Woodstock Customer'}`,
-      username: row.customer_name || 'Woodstock Customer',
+      display_name: this.getSourceDisplayName(row.source, row.customer_name),
+      username: row.customer_name || this.getDefaultCustomerName(row.source),
       user_identifier: row.conversation_id,
       avatar_url: `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(row.conversation_id)}`,
       last_message_at: row.last_message_at,
       last_message_content: row.last_message_content,
-      _platform: row.source === 'vapi' ? 'VAPI' : (row.source === 'woodstock' ? 'Woodstock' : 'ChatRace'),
+      _platform: this.getPlatformName(row.source),
       hash: '',
-      channel: row.source === 'vapi' ? '11' : '9', // VAPI uses channel 11
+      channel: this.getChannelNumber(row.source),
       source: row.source,
       metadata: row.metadata
     }));
+  }
+  
+  // RESTORED: Helper methods for proper source mapping
+  getSourceDisplayName(source, customerName) {
+    const icons = {
+      'vapi': '📞',
+      'woodstock': '🌲', 
+      'vapi_rural': '🏪',
+      'chatrace': '💬'
+    };
+    const icon = icons[source] || '💬';
+    const defaultName = this.getDefaultCustomerName(source);
+    return `${icon} ${customerName || defaultName}`;
+  }
+  
+  getDefaultCustomerName(source) {
+    const defaults = {
+      'vapi': 'VAPI Customer',
+      'woodstock': 'Woodstock Customer',
+      'vapi_rural': 'Rural King Customer', 
+      'chatrace': 'ChatRace Customer'
+    };
+    return defaults[source] || 'Unknown Customer';
+  }
+  
+  getPlatformName(source) {
+    const platforms = {
+      'vapi': 'VAPI',
+      'woodstock': 'Woodstock',
+      'vapi_rural': 'Rural King',
+      'chatrace': 'ChatRace'
+    };
+    return platforms[source] || 'Unknown';
+  }
+  
+  getChannelNumber(source) {
+    const channels = {
+      'vapi': '11',
+      'woodstock': '9', 
+      'vapi_rural': '12', // New channel for Rural King
+      'chatrace': '9'
+    };
+    return channels[source] || '9';
   }
   
   async getUnifiedMessages(conversationId, limit = 200) {
@@ -525,7 +568,73 @@ class DatabaseBridgeIntegration {
       }
     }
     
-    // Handle VAPI conversations - query local unified_messages table
+    // Handle VAPI Rural King conversations - fetch fresh data from API
+    if (conversationId.startsWith('vapi_rural_')) {
+      console.log(`🏪 Fetching Rural King messages for: ${conversationId}`);
+      
+      try {
+        // Extract phone from conversation_id (format: vapi_rural_+13323339453)
+        const phoneNumber = conversationId.replace('vapi_rural_', '');
+        
+        // Fetch fresh data from Rural King API
+        const response = await fetch(`https://rural-king-deploy.vercel.app/api/conversations/${encodeURIComponent(phoneNumber)}/messages?limit=200&offset=0`);
+        const data = await response.json();
+        
+        if (!data.success || !Array.isArray(data.messages)) {
+          console.log(`❌ Invalid Rural King messages response for ${phoneNumber}:`, data);
+          return [];
+        }
+        
+        console.log(`🏪 Found ${data.messages.length} Rural King messages from API`);
+        
+        return data.messages.map(message => {
+          // Enhanced message mapping for call detection
+          const enhancedFunctionData = {
+            ...message.function_data,
+            message_id: message.message_id,
+            message_type: message.message_type || 'sms'
+          };
+
+          let messageType = message.message_type || 'sms';
+          let messageContent = message.message_content;
+          
+          // CRITICAL: Detect VAPI call messages by role and content
+          if (message.message_role === 'system' || 
+              (message.function_data && message.function_data.call_id)) {
+            // This is a VAPI call message
+            messageType = 'call';
+            enhancedFunctionData.message_type = 'call';
+            
+            // Add call-specific metadata
+            enhancedFunctionData.call_id = message.function_data.call_id;
+            enhancedFunctionData.call_status = message.function_data.call_status;
+            enhancedFunctionData.call_duration = message.function_data.duration_seconds;
+            enhancedFunctionData.call_summary = message.function_data.summary;
+            enhancedFunctionData.transcript = message.message_content; // TRANSCRIPT IS HERE!
+            enhancedFunctionData.recording_url = message.function_data.recording_url;
+            enhancedFunctionData.ended_reason = message.function_data.ended_reason;
+            enhancedFunctionData.ended_at = message.function_data.ended_at;
+          }
+
+          return {
+            message_created_at: new Date(message.created_at).getTime(),
+            message_content: messageContent,
+            message_role: message.message_role,
+            function_execution_status: 'read',
+            function_data: enhancedFunctionData,
+            source: 'vapi_rural',
+            message_id: message.message_id,
+            message_type: messageType
+          };
+        });
+        
+      } catch (error) {
+        console.error('❌ Error fetching Rural King messages:', error);
+        return [];
+      }
+    }
+    
+    // Handle other VAPI conversations - query local unified_messages table
     console.log(`📞 Fetching unified messages for: ${conversationId}`);
     const result = await this.mainDb.query(`
       SELECT 
@@ -550,13 +659,78 @@ class DatabaseBridgeIntegration {
     }));
   }
   
+  async syncVAPIRuralKingConversations() {
+    console.log('🏪 Syncing VAPI Rural King conversations...');
+    
+    try {
+      // Fetch conversations from Rural King API
+      const response = await fetch('https://rural-king-deploy.vercel.app/api/conversations?limit=100&offset=0');
+      const data = await response.json();
+      
+      if (!data.success || !Array.isArray(data.conversations)) {
+        console.log('❌ Invalid Rural King API response:', data);
+        return;
+      }
+      
+      console.log(`📊 Found ${data.conversations.length} Rural King conversations`);
+      
+      for (const conversation of data.conversations) {
+        await this.syncVAPIRuralKingConversation(conversation);
+      }
+      
+      console.log(`✅ Synced ${data.conversations.length} Rural King conversations`);
+      
+    } catch (error) {
+      console.error('❌ Error syncing Rural King conversations:', error);
+    }
+  }
+  
+  async syncVAPIRuralKingConversation(conversation) {
+    try {
+      const conversationId = conversation.conversation_id;
+      
+      // Upsert conversation
+      await this.mainDb.query(`
+        INSERT INTO unified_conversations (
+          conversation_id, source, customer_name, customer_phone, customer_email,
+          last_message_content, last_message_at, updated_at, metadata
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (conversation_id) DO UPDATE SET
+          customer_name = EXCLUDED.customer_name,
+          customer_phone = EXCLUDED.customer_phone,
+          last_message_content = EXCLUDED.last_message_content,
+          last_message_at = EXCLUDED.last_message_at,
+          updated_at = EXCLUDED.updated_at,
+          metadata = EXCLUDED.metadata
+      `, [
+        conversationId,
+        'vapi_rural',
+        conversation.display_name,
+        conversation.user_identifier,
+        '', // No email in Rural King
+        conversation.last_message_content,
+        new Date(conversation.last_message_at),
+        new Date(),
+        JSON.stringify({
+          ...conversation.metadata,
+          platform_type: 'rural_king_sms_vapi',
+          message_count: conversation.message_count
+        })
+      ]);
+      
+    } catch (error) {
+      console.error(`Error syncing Rural King conversation ${conversation.conversation_id}:`, error);
+    }
+  }
+
   async runSync() {
     console.log('🔄 Starting unified conversation sync...');
     
     try {
       await Promise.all([
         this.syncWoodstockConversations(),
-        this.syncVAPIConversations()
+        this.syncVAPIConversations(),
+        this.syncVAPIRuralKingConversations() // RESTORED: Rural King integration
       ]);
       
       console.log('✅ Unified sync completed successfully');

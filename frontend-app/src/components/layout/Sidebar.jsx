@@ -114,12 +114,13 @@ const Sidebar = ({
       {/* Sidebar */}
       <div 
         className={`${isMobile
-            ? 'relative w-full h-full bg-white' 
-            : 'fixed md:relative inset-y-0 left-0 bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out flex flex-col'
+            ? 'relative w-full h-full bg-white debug-sidebar' 
+            : 'fixed md:relative inset-y-0 left-0 bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out flex flex-col debug-sidebar'
           } ${isMobile ? '' : (isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0')
         }`}
         style={isMobile ? {} : { width: `${width}px` }}
       >
+        <div className="debug-label">🟢 SIDEBAR</div>
         {/* Header - Fully Fixed at Top */}
         <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50">
           <div className="flex items-center justify-between mb-3">
