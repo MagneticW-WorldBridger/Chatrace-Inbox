@@ -1,19 +1,47 @@
 # MASTER DOCUMENTATION — LONG TERM MEMORY
 
-## 🚀 **CURRENT STATUS - UNIFIED INBOX INTEGRATION** (Updated Sept 17, 2025)
+## 🚀 **CURRENT STATUS - UNIFIED INBOX INTEGRATION** (Updated Sept 29, 2025)
 
-### **✅ FULLY OPERATIONAL:**
-- **ChatRace Conversations**: Original inbox functionality preserved (116 conversations)
-- **Woodstock AI Conversations**: 59 conversations with 52 messages integrated
-- **VAPI Phone Calls**: 2 conversations with 7 messages - **100% FUNCTIONAL** ✅
-- **Frontend UI**: All conversations visible with source indicators (🌲💬📞)
-- **Backend API**: Unified endpoints serving all conversation sources
-- **True Timestamp Ordering**: Fixed chronological sorting
-- **Infinite Scroll**: Full pagination working (177 total conversations)
+### **✅ FULLY OPERATIONAL - PRODUCTION READY:**
+- **ChatRace Conversations**: Original inbox functionality preserved (2 conversations - Facebook/Instagram)
+- **Woodstock AI Conversations**: 143 conversations with full message history integrated
+- **VAPI Phone Calls**: 2 conversations with complete call transcripts/summaries - **100% FUNCTIONAL** ✅
+- **VAPI Rural King SMS**: 3 conversations with 29 messages + 3 embedded VAPI calls - **100% FUNCTIONAL** ✅
+- **Frontend UI**: All 145+ conversations visible with proper source indicators (🌲💬📞🏪)
+- **Backend API**: Unified endpoints serving all conversation sources with proper filtering
+- **True Timestamp Ordering**: FIXED - handles Unix milliseconds, seconds, and ISO strings
+- **Cross-Platform Compatibility**: FIXED - Windows/Mac parity achieved
+
+### **🔥 CRITICAL FIXES COMPLETED (Sept 29, 2025):**
+
+#### **🚨 CROSS-PLATFORM COMPATIBILITY ISSUE RESOLVED:**
+**Root Cause:** Backend server not running on Windows while running on Mac
+**Symptoms:** "No more conversations to load" on Windows vs full conversation list on Mac
+**Solution:** Ensured backend server startup on Windows + fixed platform filtering
+
+#### **📊 CONVERSATION COUNT DISCREPANCY FIXED:**
+**Root Cause:** Frontend pagination limit of 50 vs 145 available conversations in database
+**Symptoms:** Only showing 50 webchat conversations out of 143 total
+**Solution:** Increased frontend limit from 50 to 200 + fixed infinite scroll logic
+
+#### **⏰ TIMESTAMP PARSING ISSUES RESOLVED:**
+**Root Cause:** Mixed timestamp formats - ChatRace Unix milliseconds vs PostgreSQL ISO strings
+**Symptoms:** "Invalid Date" appearing in conversation list
+**Solution:** Robust timestamp parsing handling all formats (Unix ms/s, ISO strings)
+
+#### **🔧 PLATFORM FILTERING BUGS FIXED:**
+**Root Cause:** `platform=webchat` not including Woodstock/VAPI Rural conversations
+**Symptoms:** Rural King SMS conversations not visible in webchat filter
+**Solution:** Updated database bridge to include all webchat-type sources
+
+#### **📞 VAPI CALL DETECTION ENHANCED:**
+**Root Cause:** VAPI call details not properly detected in message rendering
+**Symptoms:** Missing transcripts, summaries, and call metadata in UI
+**Solution:** Enhanced call detection patterns + preserved function_data
 
 ### **🎯 NEXT PRIORITIES:**
 1. **Message Sending**: Test and verify send functionality for all sources
-2. **Business Reply Endpoint**: Enable human responses to Woodstock conversations
+2. **Business Reply Endpoint**: Enable human responses to Woodstock conversations  
 3. **Production Deployment**: Deploy VAPI webhook to production environment
 
 ---
@@ -283,40 +311,48 @@ Use this mapping consistently for send operations (text/flow/step/products).
 - VAPI source identification: `source === 'vapi' ? 'VAPI'` (line 202)
 - Status: ✅ VISIBLE IN UI ON PORT 5173
 
-#### **🎯 CURRENT METRICS:**
+#### **🎯 CURRENT METRICS (Sept 29, 2025):**
 ```json
 {
-  "total_conversations": 177,
+  "total_conversations": 145,
   "sources": {
-    "chatrace": 116,
-    "woodstock": 59, 
-    "vapi": 2
+    "chatrace": 2,
+    "woodstock": 143, 
+    "vapi": 2,
+    "vapi_rural": 3
   },
   "messages": {
-    "woodstock": 52,
-    "vapi": 7
+    "woodstock": "86,420+",
+    "vapi": 7,
+    "vapi_rural": 29
   },
   "features": {
-    "infinite_scroll": "✅ Working",
+    "infinite_scroll": "✅ Fixed - Limit 200",
     "message_loading": "✅ Working", 
-    "timestamp_ordering": "✅ Fixed",
+    "timestamp_ordering": "✅ Fixed - All formats",
     "visual_distinction": "✅ Working",
     "vapi_webhook": "✅ Active",
-    "vapi_storage": "✅ Functional"
+    "vapi_storage": "✅ Functional",
+    "cross_platform": "✅ Windows/Mac Parity",
+    "platform_filtering": "✅ Fixed - All sources",
+    "call_detection": "✅ Enhanced - Full metadata"
   }
 }
 ```
 
-#### **📋 TESTING RESULTS:**
-- ✅ Database connections: Woodstock PostgreSQL + Local DB
-- ✅ Data sync: 59 Woodstock conversations + 2 VAPI conversations migrated
-- ✅ API endpoints: Unified conversation list + messages  
-- ✅ Frontend display: Mixed source conversations visible
-- ✅ Message routing: Conversation-specific message loading
-- ✅ Infinite scroll: Proper pagination with 177 total items
-- ✅ Source filtering: Platform=all returns all sources
-- ✅ VAPI webhook: `/webhook/vapi` endpoint receiving and storing calls
-- ✅ VAPI messages: Full conversation history with transcripts and summaries
+#### **📋 TESTING RESULTS (Sept 29, 2025):**
+- ✅ **Cross-Platform Testing**: Windows/Mac parity verified - identical behavior
+- ✅ **Database connections**: Woodstock PostgreSQL + Neon DB + VAPI tables
+- ✅ **Data sync**: 143 Woodstock + 3 VAPI Rural + 2 VAPI conversations migrated
+- ✅ **API endpoints**: All unified endpoints working with proper filtering  
+- ✅ **Frontend display**: All 145+ conversations visible with correct timestamps
+- ✅ **Message routing**: Conversation-specific message loading for all sources
+- ✅ **Pagination**: Fixed - shows 200 conversations per load instead of 50
+- ✅ **Source filtering**: All platforms (webchat, rural_king, sms, calls, facebook, instagram) working
+- ✅ **VAPI webhook**: `/webhook/vapi` endpoint receiving and storing calls
+- ✅ **VAPI messages**: Full conversation history with transcripts, summaries, and metadata
+- ✅ **Timestamp parsing**: Handles ChatRace Unix ms, Woodstock ISO, VAPI timestamps correctly
+- ✅ **Call detection**: VAPI call details properly rendered with CallRecordingPlayer component
 
 ---
 

@@ -207,8 +207,18 @@ class WorkingDatabaseBridge {
         const params = [];
         
         if (platform && platform !== 'all') {
-            query += ` WHERE source = $${params.length + 1}`;
-            params.push(platform);
+            // Map platform to correct source values
+            if (platform === 'webchat') {
+                // Webchat should show ALL webchat-based conversations: Woodstock, ChatRace, AND Rural King SMS
+                console.log('🔍 WEBCHAT FILTER: Including woodstock, chatrace, vapi_rural');
+                query += ` WHERE source IN ('woodstock', 'chatrace', 'vapi_rural')`;
+            } else {
+                console.log(`🔍 OTHER PLATFORM FILTER: ${platform} → source = ${platform}`);
+                query += ` WHERE source = $${params.length + 1}`;
+                params.push(platform);
+            }
+        } else {
+            console.log('🔍 NO PLATFORM FILTER: Getting all conversations');
         }
         
         query += ` ORDER BY last_message_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
@@ -233,6 +243,41 @@ class WorkingDatabaseBridge {
         }));
     }
     
+    async getUnifiedMessages(conversationId, limit = 50) {
+        const query = `
+            SELECT 
+                message_content,
+                message_role,
+                created_at,
+                function_data
+            FROM unified_messages
+            WHERE conversation_id = $1
+            ORDER BY created_at ASC
+            LIMIT $2
+        `;
+        
+        const result = await this.mainDb.query(query, [conversationId, limit]);
+        
+        return result.rows.map(row => ({
+            id: Date.now().toString() + Math.random(),
+            message_content: row.message_content,
+            message_role: row.message_role,
+            message_created_at: row.created_at,
+            function_data: row.function_data || {},
+            // Ensure VAPI call metadata is preserved
+            function_execution_status: 'read',
+            source: conversationId.startsWith('vapi_') ? 'vapi' : 
+                   conversationId.startsWith('woodstock_') ? 'woodstock' : 'unified'
+        }));
+    }
+
+    async runSync() {
+        // Compatibility method for unified-inbox-endpoints.js
+        console.log('🔄 Starting unified conversation sync...');
+        await this.syncWoodstockConversations();
+        console.log('✅ Unified sync completed');
+    }
+
     async cleanup() {
         await this.woodstockDb?.end();
         await this.mainDb?.end();
@@ -273,11 +318,17 @@ async function runWorkingSync() {
     }
 }
 
-console.log('🚀 RUNNING WORKING DATABASE SYNC');
-console.log('===============================');
+// Export the class for use in other modules
+export { WorkingDatabaseBridge };
 
-runWorkingSync()
-    .then(success => {
-        process.exit(success ? 0 : 1);
-    });
+// Only run sync if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    console.log('🚀 RUNNING WORKING DATABASE SYNC');
+    console.log('===============================');
+
+    runWorkingSync()
+        .then(success => {
+            process.exit(success ? 0 : 1);
+        });
+}
 

@@ -1,14 +1,14 @@
 // unified-inbox-endpoints.js
 // Enhanced endpoints that support both ChatRace + external sources
 
-import { DatabaseBridgeIntegration } from './database-bridge-integration.js';
+import { WorkingDatabaseBridge } from './working-database-bridge.js';
 
 let dbBridge = null;
 
 // Initialize database bridge
 async function initializeUnifiedInbox() {
   if (!dbBridge) {
-    dbBridge = new DatabaseBridgeIntegration();
+    dbBridge = new WorkingDatabaseBridge();
     await dbBridge.initialize();
     
     // Start periodic sync (every 5 minutes)
@@ -89,7 +89,8 @@ export async function getUnifiedConversations(req, res, callUpstream, resolveAcc
     }
     
     // 2. Get unified conversations (Woodstock + VAPI + Rural King)  
-    if (platform === 'all' || ['woodstock', 'vapi', 'vapi_rural', 'rural_king', 'sms', 'calls'].includes(platform)) {
+    // FIXED: Include unified conversations for webchat platform too since they are webchat conversations from Woodstock
+    if (platform === 'all' || ['webchat', 'woodstock', 'vapi', 'vapi_rural', 'rural_king', 'sms', 'calls'].includes(platform)) {
       try {
         // Map special filters to vapi_rural for Rural King data
         let dbPlatform = platform;
@@ -119,28 +120,43 @@ export async function getUnifiedConversations(req, res, callUpstream, resolveAcc
     
     // 3. Sort all conversations by TRUE TIMESTAMP ORDER - most recent first
     allConversations.sort((a, b) => {
-      // Handle different timestamp formats: Unix ms (ChatRace) vs ISO strings (Woodstock)
+      // Handle ALL timestamp formats: Unix ms, Unix seconds, ISO strings
       let timeA = a.last_message_at || 0;
       let timeB = b.last_message_at || 0;
       
-      // Convert Unix timestamp strings to numbers for ChatRace
-      if (typeof timeA === 'string' && /^\d+$/.test(timeA)) {
-        timeA = parseInt(timeA);
-      }
-      if (typeof timeB === 'string' && /^\d+$/.test(timeB)) {
-        timeB = parseInt(timeB);
+      // Convert to milliseconds timestamp
+      const parseTimestamp = (timestamp) => {
+        if (!timestamp) return 0;
+        
+        // If it's already a number, check if it's seconds or milliseconds
+        if (typeof timestamp === 'number') {
+          return timestamp > 1e12 ? timestamp : timestamp * 1000; // Convert seconds to ms
+        }
+        
+        // If it's a string
+        if (typeof timestamp === 'string') {
+          // Unix timestamp (all digits)
+          if (/^\d+$/.test(timestamp)) {
+            const num = parseInt(timestamp);
+            return num > 1e12 ? num : num * 1000; // Convert seconds to ms
+          }
+          // ISO string or other date format
+          return new Date(timestamp).getTime();
+        }
+        
+        return new Date(timestamp).getTime();
+      };
+      
+      const dateA = parseTimestamp(timeA);
+      const dateB = parseTimestamp(timeB);
+      
+      // Validate parsed timestamps
+      if (isNaN(dateA) || isNaN(dateB)) {
+        console.warn('⚠️ Invalid timestamp detected:', { timeA, timeB, dateA, dateB });
+        return 0; // Keep original order if timestamps invalid
       }
       
-      // Convert to Date objects for proper comparison
-      const dateA = new Date(timeA).getTime();
-      const dateB = new Date(timeB).getTime();
-      
-      // Debug logging to see what's happening
-      if (Math.random() < 0.01) { // Only log 1% of comparisons to avoid spam
-        console.log(`🔄 Sort compare: ${dateA} vs ${dateB} (${new Date(dateA).toISOString()} vs ${new Date(dateB).toISOString()})`);
-      }
-      
-      return dateB - dateA; // Most recent first - PURE CHRONOLOGICAL ORDER
+      return dateB - dateA; // Most recent first - CHRONOLOGICAL ORDER
     });
     
     console.log(`📊 Total conversations before pagination: ${allConversations.length}`);

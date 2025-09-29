@@ -180,7 +180,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           body: JSON.stringify({ type: 'conversations' })
         });
       } else {
-        result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(effectivePlatform)}&limit=50&offset=${offset}`, {
+        result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(effectivePlatform)}&limit=200&offset=${offset}`, {
           method: 'GET',
           headers: {
             'X-ACCESS-TOKEN': userToken || '',
@@ -211,7 +211,27 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
             avatar: item.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(item.user_identifier || item.conversation_id || 'visitor_'+idx)}`,
             status: 'online',
             lastMessage: item.last_message_content || item.last_msg || 'No messages',
-            timestamp: new Date(item.last_message_at || Date.now()),
+            timestamp: (() => {
+              try {
+                if (!item.last_message_at) return new Date();
+                
+                // Handle Unix milliseconds (ChatRace)
+                if (typeof item.last_message_at === 'string' && /^\d{13}$/.test(item.last_message_at)) {
+                  return new Date(parseInt(item.last_message_at));
+                }
+                
+                // Handle Unix seconds (ChatRace legacy)
+                if (typeof item.last_message_at === 'string' && /^\d{10}$/.test(item.last_message_at)) {
+                  return new Date(parseInt(item.last_message_at) * 1000);
+                }
+                
+                // Handle ISO strings (Woodstock/VAPI)
+                const date = new Date(item.last_message_at);
+                return isNaN(date.getTime()) ? new Date() : date;
+              } catch {
+                return new Date();
+              }
+            })(),
             unreadCount: 0,
             priority: 'low',
             tags: useUnifiedInbox ? [sourceLabel] : [platform.charAt(0).toUpperCase() + platform.slice(1)],
@@ -231,7 +251,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         }
         
         // Check if we got fewer conversations than requested (end of list)
-        if (mappedConversations.length < 50) {
+        if (mappedConversations.length < 200) {
           setHasMore(false);
         }
         

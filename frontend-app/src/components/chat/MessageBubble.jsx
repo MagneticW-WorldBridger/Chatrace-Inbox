@@ -21,24 +21,30 @@ const MessageBubble = ({
 }) => {
   const { content, timestamp, status } = message;
   
-  // Check if this is a call recording message - FIXED FOR SYSTEM ROLE
+  // Check if this is a call recording message - COMPREHENSIVE DETECTION
   const isCallRecording = (
     // Direct call indicators
     message.message_type === 'call' ||
     (message.function_data && message.function_data.call_id) ||
     (message.function_data && message.function_data.recording_url) ||
     (message.function_data && message.function_data.call_duration && message.function_data.call_duration > 0) ||
+    (message.function_data && message.function_data.duration_seconds && message.function_data.duration_seconds > 0) ||
     // CRITICAL: System role messages are VAPI calls
     (message.role === 'system' || message.message_role === 'system') ||
     // Content pattern detection for Rural King calls
     content.includes('📞 VAPI Call') ||
     content.includes('🎵 Recording:') ||
     content.includes('📞 Phone call') ||
-    // Rural King specific patterns
+    // Rural King specific patterns - ENHANCED
     content.includes('AI: Hi, this is Rural King') ||
     (content.length > 200 && content.includes('User:') && content.includes('AI:')) ||
-    // VAPI call status patterns
-    content.includes('VAPI Call - No transcript available')
+    content.includes('VAPI Call - No transcript available') ||
+    // COMPREHENSIVE VAPI CALL DETECTION
+    (message.function_data && message.function_data.message_type === 'call') ||
+    (message.function_data && message.function_data.transcript && message.function_data.transcript.length > 50) ||
+    (message.function_data && message.function_data.call_summary) ||
+    // VAPI Rural calls with full transcripts
+    (content.includes('Thank you for your response. Just to confirm') && content.includes('order pickup'))
   );
   
   console.log('🔍 Call Detection:', {
