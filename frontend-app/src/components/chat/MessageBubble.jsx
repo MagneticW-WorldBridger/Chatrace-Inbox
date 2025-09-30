@@ -2,6 +2,170 @@ import { FiCheck } from 'react-icons/fi';
 import { formatTime } from '../../utils/formatters';
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import CallRecordingPlayer from './CallRecordingPlayer';
+import MessageRenderer from './MessageRenderer';
+import { useEffect, useState } from 'react';
+
+/**
+ * DIRECT CAROUSEL RENDERER - NO BULLSHIT, JUST WORKS
+ */
+const DirectCarouselRenderer = ({ content }) => {
+  const [carouselHTML, setCarouselHTML] = useState('');
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    try {
+      console.log('🔥 DIRECT CAROUSEL RENDERER - Processing:', content.substring(0, 100));
+      
+      // Extract carousel data - MULTIPLE PATTERNS
+      let carouselData = null;
+      
+      // Pattern 1: **CAROUSEL_DATA:** {json}
+      const pattern1 = content.match(/\*\*CAROUSEL_DATA:\*\*\s*({.*})/s);
+      if (pattern1) {
+        console.log('🎠 Pattern 1 match:', pattern1[1].substring(0, 100));
+        carouselData = JSON.parse(pattern1[1]);
+      }
+      
+      // Pattern 2: CAROUSEL_DATA: {json}  
+      if (!carouselData) {
+        const pattern2 = content.match(/CAROUSEL_DATA:\s*({.*})/s);
+        if (pattern2) {
+          console.log('🎠 Pattern 2 match:', pattern2[1].substring(0, 100));
+          carouselData = JSON.parse(pattern2[1]);
+        }
+      }
+      
+      // Pattern 3: Any {"products": in the message
+      if (!carouselData) {
+        const pattern3 = content.match(/({\"products\":\s*\[.*?\]})/s);
+        if (pattern3) {
+          console.log('🎠 Pattern 3 match:', pattern3[1].substring(0, 100));
+          carouselData = JSON.parse(pattern3[1]);
+        }
+      }
+
+      if (!carouselData || !carouselData.products) {
+        console.error('❌ No carousel data found');
+        setError(true);
+        return;
+      }
+
+      console.log('🎠 Found products:', carouselData.products.length);
+
+      // Generate HTML directly - FUCK THE COMPLEX SYSTEM
+      const products = carouselData.products;
+      const carouselId = `direct-carousel-${Date.now()}`;
+      
+      const productCards = products.map((product, index) => {
+        const imageUrl = product.image_url || 'https://via.placeholder.com/300x200/002147/FFFFFF?text=Woodstock+Furniture';
+        const price = product.price ? `$${product.price}` : 'Price on request';
+        
+        return `
+          <div class="product-card" style="
+            background: rgba(248, 249, 250, 0.9);
+            border: 1px solid rgba(222, 226, 230, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            min-width: 250px;
+            max-width: 280px;
+          " onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="product-image" style="height: 180px; overflow: hidden;">
+              <img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover;" 
+                   onerror="this.src='https://via.placeholder.com/300x200/002147/FFFFFF?text=Woodstock+Furniture'">
+            </div>
+            <div class="product-info" style="padding: 1rem;">
+              <h3 style="margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600; color: #002147; line-height: 1.3;">
+                ${product.name || 'Product'}
+              </h3>
+              <p style="margin: 0 0 0.75rem 0; font-size: 1.1rem; font-weight: 700; color: #d32535;">
+                ${price}
+              </p>
+              ${product.sku ? `<p style="margin: 0; font-size: 0.75rem; color: #6c757d;">SKU: ${product.sku}</p>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const html = `
+        <div class="direct-carousel-container" style="margin: 1rem 0;">
+          <div class="carousel-header" style="
+            background: linear-gradient(135deg, #002147, #1a365d);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+          ">
+            <i class="fas fa-shopping-cart"></i>
+            <span>🛒 Found ${products.length} Products</span>
+          </div>
+          <div class="carousel-content" style="
+            background: rgba(248, 249, 250, 0.8);
+            border: 1px solid rgba(222, 226, 230, 0.5);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 1rem;
+          ">
+            <div class="products-scroll" style="
+              display: flex;
+              gap: 1rem;
+              overflow-x: auto;
+              padding: 0.5rem 0;
+              scrollbar-width: thin;
+            ">
+              ${productCards}
+            </div>
+          </div>
+        </div>
+      `;
+
+      console.log('🎠 Generated HTML length:', html.length);
+      setCarouselHTML(html);
+      
+    } catch (error) {
+      console.error('❌ Direct carousel error:', error);
+      setError(true);
+    }
+  }, [content]);
+
+  if (error) {
+    return (
+      <div style={{ padding: '1rem', background: '#f8d7da', color: '#721c24', borderRadius: '8px' }}>
+        <p>❌ Carousel rendering failed</p>
+        <pre style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>{content}</pre>
+      </div>
+    );
+  }
+
+  if (!carouselHTML) {
+    return (
+      <div style={{ padding: '1rem', background: '#fff3cd', color: '#856404', borderRadius: '8px' }}>
+        <p>🎠 Loading carousel...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Show text content above carousel */}
+      <div style={{ marginBottom: '1rem' }}>
+        {content.split('**CAROUSEL_DATA:**')[0]?.trim() && (
+          <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {content.split('**CAROUSEL_DATA:**')[0].trim()}
+          </p>
+        )}
+      </div>
+      
+      {/* Render carousel */}
+      <div dangerouslySetInnerHTML={{ __html: carouselHTML }} />
+    </div>
+  );
+};
 
 /**
  * Individual message bubble component
@@ -20,6 +184,13 @@ const MessageBubble = ({
   isOwn 
 }) => {
   const { content, timestamp, status } = message;
+  
+  // DIRECT CAROUSEL DETECTION - BYPASS MessageRenderer COMPLEXITY
+  const hasCarouselData = content && (
+    content.includes('**CAROUSEL_DATA:**') || 
+    content.includes('CAROUSEL_DATA:') ||
+    content.includes('{"products"')
+  );
   
   // Check if this is a call recording message - FIXED FOR SYSTEM ROLE
   const isCallRecording = (
@@ -136,7 +307,14 @@ const MessageBubble = ({
             ? 'bg-[#05a6f4]/80 text-white' 
             : 'bg-gray-100 text-black'
         }`}>
-          <p className="leading-relaxed whitespace-pre-wrap break-words">{content}</p>
+          {hasCarouselData ? (
+            <DirectCarouselRenderer content={content} />
+          ) : (
+            <MessageRenderer 
+              message={message}
+              fallback={<p className="leading-relaxed whitespace-pre-wrap break-words">{content}</p>}
+            />
+          )}
         </div>
         
         {/* Message Meta */}
