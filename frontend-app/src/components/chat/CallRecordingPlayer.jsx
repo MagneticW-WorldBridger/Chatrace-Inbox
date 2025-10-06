@@ -168,38 +168,6 @@ const CallRecordingPlayer = ({
   // Progress percentage
   const progressPercentage = totalDuration ? (currentTime / totalDuration) * 100 : 0;
 
-  // Enhanced content parsing for different message types
-  const parseMessageContent = (content) => {
-    const result = {
-      isCallSummary: false,
-      isCallStart: false,
-      isRecordingMessage: false,
-      displayText: content,
-      extractedUrl: null,
-      extractedSummary: null
-    };
-    
-    if (content.includes('📞 Phone call started')) {
-      result.isCallStart = true;
-      result.displayText = 'Call initiated';
-    } else if (content.includes('📋 Call Summary:')) {
-      result.isCallSummary = true;
-      result.extractedSummary = content.replace('📋 Call Summary: ', '');
-      result.displayText = result.extractedSummary;
-    } else if (content.includes('🎵 Recording:')) {
-      result.isRecordingMessage = true;
-      const urlMatch = content.match(/🎵 Recording:\s*(https?:\/\/[^\s]+)/);
-      if (urlMatch) {
-        result.extractedUrl = urlMatch[1];
-        result.displayText = 'Recording available';
-      }
-    } else if (content.includes('VAPI Call - No transcript available')) {
-      result.displayText = 'Call attempted - No recording available';
-    }
-    
-    return result;
-  };
-
   return (
     <div className={`w-full max-w-lg ${isOwn ? 'ml-auto' : 'mr-auto'}`}>
       {/* Main Audio Player Glass Card */}
