@@ -14,3 +14,7 @@ __pycache__/
 .vscode/
 *.log
 original /
+
+# OAuth tokens - NEVER COMMIT
+.google-tokens*.json
+*oauth*tokens*.json

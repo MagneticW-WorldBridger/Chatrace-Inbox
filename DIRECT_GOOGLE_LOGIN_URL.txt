@@ -1,0 +1,24 @@
+🔥 URL DIRECTO AL GOOGLE LOGIN (PRODUCTION):
+
+https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&scope=openid%20email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.send%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.compose&prompt=consent&response_type=code&client_id=426960401142-a7rkln8fl3342kn99hl11vh65drp2fci.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Ffrontend-production-43b8.up.railway.app%2Foauth2callback
+
+---
+
+PARÁMETROS QUE TOMA DE LA DATABASE:
+
+1. business_id = "1145545" (de tu env var BUSINESS_ID)
+2. user_email = Email del usuario que hace login (ej: "penny@pennymustard.com")
+3. access_token = Token de Google para hacer API calls
+4. refresh_token = Para renovar cuando expire
+5. expires_at = Timestamp de expiración
+6. scope = Permisos autorizados
+
+UNIQUE KEY: (business_id, user_email)
+- Cada combinación business+email tiene sus propios tokens
+- Si Penny autoriza para business 1145545, se guarda con esa key
+- Si otro usuario autoriza para el mismo business, se guarda por separado
+
+DATOS ACTUALES EN DB:
+- user_email: jlasse@aiprlassist.com
+- business_id: 1145545
+- Token expirado (se auto-renueva cuando se use)

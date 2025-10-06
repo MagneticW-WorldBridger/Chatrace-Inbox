@@ -43,7 +43,7 @@ import {
   getUnifiedConversations, 
   getUnifiedMessages,
   triggerUnifiedSync 
-} from '../unified-inbox-endpoints.js';
+} from './unified-inbox-endpoints.js';
 
 const app = express();
 

@@ -42,6 +42,17 @@ gmail.compose    ← CRITICAL: Can compose emails
 - Service reads tokens from DB when sending
 - Auto-refresh expired tokens using refresh_token
 
+**Production URLs:**
+- Frontend: https://frontend-production-43b8.up.railway.app/
+- Backend: https://chatrace-inbox-production-561c.up.railway.app/ (port 8080)
+- Health: https://chatrace-inbox-production-561c.up.railway.app/healthz ✅
+
+**Deployment Steps Required:**
+1. Add redirect URIs to Google Console: `https://frontend-production-43b8.up.railway.app/oauth2callback`
+2. Set Railway env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+3. Run DB migration: `create-oauth-table.sql` on production DB
+4. Deploy latest code (already pushed to main)
+
 ---
 
 ## 🚀 **CURRENT STATUS - UNIFIED INBOX INTEGRATION** (Updated Sept 17, 2025)
