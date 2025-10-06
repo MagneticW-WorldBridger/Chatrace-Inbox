@@ -40,6 +40,10 @@ const CallRecordingPlayer = ({
   const audioRef = useRef(null);
   const progressRef = useRef(null);
 
+  // Parse content and get recording URL FIRST
+  const parsedContent = parseMessageContent(messageContent || transcript || '');
+  const finalRecordingUrl = recordingUrl || parsedContent.extractedUrl;
+
   // Initialize audio element
   useEffect(() => {
     if (finalRecordingUrl && !audioRef.current) {
@@ -162,9 +166,6 @@ const CallRecordingPlayer = ({
     
     return result;
   };
-  
-  const parsedContent = parseMessageContent(messageContent || transcript || '');
-  const finalRecordingUrl = recordingUrl || parsedContent.extractedUrl;
 
   return (
     <div className={`w-full max-w-lg ${isOwn ? 'ml-auto' : 'mr-auto'}`}>
