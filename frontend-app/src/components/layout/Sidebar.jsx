@@ -165,18 +165,15 @@ const Sidebar = ({
                       <GrShield className="w-4 h-4 text-gray-600" />
                       <span className="text-black">Change Password</span>
                     </button>
-                    {user?.role === 'admin' && (
-                      <>
-                        <button 
-                          title="AdminPanel"
-                          onClick={handleAdminPanel}
-                          className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left text-sm"
-                        >
-                          <FiSettings className="w-4 h-4 text-gray-600" />
-                          <span className="text-black">Settings</span>
-                        </button>
-                      </>
-                    )}
+                    {/* ALWAYS SHOW ADMIN PANEL */}
+                    <button 
+                      title="Admin Panel"
+                      onClick={handleAdminPanel}
+                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left text-sm"
+                    >
+                      <FiSettings className="w-4 h-4 text-gray-600" />
+                      <span className="text-black">Admin Panel</span>
+                    </button>
                     <button 
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left text-sm"
@@ -206,17 +203,14 @@ const Sidebar = ({
                 <GrShield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
 
-              {user?.role === 'admin' && (
-                <>
-                  <button 
-                    className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
-                    title="AdminPanel"
-                    onClick={handleAdminPanel}
-                  >
-                    <FiSettings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </button>
-                </>
-              )}
+              {/* ALWAYS SHOW ADMIN PANEL - Remove role check for now */}
+              <button 
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
+                title="Admin Panel"
+                onClick={handleAdminPanel}
+              >
+                <FiSettings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
             </div>
           </div>
           
