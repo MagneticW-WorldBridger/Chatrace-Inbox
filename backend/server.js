@@ -1103,7 +1103,20 @@ app.post('/api/test-auth', async (_req, res) => {
     if (accountId) {
       res.cookie('account_id', String(accountId), { httpOnly: false, sameSite: 'lax', maxAge: 31536000000 });
     }
-    return res.status(200).json({ status: 'OK', token, account_id: accountId, demoMode: false });
+    
+    // Return user with admin role so AdminPanel button appears
+    return res.status(200).json({ 
+      status: 'OK', 
+      token, 
+      account_id: accountId, 
+      demoMode: false,
+      user: {
+        email: 'admin@aiprlassist.com',
+        name: 'Admin User',
+        role: 'admin',
+        business_id: accountId
+      }
+    });
   } catch (error) {
     return res.status(200).json({ status: 'error', message: error.message });
   }
