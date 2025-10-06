@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import express from 'express';
-import { sendEmail, sendEmailWithAttachment } from '../gmail-service.js';
+import { sendEmail, sendEmailWithAttachment } from './gmail-service.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
