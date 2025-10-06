@@ -27,7 +27,8 @@ const CallRecordingPlayer = ({
   callId,
   orderContext = {},
   customerName,
-  isOwn = false
+  isOwn = false,
+  messageContent = ''
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -41,8 +42,8 @@ const CallRecordingPlayer = ({
 
   // Initialize audio element
   useEffect(() => {
-    if (recordingUrl && !audioRef.current) {
-      audioRef.current = new Audio(recordingUrl);
+    if (finalRecordingUrl && !audioRef.current) {
+      audioRef.current = new Audio(finalRecordingUrl);
       
       // Audio event listeners
       audioRef.current.addEventListener('loadedmetadata', () => {
@@ -73,11 +74,11 @@ const CallRecordingPlayer = ({
         audioRef.current = null;
       }
     };
-  }, [recordingUrl, volume]);
+  }, [finalRecordingUrl, volume]);
 
   // Play/pause toggle
   const togglePlayPause = async () => {
-    if (!audioRef.current || !recordingUrl) return;
+    if (!audioRef.current || !finalRecordingUrl) return;
     
     try {
       if (isPlaying) {
@@ -110,9 +111,9 @@ const CallRecordingPlayer = ({
 
   // Download recording
   const handleDownload = () => {
-    if (recordingUrl) {
+    if (finalRecordingUrl) {
       const link = document.createElement('a');
-      link.href = recordingUrl;
+      link.href = finalRecordingUrl;
       link.download = `call_${callId || 'recording'}.mp3`;
       document.body.appendChild(link);
       link.click();
@@ -129,6 +130,41 @@ const CallRecordingPlayer = ({
 
   // Progress percentage
   const progressPercentage = totalDuration ? (currentTime / totalDuration) * 100 : 0;
+
+  // Enhanced content parsing for different message types
+  const parseMessageContent = (content) => {
+    const result = {
+      isCallSummary: false,
+      isCallStart: false,
+      isRecordingMessage: false,
+      displayText: content,
+      extractedUrl: null,
+      extractedSummary: null
+    };
+    
+    if (content.includes('📞 Phone call started')) {
+      result.isCallStart = true;
+      result.displayText = 'Call initiated';
+    } else if (content.includes('📋 Call Summary:')) {
+      result.isCallSummary = true;
+      result.extractedSummary = content.replace('📋 Call Summary: ', '');
+      result.displayText = result.extractedSummary;
+    } else if (content.includes('🎵 Recording:')) {
+      result.isRecordingMessage = true;
+      const urlMatch = content.match(/🎵 Recording:\s*(https?:\/\/[^\s]+)/);
+      if (urlMatch) {
+        result.extractedUrl = urlMatch[1];
+        result.displayText = 'Recording available';
+      }
+    } else if (content.includes('VAPI Call - No transcript available')) {
+      result.displayText = 'Call attempted - No recording available';
+    }
+    
+    return result;
+  };
+  
+  const parsedContent = parseMessageContent(messageContent || transcript || '');
+  const finalRecordingUrl = recordingUrl || parsedContent.extractedUrl;
 
   return (
     <div className={`w-full max-w-lg ${isOwn ? 'ml-auto' : 'mr-auto'}`}>
@@ -147,7 +183,7 @@ const CallRecordingPlayer = ({
               {callId && `ID: ${callId.slice(-8)}`} • {formatDuration(totalDuration)}
             </p>
           </div>
-          {recordingUrl && (
+          {finalRecordingUrl && (
             <button
               onClick={handleDownload}
               className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-all duration-200 text-gray-700 hover:text-gray-900"
@@ -158,16 +194,30 @@ const CallRecordingPlayer = ({
           )}
         </div>
 
-        {/* Debug Info */}
-        <div className="text-xs text-gray-500 mb-2 bg-yellow-50 p-2 rounded">
-          🔍 Debug: Recording URL: {recordingUrl ? 'Available' : 'None'} | 
-          Duration: {duration}s | 
-          Call ID: {callId ? callId.slice(-8) : 'None'} |
-          Transcript: {transcript ? `${transcript.length} chars` : 'None'}
+        {/* Enhanced Status Info */}
+        <div className="text-xs text-gray-600 mb-3 bg-blue-50 p-2 rounded">
+          {parsedContent.isCallStart && '📞 Call initiated'}
+          {parsedContent.isCallSummary && '📋 Call completed with summary'}
+          {parsedContent.isRecordingMessage && '🎵 Recording available for playback'}
+          {parsedContent.displayText === 'Call attempted - No recording available' && '⚠️ Call attempted but no recording available'}
+          {!parsedContent.isCallStart && !parsedContent.isCallSummary && !parsedContent.isRecordingMessage && 
+           !parsedContent.displayText.includes('Call attempted') && 
+           transcript && transcript.length > 50 && '💬 Call transcript available'}
         </div>
+        
+        {/* Debug Info - Only show in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="text-xs text-gray-500 mb-2 bg-yellow-50 p-2 rounded">
+            🔍 Debug: Recording URL: {recordingUrl || parsedContent.extractedUrl ? 'Available' : 'None'} | 
+            Duration: {duration}s | 
+            Call ID: {callId ? callId.slice(-8) : 'None'} |
+            Content Type: {parsedContent.isCallStart ? 'Start' : parsedContent.isCallSummary ? 'Summary' : 
+                          parsedContent.isRecordingMessage ? 'Recording' : 'Transcript'}
+          </div>
+        )}
 
         {/* Audio Controls */}
-        {recordingUrl ? (
+        {finalRecordingUrl ? (
           <div className="space-y-3">
             {/* Play/Pause & Progress */}
             <div className="flex items-center gap-3">
@@ -245,13 +295,13 @@ const CallRecordingPlayer = ({
       </GlassCard>
 
       {/* Call Summary Card */}
-      {summary && (
+      {(summary || parsedContent.extractedSummary) && (
         <GlassCard variant="light" className="p-3 mb-3">
           <div className="flex items-start gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
             <div>
               <h5 className="font-medium text-gray-900 mb-1 text-sm">Call Summary</h5>
-              <p className="text-sm text-gray-700 leading-relaxed">{summary}</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{summary || parsedContent.extractedSummary}</p>
             </div>
           </div>
         </GlassCard>

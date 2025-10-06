@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import express from 'express';
+import { sendEmail, sendEmailWithAttachment } from '../gmail-service.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -129,10 +130,10 @@ app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 // MULTITENANT AUTH ENDPOINTS
 // ========================================
 
-// Google OAuth login endpoint
+// Google OAuth login endpoint - UPDATED WITH GMAIL SCOPES
 app.post('/api/auth/google-login', async (req, res) => {
   try {
-    const { token, businessId } = req.body;
+    const { token, businessId, accessToken, refreshToken, expiresAt, scope } = req.body;
     
     if (!token) {
       return res.status(400).json({ error: 'Google token required' });
@@ -148,6 +149,28 @@ app.post('/api/auth/google-login', async (req, res) => {
     const authorization = await checkUserAuthorization(businessId, userInfo.email);
     
     if (authorization) {
+      // Save OAuth tokens if provided (for Gmail access)
+      if (accessToken && scope) {
+        try {
+          await pool.query(`
+            INSERT INTO google_oauth_tokens 
+              (business_id, user_email, access_token, refresh_token, expires_at, scope)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (business_id, user_email) 
+            DO UPDATE SET 
+              access_token = $3,
+              refresh_token = COALESCE($4, google_oauth_tokens.refresh_token),
+              expires_at = $5,
+              scope = $6,
+              updated_at = NOW()
+          `, [businessId, userInfo.email, accessToken, refreshToken, expiresAt, scope]);
+          
+          console.log(`✅ OAuth tokens saved for ${userInfo.email}`);
+        } catch (err) {
+          console.error('❌ Failed to save OAuth tokens:', err);
+        }
+      }
+      
       // User is authorized - return success
       return res.json({
         status: 'success',
@@ -836,6 +859,32 @@ app.post('/api/inbox/conversations/:id/send', rateLimit, requireAuth, async (req
         channel: body.channel,
       };
     } else if (body && typeof body.message === 'string' && body.message.trim().length > 0) {
+      // Check if this is an EMAIL request
+      if (body.sendAsEmail && body.recipientEmail && body.fromEmail) {
+        try {
+          const result = await sendEmail({
+            businessId: accountId,
+            fromEmail: body.fromEmail,
+            to: body.recipientEmail,
+            subject: body.emailSubject || 'Message from ChatRace Inbox',
+            body: body.message,
+            html: body.emailHtml
+          });
+          
+          return res.status(200).json({ 
+            status: 'OK', 
+            type: 'email',
+            messageId: result.messageId,
+            threadId: result.threadId 
+          });
+        } catch (error) {
+          return res.status(500).json({ 
+            status: 'ERROR', 
+            message: `Email send failed: ${error.message}` 
+          });
+        }
+      }
+      
       // Plain text message - using HTTP API format (exact format from user)
       upstreamPayload = {
         op: 'conversations',
@@ -1145,9 +1194,56 @@ app.post('/api/validate-otp', async (req, res) => {
   }
 });
 
-// Placeholder Google login handler to allow UI flow; prefer direct OTP or manual token
-app.post('/api/google-login', async (_req, res) => {
-  return res.status(200).json({ status: 'ERROR', message: 'Google login via code not implemented in server. Use OTP flow or test-auth.' });
+// OAuth callback - exchange code for tokens
+app.post('/api/auth/google-callback', async (req, res) => {
+  try {
+    const { code, businessId } = req.body;
+    if (!code) return res.status(400).json({ error: 'Code required' });
+    
+    const oauth2Client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/oauth2callback'
+    );
+    
+    const { tokens } = await oauth2Client.getToken(code);
+    const ticket = await oauth2Client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    
+    const payload = ticket.getPayload();
+    
+    // Save tokens
+    await pool.query(`
+      INSERT INTO google_oauth_tokens 
+        (business_id, user_email, access_token, refresh_token, expires_at, scope)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (business_id, user_email) 
+      DO UPDATE SET 
+        access_token = $3,
+        refresh_token = COALESCE($4, google_oauth_tokens.refresh_token),
+        expires_at = $5,
+        scope = $6,
+        updated_at = NOW()
+    `, [
+      businessId,
+      payload.email,
+      tokens.access_token,
+      tokens.refresh_token,
+      new Date(tokens.expiry_date),
+      tokens.scope
+    ]);
+    
+    res.json({ 
+      status: 'success', 
+      email: payload.email,
+      hasGmailAccess: tokens.scope.includes('gmail')
+    });
+  } catch (error) {
+    console.error('❌ OAuth callback failed:', error);
+    res.status(500).json({ error: 'OAuth callback failed' });
+  }
 });
 
 // ===== Additional first-class endpoints for full Postman coverage =====

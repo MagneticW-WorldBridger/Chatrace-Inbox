@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OAuth Callback</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #1a1a1a;
+      color: #00ff00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✅ Authorization successful!</h1>
+    <p>Processing... You can close this window.</p>
+  </div>
+  
+  <script>
+    // Extract code and state from URL
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    
+    if (code) {
+      // Send code to parent window
+      if (window.opener) {
+        window.opener.postMessage({
+          type: 'oauth-callback',
+          code: code,
+          state: state ? JSON.parse(state) : null
+        }, window.location.origin);
+        
+        setTimeout(() => window.close(), 2000);
+      }
+    } else {
+      document.querySelector('.container').innerHTML = '<h1>❌ No authorization code received</h1>';
+    }
+  </script>
+</body>
+</html>
+
+
+

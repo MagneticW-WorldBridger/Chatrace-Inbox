@@ -5,6 +5,27 @@ import CallRecordingPlayer from './CallRecordingPlayer';
 import MessageRenderer from './MessageRenderer';
 import { useEffect, useState } from 'react';
 
+// Helper function to extract recording URL from message content
+const extractRecordingUrl = (content) => {
+  if (!content) return null;
+  
+  // Look for recording URL patterns
+  const patterns = [
+    /🎵 Recording:\s*(https?:\/\/[^\s]+)/i,
+    /Recording:\s*(https?:\/\/[^\s]+)/i,
+    /recording_url['":\s]*(https?:\/\/[^\s'"]+)/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+  
+  return null;
+};
+
 /**
  * DIRECT CAROUSEL RENDERER - NO BULLSHIT, JUST WORKS
  */
@@ -192,21 +213,23 @@ const MessageBubble = ({
     content.includes('{"products"')
   );
   
-  // Check if this is a call recording message - FIXED FOR SYSTEM ROLE
+  // Check if this is a call recording message - ENHANCED DETECTION
   const isCallRecording = (
     // Direct call indicators
     message.message_type === 'call' ||
     (message.function_data && message.function_data.call_id) ||
     (message.function_data && message.function_data.recording_url) ||
-    (message.function_data && message.function_data.call_duration && message.function_data.call_duration > 0) ||
+    (message.function_data && message.function_data.call_duration !== null) ||
     // CRITICAL: System role messages are VAPI calls
     (message.role === 'system' || message.message_role === 'system') ||
-    // Content pattern detection for Rural King calls
+    // Content pattern detection for all call types
     content.includes('📞 VAPI Call') ||
     content.includes('🎵 Recording:') ||
     content.includes('📞 Phone call') ||
+    content.includes('📋 Call Summary:') ||
     // Rural King specific patterns
     content.includes('AI: Hi, this is Rural King') ||
+    content.includes("AI: Hi. This is Rural King's automated system") ||
     (content.length > 200 && content.includes('User:') && content.includes('AI:')) ||
     // VAPI call status patterns
     content.includes('VAPI Call - No transcript available')
@@ -253,7 +276,7 @@ const MessageBubble = ({
         {/* Call Recording Player */}
         <div className="max-w-[85%] sm:max-w-[90%] lg:max-w-[80%] min-w-0">
           <CallRecordingPlayer
-            recordingUrl={message.function_data?.recording_url}
+            recordingUrl={message.function_data?.recording_url || extractRecordingUrl(content)}
             transcript={message.function_data?.transcript || message.function_data?.message_content || content}
             summary={message.function_data?.call_summary || message.function_data?.summary}
             duration={message.function_data?.call_duration || message.function_data?.duration_seconds}
@@ -265,6 +288,7 @@ const MessageBubble = ({
             }}
             customerName={contact?.name || message.function_data?.customer_name}
             isOwn={isOwn}
+            messageContent={content}
           />
           
           {/* Message Meta for Call */}

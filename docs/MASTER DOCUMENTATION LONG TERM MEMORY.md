@@ -1,5 +1,49 @@
 # MASTER DOCUMENTATION — LONG TERM MEMORY
 
+## 🔥 **LATEST UPDATE: GOOGLE OAUTH + GMAIL API INTEGRATION** (Oct 3, 2025)
+
+### **✅ SPRINT COMPLETED:**
+**Story:** Enable Gmail sending via Google OAuth for client email accounts (Penny Mustard, etc.)
+
+**Completed Tasks:**
+- ✅ Google OAuth flow tested and validated with Gmail scopes
+- ✅ Database schema created: `google_oauth_tokens` table
+- ✅ Backend endpoints updated to save OAuth tokens
+- ✅ New endpoint: `POST /api/auth/google-callback` for token exchange
+- ✅ Tested with both org (@aiprlassist.com) and external emails
+
+**Scopes Authorized:**
+```
+openid
+email
+profile
+gmail.send       ← CRITICAL: Can send emails
+gmail.compose    ← CRITICAL: Can compose emails
+```
+
+**Technical Implementation:**
+- Table: `google_oauth_tokens(business_id, user_email, access_token, refresh_token, expires_at, scope)`
+- Endpoint: `POST /api/auth/google-login` - Now saves full OAuth tokens
+- Endpoint: `POST /api/auth/google-callback` - Exchanges code for tokens
+- Test scripts: `test-google-oauth-auto.js`, `test-gmail-send.js`, `test-external-email.js`
+
+**Production Status:** ✅ **FULLY OPERATIONAL - 8/8 TESTS PASSED**
+
+**Test Results:** (See `TEST_RESULTS_GMAIL.md`)
+- ✅ 2 emails sent successfully (IDs: 199aaca8ecc9adb8, 199aaca91e7cd871)
+- ✅ Tokens stored and retrieved from DB
+- ✅ API endpoint `/api/inbox/conversations/:id/send` with email support
+- ✅ Frontend component `GoogleOAuthButton.jsx` created
+- ✅ OAuth callback flow complete
+
+**How Credentials Work:**
+- User authorizes via Google OAuth popup
+- Tokens stored in `google_oauth_tokens` table (business_id + user_email)
+- Service reads tokens from DB when sending
+- Auto-refresh expired tokens using refresh_token
+
+---
+
 ## 🚀 **CURRENT STATUS - UNIFIED INBOX INTEGRATION** (Updated Sept 17, 2025)
 
 ### **✅ FULLY OPERATIONAL:**
