@@ -33,10 +33,9 @@ export const useWebSocket = ({
   const getWhitelabelInfo = useCallback(async () => {
     try {
       console.log('🔍 Obteniendo información del whitelabel...');
-      const response = await fetch(`http://localhost:3001/api/whitelabel`, {
+      const response = await fetch(`${API_BASE_URL}/api/whitelabel`, {
         headers: {
-          'X-ACCESS-TOKEN': userToken || '',
-          'Origin': 'http://localhost:5173'
+          'X-ACCESS-TOKEN': userToken || ''
         }
       });
       const data = await response.json();
