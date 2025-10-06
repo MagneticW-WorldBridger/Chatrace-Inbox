@@ -510,8 +510,13 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     try {
       localStorage.removeItem('userToken');
       localStorage.removeItem('demoMode');
+      localStorage.removeItem('user');
+      localStorage.removeItem('businessId');
       document.cookie = 'account_id=; Max-Age=0; path=/';
       document.cookie = 'user_token=; Max-Age=0; path=/';
+      setUser(null);
+      setUserToken(null);
+      setLoggedIn(false);
     } catch {}
     window.location.reload();
   };
