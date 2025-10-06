@@ -37,7 +37,7 @@ const AdminPanel = ({ onClose, user }) => {
     try {
       const userToken = localStorage.getItem('userToken');
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userEmail = storedUser.email || user?.email || 'admin@woodstock.com';
+      const userEmail = storedUser?.email || user?.email || 'admin@aiprlassist.com';
       
       const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: {
@@ -65,7 +65,7 @@ const AdminPanel = ({ onClose, user }) => {
     try {
       const userToken = localStorage.getItem('userToken');
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userEmail = storedUser.email || user?.email || 'admin@woodstock.com';
+      const userEmail = storedUser?.email || user?.email || 'admin@aiprlassist.com';
       
       const response = await fetch(`${API_BASE_URL}/api/admin/pending-requests`, {
         headers: {
@@ -96,7 +96,7 @@ const AdminPanel = ({ onClose, user }) => {
     };
 
     loadData();
-  }, [businessId, user.email]);
+  }, [businessId, user?.email]);
 
   const handleCreateUser = async (userData) => {
     try {
@@ -189,7 +189,7 @@ const AdminPanel = ({ onClose, user }) => {
     try {
       const userToken = localStorage.getItem('userToken');
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userEmail = storedUser.email || user?.email || 'admin@woodstock.com';
+      const userEmail = storedUser?.email || user?.email || 'admin@aiprlassist.com';
       
       const response = await fetch(`${API_BASE_URL}/api/admin/users/${selectedUser.id}`, {
         headers: {
@@ -220,7 +220,7 @@ const AdminPanel = ({ onClose, user }) => {
     try {
       const userToken = localStorage.getItem('userToken');
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userEmail = storedUser.email || user?.email || 'admin@woodstock.com';
+      const userEmail = storedUser?.email || user?.email || 'admin@aiprlassist.com';
       
       const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
         method: 'PUT',
@@ -260,7 +260,7 @@ const AdminPanel = ({ onClose, user }) => {
     try {
       const userToken = localStorage.getItem('userToken');
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const userEmail = storedUser.email || user?.email || 'admin@woodstock.com';
+      const userEmail = storedUser?.email || user?.email || 'admin@aiprlassist.com';
       
       const response = await fetch(`${API_BASE_URL}/api/admin/users/${selectedUser.id}/status`, {
         method: 'PUT',
