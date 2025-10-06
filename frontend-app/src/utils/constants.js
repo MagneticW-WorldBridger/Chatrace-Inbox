@@ -1,6 +1,8 @@
 // API Configuration - Use backend URL directly
-// 🧪 TEMPORARY: Force local backend for unified inbox testing
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (window.location.hostname.includes('railway.app') 
+    ? 'https://chatrace-inbox-production-561c.up.railway.app' 
+    : 'http://localhost:3001');
 export const BUSINESS_ID = import.meta.env.VITE_BUSINESS_ID;
 
 // Agent Configuration
