@@ -135,6 +135,13 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
           setDemoMode(j.demoMode || false);
           localStorage.setItem('userToken', j.token);
           localStorage.setItem('demoMode', (j.demoMode || false).toString());
+          
+          // Save user object if provided (for admin role)
+          if (j.user) {
+            setUser(j.user);
+            localStorage.setItem('user', JSON.stringify(j.user));
+          }
+          
           setLoggedIn(true);
         }
       } catch {}
@@ -465,6 +472,13 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         setDemoMode(data.demoMode || false);
         localStorage.setItem('userToken', data.token);
         localStorage.setItem('demoMode', (data.demoMode || false).toString());
+        
+        // Save user object if provided (for admin role)
+        if (data.user) {
+          setUser(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        
         setLoggedIn(true);
       } else {
         addToast(`Authentication failed: ${data.message}`, 'error');
