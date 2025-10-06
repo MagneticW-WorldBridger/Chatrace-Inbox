@@ -40,7 +40,40 @@ const CallRecordingPlayer = ({
   const audioRef = useRef(null);
   const progressRef = useRef(null);
 
-  // Parse content and get recording URL FIRST
+  // Enhanced content parsing - DEFINE FUNCTION FIRST
+  const parseMessageContent = (content) => {
+    const result = {
+      isCallSummary: false,
+      isCallStart: false,
+      isRecordingMessage: false,
+      extractedUrl: null,
+      displayText: content || ''
+    };
+    
+    if (!content) return result;
+    
+    // Detect call patterns
+    if (content.includes('📋 Call Summary:') || content.includes('Call Summary:')) {
+      result.isCallSummary = true;
+      result.displayText = content.replace(/📋\s*Call Summary:\s*/i, '').trim();
+    } else if (content.includes('📞 Phone call started') || content.includes('Phone call started')) {
+      result.isCallStart = true;
+      result.displayText = 'Call initiated';
+    } else if (content.includes('🎵 Recording:') || content.includes('Recording:')) {
+      result.isRecordingMessage = true;
+      const urlMatch = content.match(/https?:\/\/[^\s]+/);
+      if (urlMatch) {
+        result.extractedUrl = urlMatch[0];
+        result.displayText = 'Call recording available';
+      }
+    } else if (content.includes('VAPI Call - No transcript available')) {
+      result.displayText = 'Call attempted - No recording available';
+    }
+    
+    return result;
+  };
+
+  // Parse content and get recording URL
   const parsedContent = parseMessageContent(messageContent || transcript || '');
   const finalRecordingUrl = recordingUrl || parsedContent.extractedUrl;
 
