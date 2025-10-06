@@ -163,8 +163,8 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     
     let result;
     
-    // 🧪 UNIFIED INBOX BETA TEST - Safe feature flag
-    const useUnifiedInbox = localStorage.getItem('UNIFIED_INBOX_BETA') === 'true';
+    // 🚀 UNIFIED INBOX - NOW DEFAULT (disable with UNIFIED_INBOX_BETA=false)
+    const useUnifiedInbox = localStorage.getItem('UNIFIED_INBOX_BETA') !== 'false';
     const effectivePlatform = useUnifiedInbox ? 'all' : platform;
     
     console.log('🔥 Loading conversations, demoMode:', demoMode, 'platform:', platform, 'offset:', offset);
