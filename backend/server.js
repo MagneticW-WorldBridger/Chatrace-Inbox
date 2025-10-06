@@ -52,18 +52,20 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   console.log('🌐 CORS request from origin:', origin);
   
-  // Allow localhost during development
+  // Allow localhost during development AND production domains
   if (origin && (
     origin.includes('localhost:5173') || 
     origin.includes('localhost:3000') || 
-    origin.includes('127.0.0.1')
+    origin.includes('127.0.0.1') ||
+    origin.includes('frontend-production-43b8.up.railway.app') ||
+    origin.includes('chatrace-inbox-production-561c.up.railway.app')
   )) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-    console.log('✅ CORS: Allowing localhost origin:', origin);
+    console.log('✅ CORS: Allowing origin:', origin);
   } else {
-    // Allow specific production domains if needed
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-    console.log('🔧 CORS: Using default localhost:5173');
+    // Fallback to wildcard for other origins
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('🔧 CORS: Using wildcard for origin:', origin);
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
