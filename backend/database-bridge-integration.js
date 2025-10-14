@@ -17,13 +17,10 @@ class DatabaseBridgeIntegration {
   async initialize() {
     console.log('🔗 Initializing working database bridge...');
     
-    // Connect to Woodstock database (loft-chat-chingon) - CORRECT CREDENTIALS
+    // Connect to Woodstock database - Using environment variable for production compatibility
     this.woodstockDb = new pg.Client({
-      host: 'ep-weathered-dream-adbza7xj-pooler.c-2.us-east-1.aws.neon.tech',
-      database: 'neondb',  
-      user: 'neondb_owner',
-      password: 'npg_THMlQu6ZWmD4',
-      ssl: { rejectUnauthorized: false }
+      connectionString: process.env.WOODSTOCK_DATABASE_URL || 
+        'postgresql://neondb_owner:npg_THMlQu6ZWmD4@ep-weathered-dream-adbza7xj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require'
     });
     
     // Connect to main inbox database
