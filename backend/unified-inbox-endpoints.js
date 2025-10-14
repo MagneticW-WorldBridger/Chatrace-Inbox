@@ -16,14 +16,21 @@ async function initializeUnifiedInbox() {
       await dbBridge.initialize();
       console.log('✅ Database bridge initialized successfully');
       
-      // Run initial sync to populate data
+      // Run initial sync to populate data (with timeout)
       console.log('🔄 Running initial data sync...');
       try {
-        await dbBridge.runSync();
+        // Add 30 second timeout to sync
+        const syncPromise = dbBridge.runSync();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Sync timeout after 30 seconds')), 30000)
+        );
+        
+        await Promise.race([syncPromise, timeoutPromise]);
         console.log('✅ Initial sync completed');
       } catch (syncError) {
-        console.error('❌ Initial sync failed:', syncError);
-        // Don't throw - allow system to work with cached data
+        console.error('❌ Initial sync failed:', syncError.message);
+        console.log('⚠️ Continuing without initial sync - will retry on next periodic sync');
+        // Don't throw - allow system to work with existing data
       }
       
       // Start periodic sync (every 5 minutes)

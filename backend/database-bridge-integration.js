@@ -26,7 +26,10 @@ class DatabaseBridgeIntegration {
       console.log('🔑 Using env var:', !!process.env.WOODSTOCK_DATABASE_URL ? 'YES' : 'NO (using fallback)');
       
       this.woodstockDb = new pg.Client({
-        connectionString: woodstockUrl
+        connectionString: woodstockUrl,
+        connectionTimeoutMillis: 10000, // 10 second timeout
+        query_timeout: 30000, // 30 second query timeout
+        statement_timeout: 30000 // 30 second statement timeout
       });
       
       // Connect to main inbox database
