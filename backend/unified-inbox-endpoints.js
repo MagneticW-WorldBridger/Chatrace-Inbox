@@ -8,19 +8,42 @@ let dbBridge = null;
 // Initialize database bridge
 async function initializeUnifiedInbox() {
   if (!dbBridge) {
-    dbBridge = new DatabaseBridgeIntegration();
-    await dbBridge.initialize();
-    
-    // Start periodic sync (every 5 minutes)
-    setInterval(async () => {
+    try {
+      console.log('🔗 Initializing unified inbox database bridge...');
+      dbBridge = new DatabaseBridgeIntegration();
+      
+      console.log('📡 Attempting database initialization...');
+      await dbBridge.initialize();
+      console.log('✅ Database bridge initialized successfully');
+      
+      // Run initial sync to populate data
+      console.log('🔄 Running initial data sync...');
       try {
         await dbBridge.runSync();
-      } catch (error) {
-        console.error('❌ Periodic sync failed:', error);
+        console.log('✅ Initial sync completed');
+      } catch (syncError) {
+        console.error('❌ Initial sync failed:', syncError);
+        // Don't throw - allow system to work with cached data
       }
-    }, 5 * 60 * 1000);
-    
-    console.log('✅ Unified inbox initialized');
+      
+      // Start periodic sync (every 5 minutes)
+      setInterval(async () => {
+        try {
+          console.log('🔄 Running periodic sync...');
+          await dbBridge.runSync();
+          console.log('✅ Periodic sync completed');
+        } catch (error) {
+          console.error('❌ Periodic sync failed:', error);
+        }
+      }, 5 * 60 * 1000);
+      
+      console.log('✅ Unified inbox fully initialized');
+    } catch (error) {
+      console.error('🚨 CRITICAL: Unified inbox initialization failed!');
+      console.error('🚨 Error details:', error);
+      console.error('🚨 Error stack:', error.stack);
+      throw error; // Re-throw so caller knows it failed
+    }
   }
 }
 

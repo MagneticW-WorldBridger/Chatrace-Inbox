@@ -17,26 +17,44 @@ class DatabaseBridgeIntegration {
   async initialize() {
     console.log('🔗 Initializing working database bridge...');
     
-    // Connect to Woodstock database - Using environment variable for production compatibility
-    this.woodstockDb = new pg.Client({
-      connectionString: process.env.WOODSTOCK_DATABASE_URL || 
-        'postgresql://neondb_owner:npg_THMlQu6ZWmD4@ep-weathered-dream-adbza7xj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require'
-    });
-    
-    // Connect to main inbox database
-    this.mainDb = new pg.Client({
-      connectionString: process.env.DATABASE_URL
-    });
-    
-    await Promise.all([
-      this.woodstockDb.connect(),
-      this.mainDb.connect()
-    ]);
-    
-    console.log('✅ Database connections established');
-    
-    // Create unified conversations table
-    await this.createUnifiedTables();
+    try {
+      // Connect to Woodstock database - Using environment variable for production compatibility
+      const woodstockUrl = process.env.WOODSTOCK_DATABASE_URL || 
+        'postgresql://neondb_owner:npg_THMlQu6ZWmD4@ep-weathered-dream-adbza7xj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require';
+      
+      console.log('📡 Connecting to Woodstock database...');
+      console.log('🔑 Using env var:', !!process.env.WOODSTOCK_DATABASE_URL ? 'YES' : 'NO (using fallback)');
+      
+      this.woodstockDb = new pg.Client({
+        connectionString: woodstockUrl
+      });
+      
+      // Connect to main inbox database
+      console.log('📡 Connecting to main inbox database...');
+      this.mainDb = new pg.Client({
+        connectionString: process.env.DATABASE_URL
+      });
+      
+      // Connect to both databases
+      console.log('🔌 Attempting to establish database connections...');
+      await Promise.all([
+        this.woodstockDb.connect().then(() => console.log('✅ Woodstock DB connected')),
+        this.mainDb.connect().then(() => console.log('✅ Main DB connected'))
+      ]);
+      
+      console.log('✅ All database connections established');
+      
+      // Create unified conversations table
+      console.log('📋 Creating unified tables...');
+      await this.createUnifiedTables();
+      console.log('✅ Unified tables ready');
+      
+    } catch (error) {
+      console.error('🚨 DATABASE INITIALIZATION FAILED!');
+      console.error('🚨 Error:', error.message);
+      console.error('🚨 Stack:', error.stack);
+      throw error;
+    }
   }
   
   async createUnifiedTables() {
@@ -433,47 +451,58 @@ class DatabaseBridgeIntegration {
   // ===== API ENDPOINTS FOR UNIFIED INBOX =====
   
   async getUnifiedConversations(platform = null, limit = 50, offset = 0) {
-    let query = `
-      SELECT 
-        conversation_id,
-        source,
-        customer_name,
-        customer_phone,
-        customer_email,
-        last_message_content,
-        last_message_at,
-        created_at,
-        metadata
-      FROM unified_conversations
-    `;
+    try {
+      console.log(`📊 getUnifiedConversations called - platform: ${platform}, limit: ${limit}, offset: ${offset}`);
+      
+      let query = `
+        SELECT 
+          conversation_id,
+          source,
+          customer_name,
+          customer_phone,
+          customer_email,
+          last_message_content,
+          last_message_at,
+          created_at,
+          metadata
+        FROM unified_conversations
+      `;
+      
+      const params = [];
+      
+      if (platform && platform !== 'all') {
+        query += ` WHERE source = $${params.length + 1}`;
+        params.push(platform);
+        console.log(`🔍 Filtering by source: ${platform}`);
+      }
+      
+      query += ` ORDER BY last_message_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+      params.push(limit, offset);
+      
+      console.log('🔎 Executing query...');
+      const result = await this.mainDb.query(query, params);
+      console.log(`✅ Query returned ${result.rows.length} conversations`);
     
-    const params = [];
-    
-    if (platform && platform !== 'all') {
-      query += ` WHERE source = $${params.length + 1}`;
-      params.push(platform);
+      // Transform to inbox format with PROPER SOURCE ICONS
+      return result.rows.map(row => ({
+        conversation_id: row.conversation_id,
+        display_name: this.getSourceDisplayName(row.source, row.customer_name),
+        username: row.customer_name || this.getDefaultCustomerName(row.source),
+        user_identifier: row.conversation_id,
+        avatar_url: `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(row.conversation_id)}`,
+        last_message_at: row.last_message_at,
+        last_message_content: row.last_message_content,
+        _platform: this.getPlatformName(row.source),
+        hash: '',
+        channel: this.getChannelNumber(row.source),
+        source: row.source,
+        metadata: row.metadata
+      }));
+    } catch (error) {
+      console.error('🚨 Error in getUnifiedConversations:', error);
+      console.error('🚨 Platform:', platform, 'Limit:', limit, 'Offset:', offset);
+      throw error;
     }
-    
-    query += ` ORDER BY last_message_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, offset);
-    
-    const result = await this.mainDb.query(query, params);
-    
-    // Transform to inbox format with PROPER SOURCE ICONS
-    return result.rows.map(row => ({
-      conversation_id: row.conversation_id,
-      display_name: this.getSourceDisplayName(row.source, row.customer_name),
-      username: row.customer_name || this.getDefaultCustomerName(row.source),
-      user_identifier: row.conversation_id,
-      avatar_url: `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(row.conversation_id)}`,
-      last_message_at: row.last_message_at,
-      last_message_content: row.last_message_content,
-      _platform: this.getPlatformName(row.source),
-      hash: '',
-      channel: this.getChannelNumber(row.source),
-      source: row.source,
-      metadata: row.metadata
-    }));
   }
   
   // RESTORED: Helper methods for proper source mapping
