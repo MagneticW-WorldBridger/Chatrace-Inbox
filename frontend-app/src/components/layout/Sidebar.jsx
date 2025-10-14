@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { FiMenu, FiSettings, FiLogOut, FiChevronDown, FiChevronUp, FiX } from 'react-icons/fi';
-import { GrShield } from "react-icons/gr";
 import { useResizable } from '../../hooks/useResizable';
 import SearchBar from '../conversations/SearchBar';
 import PlatformFilters from '../conversations/PlatformFilters';
@@ -114,15 +113,14 @@ const Sidebar = ({
       {/* Sidebar */}
       <div 
         className={`${isMobile
-            ? 'relative w-full h-full bg-white debug-sidebar' 
-            : 'fixed md:relative inset-y-0 left-0 bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out flex flex-col debug-sidebar'
+            ? 'relative w-full h-screen bg-white' 
+            : 'fixed md:relative inset-y-0 left-0 bg-white border-r border-gray-200 z-40 transform transition-transform duration-300 ease-in-out flex flex-col h-screen'
           } ${isMobile ? '' : (isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0')
         }`}
         style={isMobile ? {} : { width: `${width}px` }}
       >
-        <div className="debug-label">🟢 SIDEBAR</div>
-        {/* Header - Fully Fixed at Top */}
-        <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white fixed top-0 left-0 right-0 z-50">
+        {/* Header - Sticky within sidebar */}
+        <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
@@ -158,13 +156,6 @@ const Sidebar = ({
                       <FiRefreshCw className="w-4 h-4 text-gray-600" />
                       <span className="text-black">Switch Account</span>
                     </button> */}
-                    <button 
-                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left text-sm"
-                      onClick={handleChangePassword}
-                    >
-                      <GrShield className="w-4 h-4 text-gray-600" />
-                      <span className="text-black">Change Password</span>
-                    </button>
                     {/* ALWAYS SHOW ADMIN PANEL */}
                     <button 
                       title="Admin Panel"
@@ -195,13 +186,6 @@ const Sidebar = ({
               >
                 <FiRefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button> */}
-              <button 
-                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-black"
-                title="Change Password"
-                onClick={handleChangePassword}
-              >
-                <GrShield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
 
               {/* ALWAYS SHOW ADMIN PANEL - Remove role check for now */}
               <button 
@@ -231,8 +215,8 @@ const Sidebar = ({
           </div>
         </div>
 
-        {/* Conversations List - Account for Fixed Header */}
-        <div className="flex-1 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] mt-[6rem]">
+        {/* Conversations List */}
+        <div className="flex-1 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {loading ? (
             <div className="p-6 text-center">
               <LoadingSpinner size="md" color="blue" />

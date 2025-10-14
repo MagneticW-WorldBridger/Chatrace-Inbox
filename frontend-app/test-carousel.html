@@ -52,31 +52,9 @@
                 Loading carousel test...
             </div>
         </div>
-        
-        <div class="debug-info">
-            <h3>Debug Console:</h3>
-            <div id="debug-log" style="background: #000; color: #0f0; padding: 1rem; border-radius: 8px; font-family: monospace; min-height: 100px; overflow-y: auto;"></div>
-        </div>
     </div>
 
     <script>
-        // Debug logging
-        const debugLog = document.getElementById('debug-log');
-        const originalLog = console.log;
-        const originalError = console.error;
-        
-        console.log = function(...args) {
-            originalLog(...args);
-            debugLog.innerHTML += args.join(' ') + '\n';
-            debugLog.scrollTop = debugLog.scrollHeight;
-        };
-        
-        console.error = function(...args) {
-            originalError(...args);
-            debugLog.innerHTML += '<span style="color: #f00;">ERROR: ' + args.join(' ') + '</span>\n';
-            debugLog.scrollTop = debugLog.scrollHeight;
-        };
-
         // Test data - EXACT format from your Python backend
         const testContent = `🛒 Found 3 dining products for you!
 

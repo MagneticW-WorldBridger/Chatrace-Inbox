@@ -149,9 +149,10 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     })();
   }, [isLoggedIn]);
 
-  // Load conversations when logged in
+  // Load conversations when logged in or platform changes
   useEffect(() => {
     if (isLoggedIn) {
+      console.log('🔄 Platform changed to:', platform, '- Reloading conversations...');
       loadConversations();
     }
   }, [isLoggedIn, platform]);
@@ -172,7 +173,7 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     
     // 🚀 UNIFIED INBOX - NOW DEFAULT (disable with UNIFIED_INBOX_BETA=false)
     const useUnifiedInbox = localStorage.getItem('UNIFIED_INBOX_BETA') !== 'false';
-    const effectivePlatform = useUnifiedInbox ? 'all' : platform;
+    const effectivePlatform = platform; // Use the actual selected platform, not always 'all'
     
     console.log('🔥 Loading conversations, demoMode:', demoMode, 'platform:', platform, 'offset:', offset);
     if (useUnifiedInbox) {
@@ -180,22 +181,15 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
     }
     
     try {
-      if (demoMode) {
-        result = await fetch(`${API_BASE_URL}/api/demo-data`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'conversations' })
-        });
-      } else {
-        result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(effectivePlatform)}&limit=50&offset=${offset}`, {
-          method: 'GET',
-          headers: {
-            'X-ACCESS-TOKEN': userToken || '',
-            'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || '',
-            'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false'
-          }
-        });
-      }
+      // Always use real API - no more demo mode
+      result = await fetch(`${API_BASE_URL}/api/inbox/conversations?platform=${encodeURIComponent(effectivePlatform)}&limit=50&offset=${offset}`, {
+        method: 'GET',
+        headers: {
+          'X-ACCESS-TOKEN': userToken || '',
+          'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || '',
+          'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false'
+        }
+      });
       
       const data = await result.json();
       
@@ -244,57 +238,23 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
         
         // Update counts
         try {
-          if (!demoMode) {
-            // Use unified sources data if available (better performance)
-            if (useUnifiedInbox && data.sources) {
+          // Always use unified sources data (no more demo mode)
+          if (useUnifiedInbox && data.sources) {
               console.log('📊 Using unified sources for counts:', data.sources);
               setCounts({
                 all: data.total || mappedConversations.length,
                 webchat: data.sources.chatrace || 0,
+                chatrace: data.sources.chatrace || 0, // Backend alias
                 instagram: 0, // Instagram is part of ChatRace
-                facebook: 0,  // Facebook is part of ChatRace  
+                facebook: data.sources.chatrace || 0,  // Facebook conversations are in ChatRace source
                 woodstock: data.sources.woodstock || 0,
                 vapi: data.sources.vapi || 0,
-                rural_king: data.sources.rural_king || 0
-              });
-            } else {
-              // Fallback to individual platform calls (original behavior)
-              const [rWeb, rIg, rFb, rRural] = await Promise.all([
-                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=webchat&limit=50`, {
-                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-                }),
-                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=instagram&limit=50`, {
-                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-                }),
-                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=facebook&limit=50`, {
-                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-                }),
-                fetch(`${API_BASE_URL}/api/inbox/conversations?platform=rural_king&limit=50`, {
-                  headers: { 'X-UNIFIED-INBOX': useUnifiedInbox ? 'true' : 'false' }
-                })
-              ]);
-              const [jWeb, jIg, jFb, jRural] = await Promise.all([rWeb.json(), rIg.json(), rFb.json(), rRural.json()]);
-              const cWeb = Array.isArray(jWeb?.data) ? jWeb.data.length : 0;
-              const cIg = Array.isArray(jIg?.data) ? jIg.data.length : 0;
-              const cFb = Array.isArray(jFb?.data) ? jFb.data.length : 0;
-              const cRural = Array.isArray(jRural?.data) ? jRural.data.length : 0;
-              setCounts({ 
-                all: cWeb + cIg + cFb + cRural, 
-                webchat: cWeb, 
-                instagram: cIg, 
-                facebook: cFb,
-                rural_king: cRural
+                vapi_rural: data.sources.vapi_rural || 0, // Backend alias
+                rural_king: data.sources.rural_king || data.sources.vapi_rural || 0,
+                sms: 0, // SMS and calls would need separate backend logic
+                calls: 0
               });
             }
-          } else {
-            setCounts({ 
-              all: mappedConversations.length, 
-              webchat: mappedConversations.length, 
-              instagram: 0, 
-              facebook: 0,
-              rural_king: 0
-            });
-          }
         } catch (e) {
           console.warn('Counts update failed:', e);
         }
@@ -322,23 +282,14 @@ const AppContent = ({ user, onLogout, onChangePassword }) => {
   };
 
   const loadMessages = async (contactId) => {
-    let result;
-    
-    if (demoMode) {
-      result = await fetch(`${API_BASE_URL}/api/demo-data`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'messages' })
-      });
-    } else {
-      result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { 
-        method: 'GET',
-        headers: {
-          'X-ACCESS-TOKEN': userToken || '',
-          'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
-        }
-      });
-    }
+    // Always use real API - no more demo mode
+    const result = await fetch(`${API_BASE_URL}/api/inbox/conversations/${contactId}/messages?limit=50`, { 
+      method: 'GET',
+      headers: {
+        'X-ACCESS-TOKEN': userToken || '',
+        'X-BUSINESS-ID': user?.business_id || localStorage.getItem('businessId') || ''
+      }
+    });
     
     const data = await result.json();
     if ((data.status === 'OK' || data.status === 'success') && Array.isArray(data.data)) {

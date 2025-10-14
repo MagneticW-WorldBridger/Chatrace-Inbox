@@ -19,10 +19,16 @@ const PlatformFilters = ({
 }) => {
   const platforms = [
     { 
+      id: 'all', 
+      icon: () => <span style={{fontSize: '16px'}}>📊</span>, 
+      label: 'All', 
+      count: counts.all || 0 
+    },
+    { 
       id: PLATFORMS.WEBCHAT, 
       icon: FiMessageCircle, 
       label: 'Webchat', 
-      count: counts.webchat || 0 
+      count: counts.webchat || counts.chatrace || 0 
     },
     { 
       id: PLATFORMS.INSTAGRAM, 
@@ -37,10 +43,16 @@ const PlatformFilters = ({
       count: counts.facebook || 0 
     },
     { 
+      id: 'woodstock', 
+      icon: () => <span style={{fontSize: '16px'}}>🌾</span>, 
+      label: 'Woodstock', 
+      count: counts.woodstock || 0 
+    },
+    { 
       id: PLATFORMS.RURAL_KING, 
       icon: () => <span style={{fontSize: '16px'}}>🏪</span>, 
       label: 'Rural King', 
-      count: counts.rural_king || 0 
+      count: counts.rural_king || counts.vapi_rural || 0 
     },
     { 
       id: 'sms', 
@@ -57,8 +69,7 @@ const PlatformFilters = ({
   ];
 
   return (
-    <div className={`overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] debug-platform-filters ${className}`}>
-      <div className="debug-label">🟡 PLATFORM FILTERS</div>
+    <div className={`overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${className}`}>
       <div className="flex items-center gap-2 min-w-max pb-1">
         {platforms.map(platform => {
           const Icon = platform.icon;
@@ -67,7 +78,9 @@ const PlatformFilters = ({
           return (
             <button
               key={platform.id}
-              onClick={() => onPlatformChange(platform.id)}
+              onClick={() => {
+                onPlatformChange(platform.id);
+              }}
               className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 flex-shrink-0 ${
                 isActive
                   ? 'bg-blue-100 text-blue-700 border border-blue-300'

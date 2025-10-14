@@ -137,26 +137,6 @@ const CarouselTestComponent = () => {
           />
         </div>
       </div>
-
-      {/* Debug Info */}
-      <div className="debug-info mt-8 p-4 bg-gray-100 rounded">
-        <h4 className="font-semibold mb-2">Debug Information:</h4>
-        <div className="text-sm space-y-1">
-          <div>window.WoodstockComponents: {window.WoodstockComponents ? '✅ Available' : '❌ Missing'}</div>
-          <div>window.WoodstockMagentoCarousel: {window.WoodstockMagentoCarousel ? '✅ Available' : '❌ Missing'}</div>
-          <div>window.swiffyslider: {window.swiffyslider ? '✅ Available' : '❌ Missing'}</div>
-          <div>Font Awesome: {document.querySelector('link[href*="font-awesome"]') ? '✅ Loaded' : '❌ Missing'}</div>
-          <div>Swiffy Slider CSS: {document.querySelector('link[href*="swiffy-slider"]') ? '✅ Loaded' : '❌ Missing'}</div>
-        </div>
-      </div>
-
-      {/* Raw Data Preview */}
-      <div className="raw-data mt-8">
-        <h4 className="font-semibold mb-2">Raw Python Backend Message:</h4>
-        <pre className="text-xs bg-gray-800 text-green-400 p-4 rounded overflow-x-auto">
-          {JSON.stringify(pythonBackendMessage, null, 2)}
-        </pre>
-      </div>
     </div>
   );
 };
